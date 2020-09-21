@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "",
   "type": "module",
-  "module": "lib/mod.es6.js",
-  "main": "lib/mod.cjs",
-  "types": "lib/mod.d.ts",
+  "module": "lib/lib.es6.js",
+  "main": "lib/lib.cjs",
+  "types": "lib/lib.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
