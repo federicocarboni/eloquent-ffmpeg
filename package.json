@@ -7,7 +7,8 @@
   "main": "lib/lib.cjs",
   "types": "lib/lib.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c",
+    "test": "mocha -r ts-node/register test/**/*_test.ts"
   },
   "repository": {
     "type": "git",
