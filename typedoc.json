@@ -1,0 +1,16 @@
+{
+  "mode": "modules",
+  "out": "./docs",
+  "readme": "README.md",
+  "exclude": [
+    "src/**/*.js"
+  ],
+  "inputFiles": [
+    "src"
+  ],
+  "excludeExternals": true,
+  "excludeNotExported": true,
+  "excludePrivate": true,
+  "hideGenerator": true,
+  "includeDeclarations": true
+}
