@@ -2,7 +2,6 @@ import { getCodecs, getDemuxers, getFormats, getMuxers, getRawCodecs, getVersion
 import { expect } from 'chai';
 
 describe('info', function () {
-  this.timeout(60000);
   describe('getVersion()', function () {
     it('returns information', async function () {
       const version = await getVersion();
@@ -40,7 +39,7 @@ describe('info', function () {
   describe('getRawCodecs()', function () {
     it('returns a Set', async function () {
       const rawCodecs = await getRawCodecs();
-      expect(rawCodecs).to.be.an.instanceOf(Set);
+      expect(rawCodecs).to.be.an.instanceOf(Map);
     });
   });
   describe('getCodecs()', function () {
@@ -50,7 +49,6 @@ describe('info', function () {
       expect(codecs.audio).to.be.an.instanceOf(Set);
       expect(codecs.subtitle).to.be.an.instanceOf(Set);
       expect(codecs.data).to.be.an.instanceOf(Set);
-      console.log(codecs);
     });
   });
 });
