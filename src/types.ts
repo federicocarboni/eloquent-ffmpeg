@@ -1,4 +1,4 @@
-import { AudioCodec, ChannelLayout, ChromaLocation, ColorRange, ColorSpace, DataCodec, FieldOrder, PixelFormat, SampleFormat, SubtitleCodec, VideoCodec } from './_types';
+import { AudioCodec, ChannelLayout, ChromaLocation, ColorRange, ColorSpace, DataCodec, Demuxer, FieldOrder, PixelFormat, SampleFormat, SubtitleCodec, VideoCodec } from './_types';
 
 export * from './_types';
 
@@ -179,7 +179,7 @@ export class Chapter {
 }
 
 export class ProbeResult {
-  format: string; // TODO: this should be a union type
+  format: Demuxer;
 
   // programs: number;
   streams: Stream[];
@@ -197,7 +197,7 @@ export class ProbeResult {
   constructor (info: any) {
     privateMap.set(this, info);
     const formatInfo = info.format;
-    this.format = '' + formatInfo.format_name;
+    this.format = '' + formatInfo.format_name as Demuxer;
     this.start = +formatInfo.start_time * 1000 | 0;
     this.duration = +formatInfo.duration * 1000 | 0;
     this.bitrate = int(formatInfo.bit_rate);
