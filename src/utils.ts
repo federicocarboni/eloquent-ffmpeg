@@ -15,3 +15,14 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
     stream.once('error', reject);
   });
 }
+
+/** @internal */
+export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    stream.end(chunk, () => {
+      stream.off('error', reject);
+      resolve();
+    });
+    stream.once('error', reject);
+  });
+}
