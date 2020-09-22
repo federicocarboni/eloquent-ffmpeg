@@ -1,4 +1,4 @@
-import { AudioCodec, DataCodec, SubtitleCodec, VideoCodec } from './_types';
+import { AudioCodec, ChannelLayout, ChromaLocation, ColorRange, ColorSpace, DataCodec, FieldOrder, PixelFormat, SampleFormat, SubtitleCodec, VideoCodec } from './_types';
 
 export * from './_types';
 
@@ -89,14 +89,14 @@ export class VideoStream extends BaseStream {
   codedHeight: number;
 
   aspectRatio: string;
-  pixelFormat: string;
+  pixelFormat: PixelFormat;
   level: number;
-  colorRange: string;
-  colorSpace: string;
+  colorRange: ColorRange;
+  colorSpace: ColorSpace;
   colorTransfer: string;
   colorPrimaries: string;
-  chromaLocation: string;
-  fieldOrder: string;
+  chromaLocation: ChromaLocation;
+  fieldOrder: FieldOrder;
   frameRate: number;
   avgFrameRate: number;
   bitsPerRawSample: number;
@@ -110,14 +110,14 @@ export class VideoStream extends BaseStream {
     this.codedWidth = int(info.coded_width);
     this.codedHeight = int(info.coded_height);
     this.aspectRatio = '' + info.display_aspect_ratio;
-    this.pixelFormat = '' + info.pixel_format;
+    this.pixelFormat = '' + info.pixel_format as PixelFormat;
     this.level = info.level >>> 0;
-    this.colorRange = '' + info.color_range;
-    this.colorSpace = '' + info.color_space;
+    this.colorRange = '' + info.color_range as ColorRange;
+    this.colorSpace = '' + info.color_space as ColorSpace;
     this.colorTransfer = '' + info.color_transfer;
     this.colorPrimaries = '' + info.color_primaries;
-    this.chromaLocation = '' + info.chroma_location;
-    this.fieldOrder = '' + info.field_order;
+    this.chromaLocation = '' + info.chroma_location as ChromaLocation;
+    this.fieldOrder = '' + info.field_order as FieldOrder;
     this.frameRate = f64(info.frame_rate);
     this.avgFrameRate = f64(info.avg_frame_rate);
     this.bitsPerRawSample = info.bits_per_raw_sample >>> 0;
@@ -128,22 +128,23 @@ export class AudioStream extends BaseStream {
   type: 'audio' = 'audio';
   codec: AudioCodec;
   profile?: string;
-  sampleFormat: string;
+  sampleFormat: SampleFormat;
   sampleRate: number;
   channels: number;
-  channelLayout: string;
+  channelLayout: ChannelLayout;
   bitsPerSample: number;
   constructor (info: any) {
     super(info);
     this.codec = '' + info.codec_name as AudioCodec;
     if (info.profile) this.profile = ('' + info.profile).toLowerCase();
-    this.sampleFormat = '' + info.sample_fmt;
+    this.sampleFormat = '' + info.sample_fmt as SampleFormat;
     this.sampleRate = info.sample_rate >>> 0;
     this.channels = info.channels >>> 0;
-    this.channelLayout = '' + info.channel_layout;
+    this.channelLayout = '' + info.channel_layout as ChannelLayout;
     this.bitsPerSample = info.bits_per_sample >>> 0;
   }
 }
+
 export class SubtitleStream extends BaseStream {
   type: 'subtitle' = 'subtitle';
   codec: SubtitleCodec;
