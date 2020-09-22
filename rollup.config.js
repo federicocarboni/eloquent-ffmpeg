@@ -1,4 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
+import cleanup from 'rollup-plugin-cleanup';
 import { execSync } from 'child_process';
 import pkg from './package.json';
 
@@ -6,11 +7,10 @@ const commit = execSync('git rev-parse HEAD').toString('utf-8').slice(0, -1);
 
 const banner = `/**
  * ${pkg.name} v${pkg.version}
- * ${new Date().toUTCString()}
- * Commit ${commit}
+ * ${new Date().toUTCString()} — git ${commit}
  * ${pkg.homepage}
- * @author ${pkg.author.name}
  * @license ${pkg.license}
+ * @author ${pkg.author.name}
  */`;
 
 export default [{
@@ -28,6 +28,11 @@ export default [{
   }],
   plugins: [
     typescript({ tsconfig: './tsconfig.es6.json' }),
+    cleanup({
+      comments: 'none',
+      include: ['src/**/*.ts'],
+      extensions: ['ts'],
+    }),
   ],
   external: ['child_process', 'path', 'fs'],
 }];
