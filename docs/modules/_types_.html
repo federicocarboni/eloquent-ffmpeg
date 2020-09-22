@@ -100,11 +100,20 @@
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.audiostream.html" class="tsd-kind-icon">Audio<wbr>Stream</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.basestream.html" class="tsd-kind-icon">Base<wbr>Stream</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.chapter.html" class="tsd-kind-icon">Chapter</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.datastream.html" class="tsd-kind-icon">Data<wbr>Stream</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.proberesult.html" class="tsd-kind-icon">Probe<wbr>Result</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.subtitlestream.html" class="tsd-kind-icon">Subtitle<wbr>Stream</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/_types_.videostream.html" class="tsd-kind-icon">Video<wbr>Stream</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_types_.rawprobechapter.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Chapter</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_types_.rawproberesult.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Result</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_types_.rawprobestream.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Stream</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -223,7 +232,7 @@
 					<div class="tsd-signature tsd-kind-icon">Stream<span class="tsd-signature-symbol">:</span> <a href="../classes/_types_.videostream.html" class="tsd-signature-type">VideoStream</a><span class="tsd-signature-symbol"> | </span><a href="../classes/_types_.audiostream.html" class="tsd-signature-type">AudioStream</a><span class="tsd-signature-symbol"> | </span><a href="../classes/_types_.subtitlestream.html" class="tsd-signature-type">SubtitleStream</a><span class="tsd-signature-symbol"> | </span><a href="../classes/_types_.datastream.html" class="tsd-signature-type">DataStream</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d128ad3/src/types.ts#L165">types.ts:165</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L195">types.ts:195</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -233,9 +242,14 @@
 					<div class="tsd-signature tsd-kind-icon">Tags<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d128ad3/src/types.ts#L19">types.ts:19</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L20">types.ts:20</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Metadata tags, a Map of string-string pairs, the keys are lowercased.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -252,13 +266,13 @@
 						<a href="_env_.html">&quot;env&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="_ffprobe_.html">&quot;ffprobe&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="_info_.html">&quot;info&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="_lib_.html">&quot;lib&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="_probe_.html">&quot;probe&quot;</a>
 					</li>
 					<li class="current tsd-kind-module">
 						<a href="_types_.html">&quot;types&quot;</a>
@@ -331,6 +345,9 @@
 						<a href="../classes/_types_.audiostream.html" class="tsd-kind-icon">Audio<wbr>Stream</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/_types_.basestream.html" class="tsd-kind-icon">Base<wbr>Stream</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/_types_.chapter.html" class="tsd-kind-icon">Chapter</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
@@ -344,6 +361,15 @@
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/_types_.videostream.html" class="tsd-kind-icon">Video<wbr>Stream</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/_types_.rawprobechapter.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Chapter</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/_types_.rawproberesult.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/_types_.rawprobestream.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Stream</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 						<a href="_types_.html#stream" class="tsd-kind-icon">Stream</a>
