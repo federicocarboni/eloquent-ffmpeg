@@ -56,15 +56,11 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
   };
 }
 
-function parseLine(line: string, i = 4): string {
-  return line.slice(i, line.slice(i).indexOf(' ') + i);
-}
-
-async function getLines(ffmpegPath: string, args: string[]) {
-  const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-  return (await read(process.stdout)).toString('utf-8').trim().split(/\r\n|[\r\n]/);
-}
-
+/**
+ * Runs `ffmpeg -demuxers` and returns its output as a set.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @returns A set of all demuxers supported by ffmpeg.
+ */
 export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-demuxers']);
   const demuxers = new Set<string>();
@@ -74,6 +70,11 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
   return demuxers;
 }
 
+/**
+ * Runs `ffmpeg -muxers` and returns its output as a set.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @returns A set of all muxers supported by ffmpeg.
+ */
 export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-muxers']);
   const muxers = new Set<string>();
@@ -83,6 +84,11 @@ export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<strin
   return muxers;
 }
 
+/**
+ * Runs `ffmpeg -formats` and returns its output as a set.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @returns A set of all formats supported by ffmpeg.
+ */
 export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-formats']);
   const formats = new Set<string>();
@@ -99,6 +105,11 @@ export interface Codecs {
   data: Set<string>;
 }
 
+/**
+ * Runs `ffmpeg -codecs` and returns its output as a set.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @returns All codecs supported by ffmpeg.
+ */
 export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
   const codecs: Codecs = {
     video: new Set<string>(),
@@ -125,6 +136,32 @@ export const INTRA_ONLY = 64;
 export const LOSSY = 128;
 export const LOSSLESS = 256;
 
+/**
+ * Runs `ffmpeg -codecs` and returns its output as a set. Similar to `getCodecs()`,
+ * but this function includes advanced information about the codecs as a bitmask.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @returns A set of all codecs supported by ffmpeg.
+ */
+export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Set<[string, number]>> {
+  const lines = await getLines(ffmpegPath, ['-codecs']);
+  const codecs = new Set<[string, number]>();
+  for (const line of lines.slice(10)) {
+    const name = parseLine(line, 8);
+    const flags = getFlags(line.slice(1, 7));
+    codecs.add([name, flags]);
+  }
+  return codecs;
+}
+
+function parseLine(line: string, i = 4): string {
+  return line.slice(i, line.slice(i).indexOf(' ') + i);
+}
+
+async function getLines(ffmpegPath: string, args: string[]) {
+  const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+  return (await read(process.stdout)).toString('utf-8').trim().split(/\r\n|[\r\n]/);
+}
+
 function getFlags(flagsString: string): number {
   let flags = 0;
   if (flagsString[0] === 'D') flags |= DECODING;
@@ -147,15 +184,4 @@ function getFlags(flagsString: string): number {
   if (flagsString[4] === 'L') flags |= LOSSY;
   if (flagsString[5] === 'S') flags |= LOSSLESS;
   return flags;
-}
-
-export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Set<[string, number]>> {
-  const lines = await getLines(ffmpegPath, ['-codecs']);
-  const codecs = new Set<[string, number]>();
-  for (const line of lines.slice(10)) {
-    const name = parseLine(line, 8);
-    const flags = getFlags(line.slice(1, 7));
-    codecs.add([name, flags]);
-  }
-  return codecs;
 }
