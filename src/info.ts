@@ -211,6 +211,26 @@ export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Map<st
   return codecs;
 }
 
+/**
+ * Runs `ffmpeg -pix_fmts` and returns its output as a set. This can be used to
+ * check for compatibility or show a list of available formats to the user.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example ```typescript
+ * const pixelFormats = await getPixelFormats();
+ * if (pixelFormats.has('yuv420p')) {
+ *   // yuv420p is supported
+ * }
+ * ```
+ */
+export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
+  const lines = await getLines(ffmpegPath, ['-pix_fmts']);
+  const pixelFormats = new Set<string>();
+  for (const line of lines.slice(8)) {
+    pixelFormats.add(parseLine(line, 6));
+  }
+  return pixelFormats;
+}
+
 function parseLine(line: string, i = 4): string {
   return line.slice(i, line.slice(i).indexOf(' ') + i);
 }
