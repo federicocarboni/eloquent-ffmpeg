@@ -8,7 +8,7 @@
   "types": "lib/lib.d.ts",
   "scripts": {
     "build": "rollup -c",
-    "test": "mocha -r ts-node/register test/**/*_test.ts"
+    "test": "mocha -r dotenv/config -r ts-node/register test/**/*_test.ts"
   },
   "repository": {
     "type": "git",
