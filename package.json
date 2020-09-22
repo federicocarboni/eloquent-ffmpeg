@@ -8,7 +8,8 @@
   "types": "lib/lib.d.ts",
   "scripts": {
     "build": "rollup -c",
-    "test": "mocha -r dotenv/config -r ts-node/register test/**/*_test.ts"
+    "test": "mocha -r dotenv/config -r ts-node/register test/**/*_test.ts",
+    "typedoc": "typedoc && node -e \"require('fs').writeFileSync('docs/.nojekyll', '')\""
   },
   "repository": {
     "type": "git",
