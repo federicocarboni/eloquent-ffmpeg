@@ -19,7 +19,7 @@ describe('env', function () {
     });
   });
   describe('getFFprobePath()', function () {
-    it('throws on an invalid path', function () {
+    it('returns a string', function () {
       expect(getFFprobePath()).to.be.a('string');
     });
   });
