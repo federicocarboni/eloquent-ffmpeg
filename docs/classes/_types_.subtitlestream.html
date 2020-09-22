@@ -90,6 +90,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#codecname" class="tsd-kind-icon">codec<wbr>Name</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#codectag" class="tsd-kind-icon">codec<wbr>Tag</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#duration" class="tsd-kind-icon">duration</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#frames" class="tsd-kind-icon">frames</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#index" class="tsd-kind-icon">index</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#start" class="tsd-kind-icon">start</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_types_.subtitlestream.html#tags" class="tsd-kind-icon">tags</a></li>
@@ -114,7 +115,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#bitrate">bitrate</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L48">types.ts:48</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L48">types.ts:48</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -126,11 +127,11 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 					<a name="codec" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> codec</h3>
-					<div class="tsd-signature tsd-kind-icon">codec<span class="tsd-signature-symbol">:</span> <a href="../modules/_types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a></div>
+					<div class="tsd-signature tsd-kind-icon">codec<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Maybe</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/_types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<p>Overrides <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#codec">codec</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L175">types.ts:175</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L177">types.ts:177</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -141,7 +142,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#codecname">codecName</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L32">types.ts:32</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L32">types.ts:32</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -157,7 +158,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#codectag">codecTag</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L36">types.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L36">types.ts:36</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -173,7 +174,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#duration">duration</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L44">types.ts:44</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L44">types.ts:44</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -183,13 +184,24 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="frames" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> frames</h3>
+					<div class="tsd-signature tsd-kind-icon">frames<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#frames">frames</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L53">types.ts:53</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="index" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> index</h3>
 					<div class="tsd-signature tsd-kind-icon">index<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#index">index</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L26">types.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L26">types.ts:26</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -205,7 +217,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#start">start</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L40">types.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L40">types.ts:40</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -221,7 +233,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#tags">tags</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L52">types.ts:52</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L52">types.ts:52</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -237,7 +249,7 @@
 					<aside class="tsd-sources">
 						<p>Overrides <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#type">type</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L174">types.ts:174</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L176">types.ts:176</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -255,7 +267,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="_types_.basestream.html">BaseStream</a>.<a href="_types_.basestream.html#unwrap">unwrap</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/b67fbbf/src/types.ts#L78">types.ts:78</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/e4a67b5/src/types.ts#L80">types.ts:80</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -400,6 +412,9 @@ rawStream.has_b_frames === <span class="hljs-number">0</span></code></pre>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 								<a href="_types_.subtitlestream.html#duration" class="tsd-kind-icon">duration</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="_types_.subtitlestream.html#frames" class="tsd-kind-icon">frames</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 								<a href="_types_.subtitlestream.html#index" class="tsd-kind-icon">index</a>
