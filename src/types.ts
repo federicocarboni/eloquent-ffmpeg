@@ -50,6 +50,7 @@ export abstract class BaseStream {
    * Custom metadata tags.
    */
   readonly tags: Tags;
+  readonly frames: number;
 
   /** @internal */
   constructor (stream: RawProbeStream) {
@@ -62,6 +63,7 @@ export abstract class BaseStream {
     this.start = +stream.start_time * 1000 | 0;
     this.duration = +stream.duration * 1000 | 0;
     this.bitrate = int(stream.bit_rate);
+    this.frames = stream.nb_frames >>> 0;
     this.tags = tags(stream.tags);
   }
 
@@ -85,7 +87,7 @@ export class VideoStream extends BaseStream {
   /**
    * The video's codec.
    */
-  readonly codec: VideoCodec;
+  readonly codec: Maybe<VideoCodec>;
   /**
    * The video's profile, some codecs don't require this.
    */
@@ -111,14 +113,14 @@ export class VideoStream extends BaseStream {
    * The aspect ratio of the video stream as a string, e.g. `16:9`.
    */
   readonly aspectRatio: string;
-  readonly pixelFormat: PixelFormat;
+  readonly pixelFormat: Maybe<PixelFormat>;
   readonly level: number;
-  readonly colorRange: ColorRange;
-  readonly colorSpace: ColorSpace;
+  readonly colorRange: Maybe<ColorRange>;
+  readonly colorSpace: Maybe<ColorSpace>;
   readonly colorTransfer: string;
   readonly colorPrimaries: string;
-  readonly chromaLocation: ChromaLocation;
-  readonly fieldOrder: FieldOrder;
+  readonly chromaLocation: Maybe<ChromaLocation>;
+  readonly fieldOrder: Maybe<FieldOrder>;
   readonly frameRate: number;
   readonly avgFrameRate: number;
   readonly bitsPerRawSample: number;
@@ -127,21 +129,21 @@ export class VideoStream extends BaseStream {
   constructor (stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as VideoCodec;
-    if (stream.profile) this.profile = ('' + stream.profile).toLowerCase();
+    if (stream.profile) this.profile = '' + stream.profile;
     this.width = int(stream.width);
     this.height = int(stream.height);
     this.codedWidth = int(stream.coded_width);
     this.codedHeight = int(stream.coded_height);
     this.aspectRatio = '' + stream.display_aspect_ratio;
-    this.pixelFormat = '' + stream.pixel_format as PixelFormat;
+    this.pixelFormat = '' + (stream.pix_fmt || 'unknown') as PixelFormat;
     this.level = stream.level >>> 0;
-    this.colorRange = '' + stream.color_range as ColorRange;
-    this.colorSpace = '' + stream.color_space as ColorSpace;
-    this.colorTransfer = '' + stream.color_transfer;
-    this.colorPrimaries = '' + stream.color_primaries;
-    this.chromaLocation = '' + stream.chroma_location as ChromaLocation;
-    this.fieldOrder = '' + stream.field_order as FieldOrder;
-    this.frameRate = f64(stream.frame_rate);
+    this.colorRange = '' + (stream.color_range || 'unknown') as ColorRange;
+    this.colorSpace = '' + (stream.color_space || 'unknown') as ColorSpace;
+    this.colorTransfer = '' + (stream.color_transfer || 'unknown');
+    this.colorPrimaries = '' + (stream.color_primaries || 'unknown');
+    this.chromaLocation = '' + (stream.chroma_location || 'unknown') as ChromaLocation;
+    this.fieldOrder = '' + (stream.field_order || 'unknown') as FieldOrder;
+    this.frameRate = f64(stream.r_frame_rate);
     this.avgFrameRate = f64(stream.avg_frame_rate);
     this.bitsPerRawSample = stream.bits_per_raw_sample >>> 0;
   }
@@ -149,19 +151,19 @@ export class VideoStream extends BaseStream {
 
 export class AudioStream extends BaseStream {
   readonly type: 'audio' = 'audio';
-  readonly codec: AudioCodec;
+  readonly codec: Maybe<AudioCodec>;
   readonly profile?: string;
-  readonly sampleFormat: SampleFormat;
+  readonly sampleFormat: Maybe<SampleFormat>;
   readonly sampleRate: number;
   readonly channels: number;
-  readonly channelLayout: ChannelLayout;
+  readonly channelLayout: Maybe<ChannelLayout>;
   readonly bitsPerSample: number;
 
   /** @internal */
   constructor (stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as AudioCodec;
-    if (stream.profile) this.profile = ('' + stream.profile).toLowerCase();
+    if (stream.profile) this.profile = '' + stream.profile;
     this.sampleFormat = '' + stream.sample_fmt as SampleFormat;
     this.sampleRate = stream.sample_rate >>> 0;
     this.channels = stream.channels >>> 0;
@@ -172,7 +174,7 @@ export class AudioStream extends BaseStream {
 
 export class SubtitleStream extends BaseStream {
   readonly type: 'subtitle' = 'subtitle';
-  readonly codec: SubtitleCodec;
+  readonly codec: Maybe<SubtitleCodec>;
 
   /** @internal */
   constructor (stream: RawProbeStream) {
@@ -183,7 +185,7 @@ export class SubtitleStream extends BaseStream {
 
 export class DataStream extends BaseStream {
   readonly type: 'data' = 'data';
-  readonly codec: DataCodec;
+  readonly codec: Maybe<DataCodec>;
 
   /** @internal */
   constructor (stream: RawProbeStream) {
@@ -318,6 +320,8 @@ export interface RawProbeResult {
   [extra: string]: any;
 }
 /* eslint-enable camelcase */
+
+type Maybe<T> = T | 'unknown';
 
 const probeResultMap = new WeakMap<ProbeResult, RawProbeResult>();
 const probeStreamMap = new WeakMap<BaseStream, RawProbeStream>();
