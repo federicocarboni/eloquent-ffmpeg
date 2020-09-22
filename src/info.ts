@@ -17,8 +17,8 @@ export interface Version {
 }
 
 /**
- * Runs `ffmpeg -version` and returns its output as a {@link Version}.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * Runs `ffmpeg -version` and returns its output as {@link Version}.
+ * @param ffmpegPath Path to the ffmpeg executable.
  */
 export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version> {
   const lines = await getLines(ffmpegPath, ['-version']);
@@ -57,9 +57,16 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
 }
 
 /**
- * Runs `ffmpeg -demuxers` and returns its output as a set.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
- * @returns A set of all demuxers supported by ffmpeg.
+ * Returns a set of all demuxers supported by ffmpeg. This is mostly useful
+ * to check if reading a certain format is supported.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example
+ * ```typescript
+ * const demuxers = await getDemuxers();
+ * if (demuxers.has('mov')) {
+ *   // mov can be used as an input format
+ * }
+ * ```
  */
 export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-demuxers']);
@@ -71,9 +78,16 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
 }
 
 /**
- * Runs `ffmpeg -muxers` and returns its output as a set.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
- * @returns A set of all muxers supported by ffmpeg.
+ * Returns a set of all muxers supported by ffmpeg. This is mostly useful
+ * to check if outputting a certain format is supported.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example
+ * ```typescript
+ * const muxers = await getMuxers();
+ * if (muxers.has('mov')) {
+ *   // mov can be used as an output format
+ * }
+ * ```
  */
 export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-muxers']);
@@ -85,9 +99,10 @@ export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<strin
 }
 
 /**
- * Runs `ffmpeg -formats` and returns its output as a set.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
- * @returns A set of all formats supported by ffmpeg.
+ * Returns a set of all formats supported by ffmpeg. This is generally not very
+ * useful, to check the compatibility for a certain format use {@link getMuxers}
+ * for reading or {@link getDemuxers} for writing.
+ * @param ffmpegPath Path to the ffmpeg executable.
  */
 export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-formats']);
@@ -106,11 +121,43 @@ export interface Codecs {
 }
 
 /**
- * Runs `ffmpeg -codecs` and returns its output as a set.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * Returns all the encoders supported by ffmpeg as {@link Codecs}. This is mostly
+ * useful to check if ffmpeg supports encoding a certain codec.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example ```typescript
+ * const encoders = await getEncoders();
+ * if (encoders.video.has('h264')) {
+ *   // h264 can be used for encoding
+ * }
+ * ```
+ */
+export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+  return await getCodecs(ffmpegPath, ENCODING);
+}
+/**
+ * Returns all the decoders supported by ffmpeg as {@link Codecs}. This is mostly
+ * useful to check if ffmpeg supports decoding a certain codec.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example ```typescript
+ * const decoders = await getDecoders();
+ * if (decoders.video.has('h264')) {
+ *   // h264 can be used for decoding
+ * }
+ * ```
+ */
+export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+  return await getCodecs(ffmpegPath, DECODING);
+}
+
+/**
+ * Runs `ffmpeg -codecs` and returns its output as {@link Codecs}. This is generally not
+ * very useful, if you need to check the compatibility for a certain encoder or decoder use
+ * {@link getEncoders} or {@link getDecoders}.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @param searchFlag Codecs which don't have this flag will be omitted.
  * @returns All codecs supported by ffmpeg.
  */
-export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+export async function getCodecs(ffmpegPath = getFFmpegPath(), searchFlag = -1): Promise<Codecs> {
   const codecs: Codecs = {
     video: new Set<string>(),
     audio: new Set<string>(),
@@ -118,6 +165,7 @@ export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
     data: new Set<string>(),
   };
   for (const [name, flags] of await getRawCodecs(ffmpegPath)) {
+    if ((flags & searchFlag) === 0) continue;
     if ((flags & VIDEO) !== 0) codecs.video.add(name);
     else if ((flags & AUDIO) !== 0) codecs.audio.add(name);
     else if ((flags & SUBTITLE) !== 0) codecs.subtitle.add(name);
@@ -137,18 +185,28 @@ export const LOSSY = 128;
 export const LOSSLESS = 256;
 
 /**
- * Runs `ffmpeg -codecs` and returns its output as a set. Similar to `getCodecs()`,
- * but this function includes advanced information about the codecs as a bitmask.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
- * @returns A set of all codecs supported by ffmpeg.
+ * Runs `ffmpeg -codecs` and returns its output as a map of codec names and flags.
+ * This function also returns advanced information about codecs as a bitmask, don't
+ * use it if you don't know what you are doing.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ * @example ```typescript
+ * const rawCodecs = await getRawCodecs();
+ * const flags = rawCodecs.get('h264');
+ * if (flags & LOSSY) {
+ *   // the codec uses lossy compression
+ * }
+ * if (flags & INTRA_ONLY) {
+ *   // the codec uses only intra-frames
+ * }
+ * ```
  */
-export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Set<[string, number]>> {
+export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Map<string, number>> {
   const lines = await getLines(ffmpegPath, ['-codecs']);
-  const codecs = new Set<[string, number]>();
+  const codecs = new Map<string, number>();
   for (const line of lines.slice(10)) {
     const name = parseLine(line, 8);
     const flags = getFlags(line.slice(1, 7));
-    codecs.add([name, flags]);
+    codecs.set(name, flags);
   }
   return codecs;
 }
