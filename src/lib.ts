@@ -1,2 +1,2 @@
-export { setFFmpegPath, setFFprobePath, getFFmpegPath, getFFprobePath } from './env';
-export { getVersion } from './info';
+export * from './env';
+export * from './info';
