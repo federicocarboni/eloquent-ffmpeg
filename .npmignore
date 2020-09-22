@@ -1,11 +1,18 @@
 .gitattributes
 .gitignore
 
+.editorconfig
+.eslintrc.json
+.env
+
 README.md
 
 rollup.config.js
+tsconfig.es6.json
 tsconfig.json
+typedoc.json
 
 scripts/
+docs/
 test/
 src/
