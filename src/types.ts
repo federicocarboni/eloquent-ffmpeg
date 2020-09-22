@@ -20,28 +20,49 @@ export enum LogLevel {
 export type Tags = Map<string, string>;
 
 export abstract class BaseStream {
+  /**
+   * Zero-based index of the stream. Used to map streams.
+   */
   readonly index: number;
   readonly abstract type: string;
   readonly abstract codec: string;
+  /**
+   * Human readable representing the stream's codec.
+   */
   readonly codecName: string;
+  /**
+   * Codec tag, used by the `codecs` parameter in MIME Types.
+   */
   readonly codecTag?: string;
+  /**
+   * Start of the stream in milliseconds.
+   */
   readonly start: number;
+  /**
+   * Duration of the stream in milliseconds.
+   */
   readonly duration: number;
+  /**
+   * Bit rate in bits/s.
+   */
   readonly bitrate: number;
+  /**
+   * Custom metadata tags.
+   */
   readonly tags: Tags;
 
   /** @internal */
-  constructor (info: RawProbeStream) {
-    unwrapMap.set(this, info);
-    this.index = info.index >>> 0;
-    this.codecName = '' + info.codec_long_name;
-    const tag = codecTag(info.codec_tag_string);
-    if (tag) this.codecTag = tag;
+  constructor (stream: RawProbeStream) {
+    probeStreamMap.set(this, stream);
 
-    this.start = +info.start_time * 1000 | 0;
-    this.duration = +info.duration * 1000 | 0;
-    this.bitrate = int(info.bit_rate);
-    this.tags = tags(info.tags);
+    this.index = stream.index >>> 0;
+    this.codecName = '' + stream.codec_long_name;
+    const tag = codecTag(stream.codec_tag_string);
+    if (tag) this.codecTag = tag;
+    this.start = +stream.start_time * 1000 | 0;
+    this.duration = +stream.duration * 1000 | 0;
+    this.bitrate = int(stream.bit_rate);
+    this.tags = tags(stream.tags);
   }
 
   /**
@@ -55,20 +76,40 @@ export abstract class BaseStream {
    * ```
    */
   unwrap(): RawProbeStream {
-    return unwrapMap.get(this);
+    return probeStreamMap.get(this)!;
   }
 }
 
 export class VideoStream extends BaseStream {
   readonly type: 'video' = 'video';
+  /**
+   * The video's codec.
+   */
   readonly codec: VideoCodec;
+  /**
+   * The video's profile, some codecs don't require this.
+   */
   readonly profile?: string;
-
+  /**
+   * The width of the video stream in pixels.
+   */
   readonly width: number;
+  /**
+   * The height of the video stream in pixels.
+   */
   readonly height: number;
+  /**
+   * The width used by the coder in pixels.
+   */
   readonly codedWidth: number;
+  /**
+   * The height used by the coder in pixels.
+   */
   readonly codedHeight: number;
 
+  /**
+   * The aspect ratio of the video stream as a string, e.g. `16:9`.
+   */
   readonly aspectRatio: string;
   readonly pixelFormat: PixelFormat;
   readonly level: number;
@@ -83,26 +124,26 @@ export class VideoStream extends BaseStream {
   readonly bitsPerRawSample: number;
 
   /** @internal */
-  constructor (info: RawProbeStream) {
-    super(info);
-    this.codec = '' + info.codec_name as VideoCodec;
-    if (info.profile) this.profile = ('' + info.profile).toLowerCase();
-    this.width = int(info.width);
-    this.height = int(info.height);
-    this.codedWidth = int(info.coded_width);
-    this.codedHeight = int(info.coded_height);
-    this.aspectRatio = '' + info.display_aspect_ratio;
-    this.pixelFormat = '' + info.pixel_format as PixelFormat;
-    this.level = info.level >>> 0;
-    this.colorRange = '' + info.color_range as ColorRange;
-    this.colorSpace = '' + info.color_space as ColorSpace;
-    this.colorTransfer = '' + info.color_transfer;
-    this.colorPrimaries = '' + info.color_primaries;
-    this.chromaLocation = '' + info.chroma_location as ChromaLocation;
-    this.fieldOrder = '' + info.field_order as FieldOrder;
-    this.frameRate = f64(info.frame_rate);
-    this.avgFrameRate = f64(info.avg_frame_rate);
-    this.bitsPerRawSample = info.bits_per_raw_sample >>> 0;
+  constructor (stream: RawProbeStream) {
+    super(stream);
+    this.codec = '' + stream.codec_name as VideoCodec;
+    if (stream.profile) this.profile = ('' + stream.profile).toLowerCase();
+    this.width = int(stream.width);
+    this.height = int(stream.height);
+    this.codedWidth = int(stream.coded_width);
+    this.codedHeight = int(stream.coded_height);
+    this.aspectRatio = '' + stream.display_aspect_ratio;
+    this.pixelFormat = '' + stream.pixel_format as PixelFormat;
+    this.level = stream.level >>> 0;
+    this.colorRange = '' + stream.color_range as ColorRange;
+    this.colorSpace = '' + stream.color_space as ColorSpace;
+    this.colorTransfer = '' + stream.color_transfer;
+    this.colorPrimaries = '' + stream.color_primaries;
+    this.chromaLocation = '' + stream.chroma_location as ChromaLocation;
+    this.fieldOrder = '' + stream.field_order as FieldOrder;
+    this.frameRate = f64(stream.frame_rate);
+    this.avgFrameRate = f64(stream.avg_frame_rate);
+    this.bitsPerRawSample = stream.bits_per_raw_sample >>> 0;
   }
 }
 
@@ -115,36 +156,39 @@ export class AudioStream extends BaseStream {
   readonly channels: number;
   readonly channelLayout: ChannelLayout;
   readonly bitsPerSample: number;
+
   /** @internal */
-  constructor (info: RawProbeStream) {
-    super(info);
-    this.codec = '' + info.codec_name as AudioCodec;
-    if (info.profile) this.profile = ('' + info.profile).toLowerCase();
-    this.sampleFormat = '' + info.sample_fmt as SampleFormat;
-    this.sampleRate = info.sample_rate >>> 0;
-    this.channels = info.channels >>> 0;
-    this.channelLayout = '' + info.channel_layout as ChannelLayout;
-    this.bitsPerSample = info.bits_per_sample >>> 0;
+  constructor (stream: RawProbeStream) {
+    super(stream);
+    this.codec = '' + stream.codec_name as AudioCodec;
+    if (stream.profile) this.profile = ('' + stream.profile).toLowerCase();
+    this.sampleFormat = '' + stream.sample_fmt as SampleFormat;
+    this.sampleRate = stream.sample_rate >>> 0;
+    this.channels = stream.channels >>> 0;
+    this.channelLayout = '' + stream.channel_layout as ChannelLayout;
+    this.bitsPerSample = stream.bits_per_sample >>> 0;
   }
 }
 
 export class SubtitleStream extends BaseStream {
   readonly type: 'subtitle' = 'subtitle';
   readonly codec: SubtitleCodec;
+
   /** @internal */
-  constructor (info: RawProbeStream) {
-    super(info);
-    this.codec = '' + info.codec_name as SubtitleCodec;
+  constructor (stream: RawProbeStream) {
+    super(stream);
+    this.codec = '' + stream.codec_name as SubtitleCodec;
   }
 }
 
 export class DataStream extends BaseStream {
   readonly type: 'data' = 'data';
   readonly codec: DataCodec;
+
   /** @internal */
-  constructor (info: RawProbeStream) {
-    super(info);
-    this.codec = '' + info.codec_name as DataCodec;
+  constructor (stream: RawProbeStream) {
+    super(stream);
+    this.codec = '' + stream.codec_name as DataCodec;
   }
 }
 
@@ -152,17 +196,26 @@ export type Stream = VideoStream | AudioStream | SubtitleStream | DataStream;
 
 export class Chapter {
   readonly id: number;
+  /**
+   * Start of the chapter in milliseconds.
+   */
   readonly start: number;
+  /**
+   * End of the chapter in milliseconds.
+   */
   readonly end: number;
+  /**
+   * Custom metadata tags.
+   */
   readonly tags: Tags;
 
   /** @internal */
-  constructor (info: any) {
-    unwrapMap.set(this, info);
-    this.id = info.id >>> 0;
-    this.start = info.start * 1000000 | 0;
-    this.end = info.end * 1000000 | 0;
-    this.tags = tags(info.tags);
+  constructor (chapter: RawProbeChapter) {
+    probeChapterMap.set(this, chapter);
+    this.id = chapter.id >>> 0;
+    this.start = chapter.start * 1000000 | 0;
+    this.end = chapter.end * 1000000 | 0;
+    this.tags = tags(chapter.tags);
   }
 
   /**
@@ -171,38 +224,52 @@ export class Chapter {
    * Please open an issue or a pull request to wrap those properties ;)
    */
   unwrap(): RawProbeChapter {
-    return unwrapMap.get(this);
+    return probeChapterMap.get(this)!;
   }
 }
 
 export class ProbeResult {
   readonly format: Demuxer;
+  /**
+   * Start of the file in milliseconds.
+   */
+  readonly start: number;
+  /**
+   * Total duration of the file in milliseconds.
+   */
+  readonly duration: number;
+  /**
+   * Total bit rate in bits/s.
+   */
+  readonly bitrate: number;
+  /**
+   * FFprobe's score, integer between 0-100.
+   */
+  readonly score: number;
+  /**
+   * Custom metadata tags.
+   */
+  readonly tags: Tags;
 
   // TODO: support programs
   // programs: number;
   readonly streams: Stream[];
   readonly chapters: Chapter[];
 
-  readonly bitrate: number;
-  readonly duration: number;
-  readonly start: number;
-
-  readonly score: number;
-
-  readonly tags: Tags;
-
   /** @internal */
-  constructor (info: any) {
-    unwrapMap.set(this, info);
-    const formatInfo = info.format;
+  constructor (result: RawProbeResult) {
+    probeResultMap.set(this, result);
+
+    const formatInfo = result.format;
+
     this.format = '' + formatInfo.format_name as Demuxer;
     this.start = +formatInfo.start_time * 1000 | 0;
     this.duration = +formatInfo.duration * 1000 | 0;
     this.bitrate = int(formatInfo.bit_rate);
     this.score = formatInfo.probe_score | 0;
     this.tags = tags(formatInfo.tags);
-    this.streams = Array.prototype.map.call(info.streams, toStream) as Stream[];
-    this.chapters = Array.prototype.map.call(info.chapters, (info) => new Chapter(info)) as Chapter[];
+    this.streams = result.streams.map(toStream);
+    this.chapters = result.chapters.map((info) => new Chapter(info));
   }
 
   /**
@@ -211,7 +278,7 @@ export class ProbeResult {
    * Please open an issue or a pull request to wrap those properties ;)
    */
   unwrap(): RawProbeResult {
-    return unwrapMap.get(this);
+    return probeResultMap.get(this)!;
   }
 }
 
@@ -252,7 +319,9 @@ export interface RawProbeResult {
 }
 /* eslint-enable camelcase */
 
-const unwrapMap = new WeakMap<any, any>();
+const probeResultMap = new WeakMap<ProbeResult, RawProbeResult>();
+const probeStreamMap = new WeakMap<BaseStream, RawProbeStream>();
+const probeChapterMap = new WeakMap<Chapter, RawProbeChapter>();
 
 function toLowerCase([key, value]: [string, any]): [string, string] {
   return [key.toLowerCase(), '' + value];
