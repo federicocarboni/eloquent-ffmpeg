@@ -1,3 +1,7 @@
+import { AudioCodec, DataCodec, SubtitleCodec, VideoCodec } from './_types';
+
+export * from './_types';
+
 export enum LogLevel {
   Quiet = -8,
   Panic = 0,
@@ -54,7 +58,7 @@ const privateMap = new WeakMap();
 abstract class BaseStream {
   index: number;
   abstract type: string;
-  codec: string;
+  abstract codec: string;
   codecName: string;
   codecTag?: string;
   start: number;
@@ -64,7 +68,6 @@ abstract class BaseStream {
 
   constructor (info: any) {
     this.index = info.index >>> 0;
-    this.codec = '' + info.codec_name;
     this.codecName = '' + info.codec_long_name;
     const tag = codecTag(info.codec_tag_string);
     if (tag) this.codecTag = tag;
@@ -77,6 +80,7 @@ abstract class BaseStream {
 
 export class VideoStream extends BaseStream {
   type: 'video' = 'video';
+  codec: VideoCodec;
   profile?: string;
 
   width: number;
@@ -99,6 +103,7 @@ export class VideoStream extends BaseStream {
 
   constructor (info: any) {
     super(info);
+    this.codec = '' + info.codec_name as VideoCodec;
     if (info.profile) this.profile = ('' + info.profile).toLowerCase();
     this.width = int(info.width);
     this.height = int(info.height);
@@ -121,6 +126,7 @@ export class VideoStream extends BaseStream {
 
 export class AudioStream extends BaseStream {
   type: 'audio' = 'audio';
+  codec: AudioCodec;
   profile?: string;
   sampleFormat: string;
   sampleRate: number;
@@ -129,6 +135,7 @@ export class AudioStream extends BaseStream {
   bitsPerSample: number;
   constructor (info: any) {
     super(info);
+    this.codec = '' + info.codec_name as AudioCodec;
     if (info.profile) this.profile = ('' + info.profile).toLowerCase();
     this.sampleFormat = '' + info.sample_fmt;
     this.sampleRate = info.sample_rate >>> 0;
@@ -139,10 +146,20 @@ export class AudioStream extends BaseStream {
 }
 export class SubtitleStream extends BaseStream {
   type: 'subtitle' = 'subtitle';
+  codec: SubtitleCodec;
+  constructor (info: any) {
+    super(info);
+    this.codec = '' + info.codec_name as SubtitleCodec;
+  }
 }
 
 export class DataStream extends BaseStream {
   type: 'data' = 'data';
+  codec: DataCodec;
+  constructor (info: any) {
+    super(info);
+    this.codec = '' + info.codec_name as DataCodec;
+  }
 }
 
 export type Stream = VideoStream | AudioStream | SubtitleStream | DataStream;
