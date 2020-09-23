@@ -178,6 +178,28 @@ export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set
   }
   return pixelFormats;
 }
+export interface Filters {
+  video: Set<string>;
+  audio: Set<string>;
+}
+/**
+ * Runs `ffmpeg -filters` and returns its output as {@link Filters}. This can be
+ * used to check for compatibility or show a list of available filters to the user.
+ * @param ffmpegPath Path to the ffmpeg executable.
+ */
+export async function getFilters(ffmpegPath = getFFmpegPath()): Promise<Filters> {
+  const lines = await getLines(ffmpegPath, ['-filters']);
+  const filters: Filters = {
+    video: new Set<string>(),
+    audio: new Set<string>(),
+  };
+  for (const line of lines.slice(8)) {
+    const filter = parseLine(line, 5);
+    if (line[23] === 'V') filters.video.add(filter);
+    else if (line[23] === 'A') filters.audio.add(filter);
+  }
+  return filters;
+}
 
 function parseCodecs(lines: string[], flag: number) {
   const codecs: Codecs = {
