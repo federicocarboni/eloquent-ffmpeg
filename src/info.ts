@@ -15,10 +15,13 @@ export interface Version {
   libswresample: string;
   libpostproc: string;
 }
-
 /**
  * Runs `ffmpeg -version` and returns its output as {@link Version}.
  * @param ffmpegPath Path to the ffmpeg executable.
+ * @example ```typescript
+ * const versionInfo = await getVersion();
+ * console.log(`Using ffmpeg version ${versionInfo.version}`);
+ * ```
  */
 export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version> {
   const lines = await getLines(ffmpegPath, ['-version']);
@@ -55,7 +58,6 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
     libpostproc
   };
 }
-
 /**
  * Returns a set of all demuxers supported by ffmpeg. This is mostly useful
  * to check if reading a certain format is supported.
@@ -76,7 +78,6 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
   }
   return demuxers;
 }
-
 /**
  * Returns a set of all muxers supported by ffmpeg. This is mostly useful
  * to check if outputting a certain format is supported.
@@ -97,7 +98,6 @@ export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<strin
   }
   return muxers;
 }
-
 /**
  * Returns a set of all formats supported by ffmpeg. This is generally not very
  * useful, to check the compatibility for a certain format use {@link getMuxers}
@@ -112,27 +112,26 @@ export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<stri
   }
   return formats;
 }
-
 export interface Codecs {
   video: Set<string>;
   audio: Set<string>;
   subtitle: Set<string>;
   data: Set<string>;
 }
-
 /**
  * Returns all the encoders supported by ffmpeg as {@link Codecs}. This is mostly
  * useful to check if ffmpeg supports encoding a certain codec.
  * @param ffmpegPath Path to the ffmpeg executable.
  * @example ```typescript
  * const encoders = await getEncoders();
- * if (encoders.video.has('h264')) {
- *   // h264 can be used for encoding
+ * if (encoders.video.has('libx264')) {
+ *   // libx264 can be used for encoding
  * }
  * ```
  */
 export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
-  return await getCodecs(ffmpegPath, ENCODING);
+  const lines = await getLines(ffmpegPath, ['-encoders']);
+  return parseCodecs(lines, 1);
 }
 /**
  * Returns all the decoders supported by ffmpeg as {@link Codecs}. This is mostly
@@ -146,71 +145,20 @@ export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
  * ```
  */
 export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
-  return await getCodecs(ffmpegPath, DECODING);
+  const lines = await getLines(ffmpegPath, ['-decoders']);
+  return parseCodecs(lines, 1);
 }
-
 /**
  * Runs `ffmpeg -codecs` and returns its output as {@link Codecs}. This is generally not
  * very useful, if you need to check the compatibility for a certain encoder or decoder use
  * {@link getEncoders} or {@link getDecoders}.
  * @param ffmpegPath Path to the ffmpeg executable.
- * @param searchFlag Codecs which don't have this flag will be omitted.
  * @returns All codecs supported by ffmpeg.
  */
-export async function getCodecs(ffmpegPath = getFFmpegPath(), searchFlag = -1): Promise<Codecs> {
-  const codecs: Codecs = {
-    video: new Set<string>(),
-    audio: new Set<string>(),
-    subtitle: new Set<string>(),
-    data: new Set<string>(),
-  };
-  for (const [name, flags] of await getRawCodecs(ffmpegPath)) {
-    if ((flags & searchFlag) === 0) continue;
-    if ((flags & VIDEO) !== 0) codecs.video.add(name);
-    else if ((flags & AUDIO) !== 0) codecs.audio.add(name);
-    else if ((flags & SUBTITLE) !== 0) codecs.subtitle.add(name);
-    else if ((flags & DATA) !== 0) codecs.data.add(name);
-  }
-  return codecs;
-}
-
-export const DECODING = 1;
-export const ENCODING = 2;
-export const VIDEO = 4;
-export const AUDIO = 8;
-export const SUBTITLE = 16;
-export const DATA = 32;
-export const INTRA_ONLY = 64;
-export const LOSSY = 128;
-export const LOSSLESS = 256;
-
-/**
- * Runs `ffmpeg -codecs` and returns its output as a map of codec names and flags.
- * This function also returns advanced information about codecs as a bitmask, don't
- * use it if you don't know what you are doing.
- * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```typescript
- * const rawCodecs = await getRawCodecs();
- * const flags = rawCodecs.get('h264');
- * if (flags & LOSSY) {
- *   // the codec uses lossy compression
- * }
- * if (flags & INTRA_ONLY) {
- *   // the codec uses only intra-frames
- * }
- * ```
- */
-export async function getRawCodecs(ffmpegPath = getFFmpegPath()): Promise<Map<string, number>> {
+export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-codecs']);
-  const codecs = new Map<string, number>();
-  for (const line of lines.slice(10)) {
-    const name = parseLine(line, 8);
-    const flags = getFlags(line.slice(1, 7));
-    codecs.set(name, flags);
-  }
-  return codecs;
+  return parseCodecs(lines, 3);
 }
-
 /**
  * Runs `ffmpeg -pix_fmts` and returns its output as a set. This can be used to
  * check for compatibility or show a list of available formats to the user.
@@ -231,6 +179,32 @@ export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set
   return pixelFormats;
 }
 
+function parseCodecs(lines: string[], flag: number) {
+  const codecs: Codecs = {
+    video: new Set<string>(),
+    audio: new Set<string>(),
+    subtitle: new Set<string>(),
+    data: new Set<string>(),
+  };
+  for (const line of lines.slice(10)) {
+    const name = parseLine(line, 8);
+    switch (line[flag]) {
+      case 'V':
+        codecs.video.add(name);
+        break;
+      case 'A':
+        codecs.audio.add(name);
+        break;
+      case 'S':
+        codecs.subtitle.add(name);
+        break;
+      case 'D':
+        codecs.data.add(name);
+    }
+  }
+  return codecs;
+}
+
 function parseLine(line: string, i = 4): string {
   return line.slice(i, line.slice(i).indexOf(' ') + i);
 }
@@ -238,28 +212,4 @@ function parseLine(line: string, i = 4): string {
 async function getLines(ffmpegPath: string, args: string[]) {
   const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
   return (await read(process.stdout)).toString('utf-8').trim().split(/\r\n|[\r\n]/);
-}
-
-function getFlags(flagsString: string): number {
-  let flags = 0;
-  if (flagsString[0] === 'D') flags |= DECODING;
-  if (flagsString[1] === 'E') flags |= ENCODING;
-  switch (flagsString[2]) {
-    case 'V':
-      flags |= VIDEO;
-      break;
-    case 'A':
-      flags |= AUDIO;
-      break;
-    case 'S':
-      flags |= SUBTITLE;
-      break;
-    default:
-      flags |= DATA;
-      break;
-  }
-  if (flagsString[3] === 'I') flags |= INTRA_ONLY;
-  if (flagsString[4] === 'L') flags |= LOSSY;
-  if (flagsString[5] === 'S') flags |= LOSSLESS;
-  return flags;
 }
