@@ -1,4 +1,4 @@
-import { getCodecs, getDecoders, getDemuxers, getEncoders, getFFmpegPath, getMuxers, getPixelFormats, getVersion } from '../src/lib';
+import { getCodecs, getDecoders, getDemuxers, getEncoders, getFFmpegPath, getFilters, getMuxers, getPixelFormats, getVersion } from '../src/lib';
 import { promises } from 'fs';
 import pkg from '../package.json';
 
@@ -11,6 +11,7 @@ async function main(): Promise<void> {
   const demuxers = await getDemuxers(ffmpegPath);
   const muxers = await getMuxers(ffmpegPath);
   const pixelFormats = await getPixelFormats(ffmpegPath);
+  const filters = await getFilters(ffmpegPath);
 
   const addQuotes = (name: string) => `'${name}'`;
 
@@ -25,9 +26,11 @@ export type Demuxer = ${Array.from(demuxers).map(addQuotes).join(' | ')};
 export type VideoEncoder = ${Array.from(encoders.video).map(addQuotes).join(' | ')};
 export type VideoDecoder = ${Array.from(decoders.video).map(addQuotes).join(' | ')};
 export type VideoCodec = ${Array.from(codecs.video).map(addQuotes).join(' | ')};
+export type VideoFilter = ${Array.from(filters.video).map(addQuotes).join(' | ')};
 export type AudioEncoder = ${Array.from(encoders.audio).map(addQuotes).join(' | ')};
 export type AudioDecoder = ${Array.from(decoders.audio).map(addQuotes).join(' | ')};
 export type AudioCodec = ${Array.from(codecs.audio).map(addQuotes).join(' | ')};
+export type AudioFilter = ${Array.from(filters.audio).map(addQuotes).join(' | ')};
 export type SubtitleEncoder = ${Array.from(encoders.subtitle).map(addQuotes).join(' | ')};
 export type SubtitleDecoder = ${Array.from(decoders.subtitle).map(addQuotes).join(' | ')};
 export type SubtitleCodec = ${Array.from(codecs.subtitle).map(addQuotes).join(' | ')};
