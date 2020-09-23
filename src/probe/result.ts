@@ -1,6 +1,4 @@
-import { AudioCodec, ChannelLayout, ChromaLocation, ColorRange, ColorSpace, DataCodec, Demuxer, FieldOrder, PixelFormat, SampleFormat, SubtitleCodec, VideoCodec } from './_types';
-
-export * from './_types';
+import { AudioCodec, ChannelLayout, ChromaLocation, ColorRange, ColorSpace, DataCodec, Demuxer, FieldOrder, PixelFormat, SampleFormat, SubtitleCodec, VideoCodec } from '../_types';
 
 export enum LogLevel {
   Quiet = -8,
@@ -52,9 +50,11 @@ export abstract class BaseStream {
   readonly tags: Tags;
   readonly frames: number;
 
+  #unwrapped: RawProbeStream;
+
   /** @internal */
   constructor (stream: RawProbeStream) {
-    probeStreamMap.set(this, stream);
+    this.#unwrapped = stream;
 
     this.index = stream.index >>> 0;
     this.codecName = '' + stream.codec_long_name;
@@ -78,7 +78,7 @@ export abstract class BaseStream {
    * ```
    */
   unwrap(): RawProbeStream {
-    return probeStreamMap.get(this)!;
+    return this.#unwrapped;
   }
 }
 
@@ -211,9 +211,11 @@ export class Chapter {
    */
   readonly tags: Tags;
 
+  #unwrapped: RawProbeChapter;
+
   /** @internal */
   constructor (chapter: RawProbeChapter) {
-    probeChapterMap.set(this, chapter);
+    this.#unwrapped = chapter;
     this.id = chapter.id >>> 0;
     this.start = chapter.start * 1000000 | 0;
     this.end = chapter.end * 1000000 | 0;
@@ -226,7 +228,7 @@ export class Chapter {
    * Please open an issue or a pull request to wrap those properties ;)
    */
   unwrap(): RawProbeChapter {
-    return probeChapterMap.get(this)!;
+    return this.#unwrapped;
   }
 }
 
@@ -258,9 +260,11 @@ export class ProbeResult {
   readonly streams: Stream[];
   readonly chapters: Chapter[];
 
+  #unwrapped: RawProbeResult;
+
   /** @internal */
   constructor (result: RawProbeResult) {
-    probeResultMap.set(this, result);
+    this.#unwrapped = result;
 
     const formatInfo = result.format;
 
@@ -280,7 +284,7 @@ export class ProbeResult {
    * Please open an issue or a pull request to wrap those properties ;)
    */
   unwrap(): RawProbeResult {
-    return probeResultMap.get(this)!;
+    return this.#unwrapped;
   }
 }
 
@@ -322,10 +326,6 @@ export interface RawProbeResult {
 /* eslint-enable camelcase */
 
 type Maybe<T> = T | 'unknown';
-
-const probeResultMap = new WeakMap<ProbeResult, RawProbeResult>();
-const probeStreamMap = new WeakMap<BaseStream, RawProbeStream>();
-const probeChapterMap = new WeakMap<Chapter, RawProbeChapter>();
 
 function toLowerCase([key, value]: [string, any]): [string, string] {
   return [key.toLowerCase(), '' + value];
