@@ -30,8 +30,8 @@ export default [{
     typescript({ tsconfig: './tsconfig.es6.json' }),
     cleanup({
       comments: 'none',
-      include: ['src/**/*.ts'],
-      extensions: ['ts'],
+      include: ['src/**/*.ts', 'node_modules/**'],
+      extensions: ['ts', 'js'],
     }),
   ],
   external: ['child_process', 'path', 'fs'],
