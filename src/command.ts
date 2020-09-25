@@ -1,7 +1,9 @@
-import { BufferLike, isArrayBuffer, isBufferLike, isWin32, toUint8Array } from './utils';
+import { BufferLike, isArrayBuffer, isBufferLike, isWin32, toUint8Array, write } from './utils';
 import { AudioFilter, VideoFilter } from './_types';
+import { ChildProcess, spawn } from 'child_process';
 import { LogLevel } from './probe/result';
 import { __asyncValues } from 'tslib';
+import { getFFmpegPath } from './env';
 
 export type Source = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
 
@@ -16,6 +18,11 @@ interface Writable<T> {
 export type Destination = string | AsyncWritable<Uint8Array> | Writable<Uint8Array> | NodeJS.WritableStream;
 
 export const MAX_BUFFER_LENGTH = isWin32 ? 16383 : 65536;
+
+export interface Progress {
+  speed: number;
+  time: number;
+}
 
 async function* asyncGeneratorOf(bufferLike: BufferLike): AsyncGenerator<Uint8Array, void, void> {
   yield toUint8Array(bufferLike);
@@ -46,6 +53,7 @@ export class FFmpegInput {
       this.isStream = true;
     }
   }
+  // TODO: implement
   getArgs(): string[] {
     return [...this.#args, '-i', this.#resource];
   }
@@ -66,9 +74,51 @@ export class FFmpegOutput {
     this.audioFilters.push([filter, '' + options]);
     return this;
   }
+  // TODO: implement
   getArgs(): string[] {
     // const outputUri = this.#destinations.length ? null: 1;
     return [];
+  }
+}
+
+export class FFmpegProcess {
+  #process: ChildProcess;
+  constructor (ffmpegPath: string, inputs: FFmpegInput[], outputs: FFmpegOutput[], args: string[]) {
+    const process = this.#process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+    for (const input of inputs) if (input.isStream) {
+      const stream = privateMapStream.get(input)!;
+      if ('pipe' in stream) stream.pipe(process.stdin);
+      else (async () => {
+        for await (const chunk of stream) {
+          await write(process.stdin, chunk);
+        }
+      })();
+    }
+  }
+  // TODO: implement
+  complete(): Promise<void> {
+    return Promise.resolve();
+  }
+  // TODO: implement
+  progress(): AsyncGenerator<Progress, number, void> {
+    return null as any;
+  }
+  // TODO: very platform specific, windows support will eventually be added.
+  pause(): boolean {
+    return this.kill('SIGCONT');
+  }
+  // TODO: very platform specific, windows support will eventually be added.
+  resume(): boolean {
+    return this.kill('SIGCONT');
+  }
+  get pid(): number {
+    return this.#process.pid;
+  }
+  kill(signal?: NodeJS.Signals | number): boolean {
+    return this.#process.kill(signal);
+  }
+  unwrap(): ChildProcess {
+    return this.#process;
   }
 }
 
@@ -77,12 +127,15 @@ export class FFmpegCommand {
   #inputs: FFmpegInput[] = [];
   #outputs: FFmpegOutput[] = [];
   #hasStreamInput = false;
-  constructor (options: FFmpegOptions = {}) {
+  #ffmpegPath: string;
+  constructor (ffmpegPath: string, options: FFmpegOptions = {}) {
+    this.#ffmpegPath = ffmpegPath;
     const {
       logLevel = LogLevel.Error
     } = options;
     this.#args.push('-v', logLevel.toString());
   }
+  // TODO: implement
   input(source: Source): FFmpegInput {
     const input = new FFmpegInput(source);
     if (this.#hasStreamInput && input.isStream)
@@ -91,18 +144,26 @@ export class FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
+  // TODO: implement
   output(...destinations: Destination[]) {
     const output = new FFmpegOutput(destinations);
     this.#outputs.push(output);
     return output;
   }
+  // TODO: implement
   filterComplex(): this {
     return this;
   }
+  // TODO: implement
   args(...args: string[]): this {
     this.#args.push(...args);
     return this;
   }
+  // TODO: implement
+  process(): FFmpegProcess {
+    return new FFmpegProcess(this.#ffmpegPath, this.#inputs, this.#outputs, this.getArgs());
+  }
+  // TODO: implement
   getArgs(): string[] {
     return [];
   }
@@ -112,6 +173,6 @@ export interface FFmpegOptions {
   logLevel?: LogLevel;
 }
 
-export function ffmpegCommand(options?: FFmpegOptions): FFmpegCommand {
-  return new FFmpegCommand(options);
+export function ffmpegCommand(ffmpegPath = getFFmpegPath(), options?: FFmpegOptions): FFmpegCommand {
+  return new FFmpegCommand(ffmpegPath, options);
 }
