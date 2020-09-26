@@ -1,4 +1,4 @@
-import { getCodecs, getDemuxers, getFormats, getMuxers, getRawCodecs, getVersion } from '../src/info';
+import { getCodecs, getDemuxers, getFormats, getMuxers, getVersion } from '../src/info';
 import { expect } from 'chai';
 
 describe('info', function () {
@@ -34,12 +34,6 @@ describe('info', function () {
     it('returns a Set', async function () {
       const formats = await getFormats();
       expect(formats).to.be.an.instanceOf(Set);
-    });
-  });
-  describe('getRawCodecs()', function () {
-    it('returns a Set', async function () {
-      const rawCodecs = await getRawCodecs();
-      expect(rawCodecs).to.be.an.instanceOf(Map);
     });
   });
   describe('getCodecs()', function () {
