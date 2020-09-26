@@ -3,4 +3,6 @@ lib/
 
 build/Release/
 
+test/samples/
+
 .env
