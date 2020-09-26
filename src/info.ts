@@ -18,7 +18,7 @@ export interface Version {
 /**
  * Runs `ffmpeg -version` and returns its output as {@link Version}.
  * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```typescript
+ * @example ```ts
  * const versionInfo = await getVersion();
  * console.log(`Using ffmpeg version ${versionInfo.version}`);
  * ```
@@ -63,7 +63,7 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
  * to check if reading a certain format is supported.
  * @param ffmpegPath Path to the ffmpeg executable.
  * @example
- * ```typescript
+ * ```ts
  * const demuxers = await getDemuxers();
  * if (demuxers.has('mov')) {
  *   // mov can be used as an input format
@@ -83,7 +83,7 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
  * to check if outputting a certain format is supported.
  * @param ffmpegPath Path to the ffmpeg executable.
  * @example
- * ```typescript
+ * ```ts
  * const muxers = await getMuxers();
  * if (muxers.has('mov')) {
  *   // mov can be used as an output format
@@ -122,7 +122,7 @@ export interface Codecs {
  * Returns all the encoders supported by ffmpeg as {@link Codecs}. This is mostly
  * useful to check if ffmpeg supports encoding a certain codec.
  * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```typescript
+ * @example ```ts
  * const encoders = await getEncoders();
  * if (encoders.video.has('libx264')) {
  *   // libx264 can be used for encoding
@@ -137,7 +137,7 @@ export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
  * Returns all the decoders supported by ffmpeg as {@link Codecs}. This is mostly
  * useful to check if ffmpeg supports decoding a certain codec.
  * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```typescript
+ * @example ```ts
  * const decoders = await getDecoders();
  * if (decoders.video.has('h264')) {
  *   // h264 can be used for decoding
@@ -163,7 +163,7 @@ export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
  * Runs `ffmpeg -pix_fmts` and returns its output as a set. This can be used to
  * check for compatibility or show a list of available formats to the user.
  * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```typescript
+ * @example ```ts
  * const pixelFormats = await getPixelFormats();
  * if (pixelFormats.has('yuv420p')) {
  *   // yuv420p is supported
