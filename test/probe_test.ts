@@ -7,7 +7,7 @@ import { promises } from 'fs';
 describe('probe', function () {
   describe('probe()', function () {
     it('should return an instance of ProbeResult', async function () {
-      const buffer = await promises.readFile(join(__dirname, 'assets/video.mp4'));
+      const buffer = await promises.readFile(join(__dirname, 'samples/video.mp4'));
       const result = await probe(buffer);
       expect(result).to.be.an.instanceOf(ProbeResult);
     });
