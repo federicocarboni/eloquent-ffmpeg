@@ -30,6 +30,7 @@
     "@types/chai": "^4.2.12",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.1",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
     "chai": "^4.2.0",
@@ -41,5 +42,8 @@
     "ts-node": "^9.0.0",
     "tslib": "^2.0.1",
     "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "uuid": "^8.3.0"
   }
 }
