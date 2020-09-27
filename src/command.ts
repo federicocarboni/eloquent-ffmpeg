@@ -187,7 +187,7 @@ class Input implements FFmpegInput {
       if (source.byteLength > MAX_BUFFER_LENGTH) {
         const sockPath = getSockPath();
         inputStreamMap.set(this, [sockPath, __asyncValues([source])]);
-        this.#resource = sockPath;
+        this.#resource = 'file:' + sockPath;
         this.isStream = true;
       } else {
         const buffer = Buffer.isBuffer(source) ? source : Buffer.from(source);
@@ -197,7 +197,7 @@ class Input implements FFmpegInput {
     } else {
       const sockPath = getSockPath();
       inputStreamMap.set(this, [sockPath, __asyncValues(source)]);
-      this.#resource = sockPath;
+      this.#resource = 'file:' + sockPath;
       this.isStream = true;
     }
   }
@@ -233,7 +233,7 @@ class Output implements FFmpegOutput {
       } else {
         const sockPath = getSockPath();
         outputStreamMap.set(this, [sockPath, [writableToAsyncGenerator(dest)]]);
-        this.#resource = sockPath;
+        this.#resource = 'file:' + sockPath;
         this.isStream = true;
       }
     } else {
@@ -247,7 +247,7 @@ class Output implements FFmpegOutput {
         } else {
           if (!this.isStream) {
             outputStreamMap.set(this, [sockPath, streams]);
-            resources.push('file:' + sockPath.replace(/\\/g, '/'));
+            resources.push('file:' + sockPath);
             this.isStream = true;
           }
           streams.push(writableToAsyncGenerator(dest));
@@ -304,18 +304,27 @@ async function* progressGenerator(stream: NodeJS.ReadableStream) {
           progress = {};
       }
     } catch {
-      //
+      // Errors are not relevant, logging or anything extra would just
+      // increase overhead.
     }
   }
 }
 
-async function handleInputStream(server: Server, stream: AsyncGenerator<Uint8Array, void, void>) {
+async function handleInputStream(server: Server, stream: AsyncGenerator<BufferLike, void, void>) {
   server.on('connection', async (socket) => {
     socket.on('close', () => stream.return?.());
     server.close();
-    for await (const chunk of stream)
-      await write(socket, chunk);
-    await end(socket);
+    try {
+      for await (const chunk of stream) {
+        if (socket.writableEnded) break;
+        await write(socket, chunk);
+      }
+    } catch {
+      // TODO: add logging.
+    } finally {
+      try { if (!socket.writableEnded) await end(socket); }
+      catch { /* Further errors are just ignored. */ }
+    }
   });
 }
 
