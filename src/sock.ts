@@ -10,12 +10,9 @@ export const getSockPath = isWin32 ? (): string => {
   // return `/run/${v4()}.sock`;
 };
 
-export function getSocket(path: string): Promise<Socket> {
+export function getSocketServer(path: string): Promise<Socket> {
   return new Promise((resolve) => {
-    const server = createServer((socket) => {
-      resolve(socket);
-      server.close();
-    });
-    server.listen(path);
+    const server = createServer();
+    server.listen(path, resolve);
   });
 }
