@@ -6,7 +6,6 @@ import { toUint8Array } from './utils';
 // import { __asyncValues } from 'tslib';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
-import { Readable } from 'stream';
 import { Server } from 'net';
 
 export enum LogLevel {
@@ -111,7 +110,15 @@ class Command implements FFmpegCommand {
       outputStreams.map(([sockPath]) => getSocketServer(sockPath))
     );
     outputStreams.forEach(([, streams], i) => {
-      handleOutputStreams(outputSockets[i], streams);
+      handleOutputStream(outputSockets[i], streams);
+    });
+    const inputStreams = this.#inputs.filter((input) => input.isStream)
+      .map((input) => inputStreamMap.get(input)!);
+    const inputSockets = await Promise.all(
+      inputStreams.map(([sockPath]) => getSocketServer(sockPath))
+    );
+    inputStreams.forEach(([, stream], i) => {
+      handleInputStream(inputSockets[i], stream);
     });
     return new Process(ffmpegPath, this.getArgs());
   }
@@ -166,7 +173,7 @@ class Process implements FFmpegProcess {
   }
 }
 
-const inputStreamMap = new WeakMap<Input, [string, NodeJS.ReadableStream]>();
+const inputStreamMap = new WeakMap<Input, [string, AsyncGenerator<Uint8Array, void, void>]>();
 class Input implements FFmpegInput {
   #resource: string;
   #args: string[] = [];
@@ -179,7 +186,7 @@ class Input implements FFmpegInput {
     } else if (isBufferLike(source)) {
       if (source.byteLength > MAX_BUFFER_LENGTH) {
         const sockPath = getSockPath();
-        inputStreamMap.set(this, [sockPath, Readable.from([toUint8Array(source)])]);
+        inputStreamMap.set(this, [sockPath, __asyncValues([source])]);
         this.#resource = sockPath;
         this.isStream = true;
       } else {
@@ -189,7 +196,7 @@ class Input implements FFmpegInput {
       }
     } else {
       const sockPath = getSockPath();
-      inputStreamMap.set(this, [sockPath, 'pipe' in source ? source : Readable.from(source)]);
+      inputStreamMap.set(this, [sockPath, __asyncValues(source)]);
       this.#resource = sockPath;
       this.isStream = true;
     }
@@ -225,7 +232,7 @@ class Output implements FFmpegOutput {
         this.isStream = false;
       } else {
         const sockPath = getSockPath();
-        outputStreamMap.set(this, [sockPath, [toAsyncGenerator(dest)]]);
+        outputStreamMap.set(this, [sockPath, [writableToAsyncGenerator(dest)]]);
         this.#resource = sockPath;
         this.isStream = true;
       }
@@ -243,7 +250,7 @@ class Output implements FFmpegOutput {
             resources.push('file:' + sockPath.replace(/\\/g, '/'));
             this.isStream = true;
           }
-          streams.push(toAsyncGenerator(dest));
+          streams.push(writableToAsyncGenerator(dest));
         }
       }
       this.#resource = `tee:${resources.join('|')}`;
@@ -302,7 +309,17 @@ async function* progressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-async function handleOutputStreams(server: Server, streams: AsyncGenerator<any, void, Uint8Array>[]) {
+async function handleInputStream(server: Server, stream: AsyncGenerator<Uint8Array, void, void>) {
+  server.on('connection', async (socket) => {
+    socket.on('close', () => stream.return?.());
+    server.close();
+    for await (const chunk of stream)
+      await write(socket, chunk);
+    await end(socket);
+  });
+}
+
+async function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, Uint8Array>[]) {
   server.on('connection', async (socket) => {
     // starts all the streams.
     streams.forEach((stream) => stream.next());
@@ -318,8 +335,8 @@ async function handleOutputStreams(server: Server, streams: AsyncGenerator<any, 
   });
 }
 
-function toAsyncGenerator(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
-  if ('write' in stream) {
+function writableToAsyncGenerator(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
+  if ('writable' in stream) {
     return asyncGeneratorFromStream(stream);
   } else {
     return __asyncValues(stream);
