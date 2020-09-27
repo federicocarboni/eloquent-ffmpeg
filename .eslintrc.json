@@ -21,6 +21,10 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/semi": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never"
+    }],
     "no-new-func": "error",
     "no-eval": "error",
     "eol-last": "error",
