@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>RawProbeChapter | Eloquent FFmpeg</title>
+	<title>FFmpegOutput | Eloquent FFmpeg</title>
 	<meta name="description" content="Documentation for Eloquent FFmpeg">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,13 +52,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_probe_result_.html">&quot;probe/result&quot;</a>
+					<a href="../modules/_command_.html">&quot;command&quot;</a>
 				</li>
 				<li>
-					<a href="_probe_result_.rawprobechapter.html">RawProbeChapter</a>
+					<a href="_command_.ffmpegoutput.html">FFmpegOutput</a>
 				</li>
 			</ul>
-			<h1>Interface RawProbeChapter</h1>
+			<h1>Interface FFmpegOutput</h1>
 		</div>
 	</div>
 </header>
@@ -69,13 +69,9 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">RawProbeChapter</span>
+						<span class="target">FFmpegOutput</span>
 					</li>
 				</ul>
-			</section>
-			<section class="tsd-panel tsd-kind-interface tsd-parent-kind-module">
-				<h3 class="tsd-before-signature">Indexable</h3>
-				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>extra: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
@@ -84,7 +80,14 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_probe_result_.rawprobechapter.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_command_.ffmpegoutput.html#isstream" class="tsd-kind-icon">is<wbr>Stream</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegoutput.html#args" class="tsd-kind-icon">args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegoutput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a></li>
 							</ul>
 						</section>
 					</div>
@@ -93,14 +96,57 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="id" class="tsd-anchor"></a>
-					<h3>id</h3>
-					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="isstream" class="tsd-anchor"></a>
+					<h3>is<wbr>Stream</h3>
+					<div class="tsd-signature tsd-kind-icon">is<wbr>Stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/probe/result.ts#L293">probe/result.ts:293</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/command.ts#L46">command.ts:46</a></li>
 						</ul>
 					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="args" class="tsd-anchor"></a>
+					<h3>args</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">args<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/command.ts#L44">command.ts:44</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getargs" class="tsd-anchor"></a>
+					<h3>get<wbr>Args</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Args<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/command.ts#L45">command.ts:45</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -113,7 +159,7 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/__types_.html">&quot;_<wbr>types&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="../modules/_command_.html">&quot;command&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -131,7 +177,7 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/_probe_mod_.html">&quot;probe/mod&quot;</a>
 					</li>
-					<li class="current tsd-kind-module">
+					<li class=" tsd-kind-module">
 						<a href="../modules/_probe_result_.html">&quot;probe/result&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -145,52 +191,52 @@
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-enum tsd-parent-kind-module">
-						<a href="../enums/_probe_result_.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+						<a href="../enums/_command_.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.audiostream.html" class="tsd-kind-icon">Audio<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.ffmpegcommand.html" class="tsd-kind-icon">FFmpeg<wbr>Command</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.basestream.html" class="tsd-kind-icon">Base<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.ffmpeginput.html" class="tsd-kind-icon">FFmpeg<wbr>Input</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.chapter.html" class="tsd-kind-icon">Chapter</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.datastream.html" class="tsd-kind-icon">Data<wbr>Stream</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.proberesult.html" class="tsd-kind-icon">Probe<wbr>Result</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.subtitlestream.html" class="tsd-kind-icon">Subtitle<wbr>Stream</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.videostream.html" class="tsd-kind-icon">Video<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.ffmpegoptions.html" class="tsd-kind-icon">FFmpeg<wbr>Options</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawprobechapter.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Chapter</a>
+						<a href="_command_.ffmpegoutput.html" class="tsd-kind-icon">FFmpeg<wbr>Output</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_probe_result_.rawprobechapter.html#id" class="tsd-kind-icon">id</a>
+								<a href="_command_.ffmpegoutput.html#isstream" class="tsd-kind-icon">is<wbr>Stream</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpegoutput.html#args" class="tsd-kind-icon">args</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpegoutput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawproberesult.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Result</a>
+						<a href="_command_.ffmpegprocess.html" class="tsd-kind-icon">FFmpeg<wbr>Process</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawprobestream.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Stream</a>
+						<a href="_command_.progress.html" class="tsd-kind-icon">Progress</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
-						<a href="../modules/_probe_result_.html#stream" class="tsd-kind-icon">Stream</a>
+						<a href="../modules/_command_.html#inputsource" class="tsd-kind-icon">Input<wbr>Source</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
-						<a href="../modules/_probe_result_.html#tags" class="tsd-kind-icon">Tags</a>
+						<a href="../modules/_command_.html#outputdestination" class="tsd-kind-icon">Output<wbr>Destination</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_command_.html#max_buffer_length" class="tsd-kind-icon">MAX_<wbr>BUFFER_<wbr>LENGTH</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/_command_.html#ffmpeg" class="tsd-kind-icon">ffmpeg</a>
 					</li>
 				</ul>
 			</nav>
@@ -209,6 +255,7 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;probe/mod&quot; | Eloquent FFmpeg</title>
+	<title>&quot;sock&quot; | Eloquent FFmpeg</title>
 	<meta name="description" content="Documentation for Eloquent FFmpeg">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_probe_mod_.html">&quot;probe/mod&quot;</a>
+					<a href="_sock_.html">&quot;sock&quot;</a>
 				</li>
 			</ul>
-			<h1>Module &quot;probe/mod&quot;</h1>
+			<h1>Module &quot;sock&quot;</h1>
 		</div>
 	</div>
 </header>
@@ -67,45 +67,55 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Interfaces</h3>
+							<h3>Variables</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_probe_mod_.probeoptions.html" class="tsd-kind-icon">Probe<wbr>Options</a></li>
+								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_sock_.html#getsockpath" class="tsd-kind-icon">get<wbr>Sock<wbr>Path</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_probe_mod_.html#probe" class="tsd-kind-icon">probe</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_sock_.html#getsocketserver" class="tsd-kind-icon">get<wbr>Socket<wbr>Server</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Variables</h2>
+				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
+					<a name="getsockpath" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Sock<wbr>Path</h3>
+					<div class="tsd-signature tsd-kind-icon">get<wbr>Sock<wbr>Path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">(Anonymous function)</span><span class="tsd-signature-symbol"> = isWin32 ? (): string &#x3D;&gt; {return &#x60;//./pipe/${v4()}.sock&#x60;;} : (): string &#x3D;&gt; {throw new Error(&#x27;Not implemented.&#x27;);// TODO: test this on unix.// return &#x60;/run/${v4()}.sock&#x60;;}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/sock.ts#L5">sock.ts:5</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="probe" class="tsd-anchor"></a>
-					<h3>probe</h3>
+					<a name="getsocketserver" class="tsd-anchor"></a>
+					<h3>get<wbr>Socket<wbr>Server</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">probe<span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Buffer</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_probe_mod_.probeoptions.html" class="tsd-signature-type">ProbeOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/_probe_result_.proberesult.html" class="tsd-signature-type">ProbeResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Socket<wbr>Server<span class="tsd-signature-symbol">(</span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Server</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/probe/mod.ts#L15">probe/mod.ts:15</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/sock.ts#L13">sock.ts:13</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>input: <span class="tsd-signature-type">Buffer</span></h5>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/_probe_mod_.probeoptions.html" class="tsd-signature-type">ProbeOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
+									<h5>path: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/_probe_result_.proberesult.html" class="tsd-signature-type">ProbeResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Server</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -135,13 +145,13 @@
 					<li class=" tsd-kind-module">
 						<a href="_lib_.html">&quot;lib&quot;</a>
 					</li>
-					<li class="current tsd-kind-module">
+					<li class=" tsd-kind-module">
 						<a href="_probe_mod_.html">&quot;probe/mod&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="_probe_result_.html">&quot;probe/result&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="_sock_.html">&quot;sock&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -151,11 +161,11 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="../interfaces/_probe_mod_.probeoptions.html" class="tsd-kind-icon">Probe<wbr>Options</a>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="_sock_.html#getsockpath" class="tsd-kind-icon">get<wbr>Sock<wbr>Path</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="_probe_mod_.html#probe" class="tsd-kind-icon">probe</a>
+						<a href="_sock_.html#getsocketserver" class="tsd-kind-icon">get<wbr>Socket<wbr>Server</a>
 					</li>
 				</ul>
 			</nav>

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Filters | Eloquent FFmpeg</title>
+	<title>FFmpegOptions | Eloquent FFmpeg</title>
 	<meta name="description" content="Documentation for Eloquent FFmpeg">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,13 +52,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_info_.html">&quot;info&quot;</a>
+					<a href="../modules/_command_.html">&quot;command&quot;</a>
 				</li>
 				<li>
-					<a href="_info_.filters.html">Filters</a>
+					<a href="_command_.ffmpegoptions.html">FFmpegOptions</a>
 				</li>
 			</ul>
-			<h1>Interface Filters</h1>
+			<h1>Interface FFmpegOptions</h1>
 		</div>
 	</div>
 </header>
@@ -69,7 +69,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Filters</span>
+						<span class="target">FFmpegOptions</span>
 					</li>
 				</ul>
 			</section>
@@ -80,8 +80,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_info_.filters.html#audio" class="tsd-kind-icon">audio</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_info_.filters.html#video" class="tsd-kind-icon">video</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_command_.ffmpegoptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_command_.ffmpegoptions.html#progress" class="tsd-kind-icon">progress</a></li>
 							</ul>
 						</section>
 					</div>
@@ -90,22 +90,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="audio" class="tsd-anchor"></a>
-					<h3>audio</h3>
-					<div class="tsd-signature tsd-kind-icon">audio<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<a name="loglevel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> log<wbr>Level</h3>
+					<div class="tsd-signature tsd-kind-icon">log<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="../enums/_command_.loglevel.html" class="tsd-signature-type">LogLevel</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/info.ts#L183">info.ts:183</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/command.ts#L71">command.ts:71</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="video" class="tsd-anchor"></a>
-					<h3>video</h3>
-					<div class="tsd-signature tsd-kind-icon">video<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<a name="progress" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> progress</h3>
+					<div class="tsd-signature tsd-kind-icon">progress<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/info.ts#L182">info.ts:182</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/command.ts#L72">command.ts:72</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -120,7 +120,7 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/__types_.html">&quot;_<wbr>types&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="../modules/_command_.html">&quot;command&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -129,7 +129,7 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/_filters_.html">&quot;filters&quot;</a>
 					</li>
-					<li class="current tsd-kind-module">
+					<li class=" tsd-kind-module">
 						<a href="../modules/_info_.html">&quot;info&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -151,53 +151,50 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-enum tsd-parent-kind-module">
+						<a href="../enums/_command_.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_info_.codecs.html" class="tsd-kind-icon">Codecs</a>
+						<a href="_command_.ffmpegcommand.html" class="tsd-kind-icon">FFmpeg<wbr>Command</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.ffmpeginput.html" class="tsd-kind-icon">FFmpeg<wbr>Input</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_info_.filters.html" class="tsd-kind-icon">Filters</a>
+						<a href="_command_.ffmpegoptions.html" class="tsd-kind-icon">FFmpeg<wbr>Options</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_info_.filters.html#audio" class="tsd-kind-icon">audio</a>
+								<a href="_command_.ffmpegoptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_info_.filters.html#video" class="tsd-kind-icon">video</a>
+								<a href="_command_.ffmpegoptions.html#progress" class="tsd-kind-icon">progress</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_info_.version.html" class="tsd-kind-icon">Version</a>
+						<a href="_command_.ffmpegoutput.html" class="tsd-kind-icon">FFmpeg<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.ffmpegprocess.html" class="tsd-kind-icon">FFmpeg<wbr>Process</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_command_.progress.html" class="tsd-kind-icon">Progress</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/_command_.html#inputsource" class="tsd-kind-icon">Input<wbr>Source</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/_command_.html#outputdestination" class="tsd-kind-icon">Output<wbr>Destination</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/_command_.html#max_buffer_length" class="tsd-kind-icon">MAX_<wbr>BUFFER_<wbr>LENGTH</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getcodecs" class="tsd-kind-icon">get<wbr>Codecs</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getdecoders" class="tsd-kind-icon">get<wbr>Decoders</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getdemuxers" class="tsd-kind-icon">get<wbr>Demuxers</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getencoders" class="tsd-kind-icon">get<wbr>Encoders</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getfilters" class="tsd-kind-icon">get<wbr>Filters</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getformats" class="tsd-kind-icon">get<wbr>Formats</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getmuxers" class="tsd-kind-icon">get<wbr>Muxers</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getpixelformats" class="tsd-kind-icon">get<wbr>Pixel<wbr>Formats</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_info_.html#getversion" class="tsd-kind-icon">get<wbr>Version</a>
+						<a href="../modules/_command_.html#ffmpeg" class="tsd-kind-icon">ffmpeg</a>
 					</li>
 				</ul>
 			</nav>
