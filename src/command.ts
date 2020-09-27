@@ -1,7 +1,7 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
 import { createInterface as readlines } from 'readline';
-import { toUint8Array } from '../lib/utils';
+import { toUint8Array } from './utils';
 import { __asyncValues } from 'tslib';
 import { getFFmpegPath } from './env';
 import { getSockPath } from './sock';
@@ -236,7 +236,7 @@ class Output implements FFmpegOutput {
     return this;
   }
   getArgs(): string[] {
-    return [...this.#args];
+    return [...this.#args, this.#resource];
   }
 }
 
