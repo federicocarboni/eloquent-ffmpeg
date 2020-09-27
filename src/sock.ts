@@ -3,7 +3,7 @@ import { isWin32 } from './utils';
 import { v4 } from 'uuid';
 
 export const getSockPath = isWin32 ? (): string => {
-  return `\\\\.\\pipe\\${v4()}`;
+  return `//./pipe/${v4()}.sock`;
 } : (): string => {
   throw new Error('Not implemented.');
   // TODO: test this on unix.
