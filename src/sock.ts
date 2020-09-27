@@ -1,4 +1,4 @@
-import { createServer, Socket } from 'net';
+import { createServer, Server } from 'net';
 import { isWin32 } from './utils';
 import { v4 } from 'uuid';
 
@@ -10,9 +10,9 @@ export const getSockPath = isWin32 ? (): string => {
   // return `/run/${v4()}.sock`;
 };
 
-export function getSocketServer(path: string): Promise<Socket> {
+export function getSocketServer(path: string): Promise<Server> {
   return new Promise((resolve) => {
     const server = createServer();
-    server.listen(path, resolve);
+    server.listen(path, () => resolve(server));
   });
 }
