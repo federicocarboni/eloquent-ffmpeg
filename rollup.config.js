@@ -34,5 +34,5 @@ export default [{
       extensions: ['ts', 'js'],
     }),
   ],
-  external: ['child_process', 'path', 'fs'],
+  external: ['tslib', 'uuid', 'child_process', 'net', 'path', 'fs'],
 }];
