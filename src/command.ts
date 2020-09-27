@@ -1,12 +1,13 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { BufferLike, isBufferLike, isWin32 } from './utils';
+import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
 import { createInterface as readlines } from 'readline';
+import { getSocketServer, getSockPath } from './sock';
 import { toUint8Array } from './utils';
 // import { __asyncValues } from 'tslib';
 import { getFFmpegPath } from './env';
-import { getSocketServer, getSockPath } from './sock';
+import { __asyncValues } from 'tslib';
 import { Readable } from 'stream';
-import { Server, Socket } from 'net';
+import { Server } from 'net';
 
 export enum LogLevel {
   Quiet = 'quiet',
@@ -104,13 +105,12 @@ class Command implements FFmpegCommand {
     return this;
   }
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
-    const outputStreams = this.#outputs
-      .filter((output) => outputStreamMap.has(output))
+    const outputStreams = this.#outputs.filter((output) => output.isStream)
       .map((output) => outputStreamMap.get(output)!);
     const outputSockets = await Promise.all(
       outputStreams.map(([sockPath]) => getSocketServer(sockPath))
     );
-    outputStreams.forEach(([,streams], i) => {
+    outputStreams.forEach(([, streams], i) => {
       handleOutputStreams(outputSockets[i], streams);
     });
     return new Process(ffmpegPath, this.getArgs());
@@ -206,7 +206,7 @@ class Input implements FFmpegInput {
   }
 }
 
-const outputStreamMap = new WeakMap<Output, [string, NodeJS.WritableStream[]]>();
+const outputStreamMap = new WeakMap<Output, [string, AsyncGenerator<void, void, Uint8Array>[]]>();
 class Output implements FFmpegOutput {
   #resource: string;
   #args: string[] = [];
@@ -225,13 +225,13 @@ class Output implements FFmpegOutput {
         this.isStream = false;
       } else {
         const sockPath = getSockPath();
-        outputStreamMap.set(this, [sockPath, [dest] as unknown as NodeJS.WritableStream[]]);
+        outputStreamMap.set(this, [sockPath, [toAsyncGenerator(dest)]]);
         this.#resource = sockPath;
         this.isStream = true;
       }
     } else {
       const resources: string[] = [];
-      const streams: NodeJS.WritableStream[] = [];
+      const streams: AsyncGenerator<void, void, Uint8Array>[] = [];
       const sockPath = getSockPath();
       this.isStream = false;
       for (const dest of destinations) {
@@ -243,7 +243,7 @@ class Output implements FFmpegOutput {
             resources.push('file:' + sockPath.replace(/\\/g, '/'));
             this.isStream = true;
           }
-          streams.push(dest as NodeJS.WritableStream);
+          streams.push(toAsyncGenerator(dest));
         }
       }
       this.#resource = `tee:${resources.join('|')}`;
@@ -302,41 +302,39 @@ async function* progressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-async function handleOutputStreams(server: Server, streams: NodeJS.WritableStream[]) {
-  const socket = await new Promise<Socket>((resolve) => server.on('connection', resolve));
-  server.close();
-  console.log('inited');
-  socket.on('data', (chunk: Buffer) => {
-    const u8 = toUint8Array(chunk);
-    console.log(u8.byteLength);
-    streams.forEach((stream) => stream.write(u8));
-  });
-  socket.on('close', () => {
-    streams.forEach((stream) => stream.end?.());
+async function handleOutputStreams(server: Server, streams: AsyncGenerator<any, void, Uint8Array>[]) {
+  server.on('connection', async (socket) => {
+    // starts all the streams.
+    streams.forEach((stream) => stream.next());
+
+    socket.on('data', (data: Buffer) => {
+      const u8 = toUint8Array(data);
+      streams.forEach((stream) => stream.next(u8));
+    });
+    socket.on('close', () => {
+      streams.forEach((stream) => stream.return?.());
+    });
+    server.close();
   });
 }
 
-// async function pipeToGenerator(input: NodeJS.ReadableStream, output: AsyncGenerator<void, void, Uint8Array>) {
-//   for await (const chunk of input) await output.next(toUint8Array(chunk as Buffer));
-// }
+function toAsyncGenerator(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
+  if ('write' in stream) {
+    return asyncGeneratorFromStream(stream);
+  } else {
+    return __asyncValues(stream);
+  }
+}
 
-// function toOutputStream(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
-//   if ('write' in stream) {
-//     return fromNodeStream(stream);
-//   } else {
-//     return fromIterable(stream);
-//   }
-// }
-
-// async function* fromNodeStream(stream: NodeJS.WritableStream): AsyncGenerator<void, void, Uint8Array> {
-//   try {
-//     while (true) {
-//       await write(stream, yield);
-//     }
-//   } finally {
-//     await end(stream);
-//   }
-// }
+async function* asyncGeneratorFromStream(stream: NodeJS.WritableStream): AsyncGenerator<void, void, Uint8Array> {
+  try {
+    for (;;) {
+      await write(stream, yield);
+    }
+  } finally {
+    await end(stream);
+  }
+}
 
 // async function* fromIterable(stream: { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
 //   const it = __asyncValues(stream) as AsyncIterator<any, any, Uint8Array>;
