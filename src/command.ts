@@ -4,8 +4,9 @@ import { createInterface as readlines } from 'readline';
 import { toUint8Array } from './utils';
 import { __asyncValues } from 'tslib';
 import { getFFmpegPath } from './env';
-import { getSockPath } from './sock';
+import { getSocketServer, getSockPath } from './sock';
 import { Readable } from 'stream';
+import { Socket } from 'net';
 
 export enum LogLevel {
   Quiet = 'quiet',
@@ -62,7 +63,7 @@ export interface FFmpegCommand {
   output(...destinations: OutputDestination[]): FFmpegOutput;
   args(...args: string[]): this;
 
-  spawn(ffmpegPath?: string): FFmpegProcess;
+  spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
   getArgs(): string[];
 }
 
@@ -79,8 +80,8 @@ export const MAX_BUFFER_LENGTH = 16383;
 
 class Command implements FFmpegCommand {
   #args: string[] = ['-y'];
-  #inputs: FFmpegInput[] = [];
-  #outputs: FFmpegOutput[] = [];
+  #inputs: Input[] = [];
+  #outputs: Output[] = [];
 
   private logLevel: LogLevel;
   constructor(options: FFmpegOptions = {}) {
@@ -89,17 +90,30 @@ class Command implements FFmpegCommand {
       this.#args.push('-progress', 'pipe:2', '-nostats');
   }
   input(source: InputSource): FFmpegInput {
-    return new Input(source);
+    const input = new Input(source);
+    this.#inputs.push(input);
+    return input;
   }
   output(...destinations: OutputDestination[]): FFmpegOutput {
-    return new Output(destinations);
+    const output = new Output(destinations);
+    this.#outputs.push(output);
+    return output;
   }
   args(...args: string[]): this {
     this.#args.push(...args);
     return this;
   }
-  spawn(ffmpegPath: string = getFFmpegPath()): FFmpegProcess {
-    return new Process(ffmpegPath, this.getArgs(), null, null);
+  async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
+    const outputStreams = this.#outputs
+      .filter((output) => outputStreamMap.has(output))
+      .map((output) => outputStreamMap.get(output)!);
+    const outputSockets = await Promise.all(
+      outputStreams.map(([sockPath]) => getSocketServer(sockPath))
+    );
+    outputStreams.forEach(([,streams], i) => {
+      handleOutputStreams(outputSockets[i], streams);
+    });
+    return new Process(ffmpegPath, this.getArgs());
   }
   getArgs(): string[] {
     const inputs = ([] as string[]).concat(...this.#inputs.map(i => i.getArgs()));
@@ -115,8 +129,8 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
-  constructor(public ffmpegPath: string, public args: string[], inputStream: NodeJS.ReadableStream | null, outputStream: NodeJS.WritableStream | AsyncGenerator<void, void, Uint8Array> | null) {
-    this.#process = spawnProcess(ffmpegPath, args, inputStream, outputStream);
+  constructor(public ffmpegPath: string, public args: string[]) {
+    this.#process = spawnProcess(ffmpegPath, args);
   }
   get pid(): number {
     return this.#process.pid;
@@ -136,7 +150,7 @@ class Process implements FFmpegProcess {
     return new Promise((resolve, reject) => {
       this.#process.on('exit', (code) => {
         if (code === 0) resolve();
-        else reject(); // TODO: add exception
+        else reject(code); // TODO: add exception
       });
     });
   }
@@ -284,25 +298,25 @@ async function* progressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-function spawnProcess(ffmpegPath: string, args: string[], inputStream: NodeJS.ReadableStream | null, outputStream: NodeJS.WritableStream | AsyncGenerator<void, void, Uint8Array> | null): ChildProcessWithoutNullStreams {
+function spawnProcess(ffmpegPath: string, args: string[]): ChildProcessWithoutNullStreams {
+  // for (const stream of outputStreams) if (stream) handleOutputStreams(stream);
   const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-  const { stdin, stdout } = process;
-  if (inputStream !== null)
-    inputStream.pipe(stdin);
-  if (outputStream !== null) {
-    if ('write' in outputStream) {
-      stdout.pipe(outputStream);
-    } else {
-      pipeToGenerator(stdout, outputStream);
-    }
-  }
+  // const { stdin } = process;
+  // if (inputStream !== null)
+  //   inputStream.pipe(stdin);
   return process;
 }
 
-async function pipeToGenerator(input: NodeJS.ReadableStream, output: AsyncGenerator<void, void, Uint8Array>) {
-  for await (const chunk of input) await output.next(toUint8Array(chunk as Buffer));
-
+async function handleOutputStreams(socket: Socket, streams: AsyncGenerator<void, void, Uint8Array>[]) {
+  for await (const chunk of socket) {
+    const u8 = toUint8Array(chunk);
+    await Promise.all(streams.map((stream) => stream.next(u8)));
+  }
 }
+
+// async function pipeToGenerator(input: NodeJS.ReadableStream, output: AsyncGenerator<void, void, Uint8Array>) {
+//   for await (const chunk of input) await output.next(toUint8Array(chunk as Buffer));
+// }
 
 function toOutputStream(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
   if ('write' in stream) {
