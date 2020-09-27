@@ -1,115 +1,104 @@
-import { BufferLike, isArrayBuffer, isBufferLike, isWin32, toUint8Array, write } from './utils';
-import { AudioFilter, VideoFilter } from './_types';
-import { ChildProcess, spawn } from 'child_process';
-import { LogLevel } from './probe/result';
-import { __asyncValues } from 'tslib';
+import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { createInterface as readlines } from 'readline';
+import { toUint8Array } from '../lib/utils';
 import { getFFmpegPath } from './env';
+import { BufferLike, isWin32 } from './utils';
 
-export type Source = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
-
-interface AsyncWritable<T> {
-  [Symbol.asyncIterator](): AsyncIterator<any, any, T>;
+export enum LogLevel {
+  Quiet = 'quiet',
+  Panic = 'panic',
+  Fatal = 'fatal',
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+  Verbose = 'verbose',
+  Debug = 'debug',
+  Trace = 'trace',
 }
 
-interface Writable<T> {
-  [Symbol.iterator](): Iterator<any, any, T>;
-}
-
-export type Destination = string | AsyncWritable<Uint8Array> | Writable<Uint8Array> | NodeJS.WritableStream;
-
-export const MAX_BUFFER_LENGTH = isWin32 ? 16383 : 65536;
+export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
+export type OutputDestination = string | null | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
 
 export interface Progress {
-  speed: number;
+  frames: number;
+  fps: number;
+  bitrate: number;
+  size: number;
   time: number;
+  framesDuped: number;
+  framesDropped: number;
+  speed: number;
 }
 
-async function* asyncGeneratorOf(bufferLike: BufferLike): AsyncGenerator<Uint8Array, void, void> {
-  yield toUint8Array(bufferLike);
-}
-
-const privateMapStream: WeakMap<FFmpegInput, AsyncGenerator<Uint8Array, void, void> | NodeJS.ReadableStream> = new WeakMap();
-export class FFmpegInput {
-  #resource: string;
-  #args: string[] = [];
+export interface FFmpegInput {
+  args(...args: string[]): this;
   isStream: boolean;
-  constructor (source: Source) {
-    if (typeof source === 'string') {
-      this.isStream = false;
-      this.#resource = source;
-    } else if (isBufferLike(source)) {
-      if (source.byteLength > MAX_BUFFER_LENGTH) {
-        this.#resource = 'pipe:0';
-        privateMapStream.set(this, asyncGeneratorOf(source));
-        this.isStream = true;
-      } else {
-        const buf = Buffer.isBuffer(source) ? source : Buffer.from(isArrayBuffer(source) ? source : source.buffer);
-        this.#resource = `data:application/octet-stream;base64,${buf.toString('base64')}`;
-        this.isStream = false;
-      }
-    } else {
-      this.#resource = 'pipe:0';
-      privateMapStream.set(this, 'pipe' in source ? source : __asyncValues(source));
-      this.isStream = true;
-    }
+}
+
+export interface FFmpegOutput {
+  args(...args: string[]): this;
+  isStream: boolean;
+}
+
+export interface FFmpegProcess {
+  progress(): AsyncGenerator<Progress, void, void>;
+  pid: number;
+  args: string[];
+  ffmpegPath: string;
+  kill(signal?: NodeJS.Signals | number): boolean;
+  wait(): Promise<void>;
+  pause(): boolean;
+  resume(): boolean;
+  unwrap(): ChildProcess;
+}
+
+export interface FFmpegCommand {
+  input(source: InputSource): FFmpegInput;
+  output(...destinations: OutputDestination[]): FFmpegOutput;
+  args(...args: string[]): this;
+
+  spawn(ffmpegPath?: string): FFmpegProcess;
+  getArgs(): string[];
+}
+
+export interface FFmpegOptions {
+  logLevel: LogLevel;
+}
+
+class Command implements FFmpegCommand {
+  #args: string[] = ['-progress', 'pipe:2', '-nostats'];
+  #inputs;
+  #outputs;
+
+  private logLevel: LogLevel;
+  constructor(options?: FFmpegOptions) {
+    this.logLevel = options?.logLevel ?? LogLevel.Error;
   }
-  // TODO: implement
+  input(source: InputSource): FFmpegInput {
+    throw new Error('Method not implemented.');
+  }
+  output(...destinations: OutputDestination[]): FFmpegOutput {
+    throw new Error('Method not implemented.');
+  }
+  args(...args: string[]): this {
+    throw new Error('Method not implemented.');
+  }
+  spawn(ffmpegPath: string = getFFmpegPath()): FFmpegProcess {
+    // throw new Error('Method not implemented.');
+    return new Process(ffmpegPath, this.getArgs(), null as any, null as any);
+  }
   getArgs(): string[] {
-    return [...this.#args, '-i', this.#resource];
+    return [
+      ...this.#args,
+      '-v', this.logLevel.toString(),
+    ];
   }
 }
 
-export class FFmpegOutput {
-  #destinations: Destination[];
-  private videoFilters: [string, string?][] = [];
-  private audioFilters: [string, string?][] = [];
-  constructor (destinations: Destination[]) {
-    this.#destinations = destinations;
-  }
-  videoFilter(filter: VideoFilter, options?: Record<string, string>) {
-    this.videoFilters.push([filter, '' + options]);
-    return this;
-  }
-  audioFilter(filter: AudioFilter, options?: Record<string, string>) {
-    this.audioFilters.push([filter, '' + options]);
-    return this;
-  }
-  // TODO: implement
-  getArgs(): string[] {
-    // const outputUri = this.#destinations.length ? null: 1;
-    return [];
-  }
-}
-
-export class FFmpegProcess {
-  #process: ChildProcess;
-  constructor (ffmpegPath: string, inputs: FFmpegInput[], outputs: FFmpegOutput[], args: string[]) {
-    const process = this.#process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-    for (const input of inputs) if (input.isStream) {
-      const stream = privateMapStream.get(input)!;
-      if ('pipe' in stream) stream.pipe(process.stdin);
-      else (async () => {
-        for await (const chunk of stream) {
-          await write(process.stdin, chunk);
-        }
-      })();
-    }
-  }
-  // TODO: implement
-  complete(): Promise<void> {
-    return Promise.resolve();
-  }
-  // TODO: implement
-  progress(): AsyncGenerator<Progress, number, void> {
-    return null as any;
-  }
-  // TODO: very platform specific, windows support will eventually be added.
-  pause(): boolean {
-    return this.kill('SIGCONT');
-  }
-  // TODO: very platform specific, windows support will eventually be added.
-  resume(): boolean {
-    return this.kill('SIGCONT');
+class Process implements FFmpegProcess {
+  #process: ChildProcessWithoutNullStreams;
+  constructor(public ffmpegPath: string, public args: string[], inputStream: NodeJS.ReadableStream | null, outputStream: NodeJS.WritableStream | AsyncGenerator<void, void, Uint8Array> | null) {
+    this.#process = spawnProcess(ffmpegPath, args, inputStream, outputStream);
   }
   get pid(): number {
     return this.#process.pid;
@@ -117,62 +106,89 @@ export class FFmpegProcess {
   kill(signal?: NodeJS.Signals | number): boolean {
     return this.#process.kill(signal);
   }
+  pause(): boolean {
+    if (isWin32) throw new TypeError('pause() cannot be used on Windows');
+    return this.kill('SIGSTOP');
+  }
+  resume(): boolean {
+    if (isWin32) throw new TypeError('resume() cannot be used on Windows');
+    return this.kill('SIGCONT');
+  }
+  wait(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.#process.on('exit', (code) => {
+        if (code === 0) resolve();
+        else reject(); // TODO: add exception
+      });
+    });
+  }
+  progress(): AsyncGenerator<Progress, void, void> {
+    return progressGenerator(this.#process);
+  }
   unwrap(): ChildProcess {
     return this.#process;
   }
 }
 
-export class FFmpegCommand {
-  #args: string[] = [];
-  #inputs: FFmpegInput[] = [];
-  #outputs: FFmpegOutput[] = [];
-  #hasStreamInput = false;
-  #ffmpegPath: string;
-  constructor (ffmpegPath: string, options: FFmpegOptions = {}) {
-    this.#ffmpegPath = ffmpegPath;
-    const {
-      logLevel = LogLevel.Error
-    } = options;
-    this.#args.push('-v', logLevel.toString());
-  }
-  // TODO: implement
-  input(source: Source): FFmpegInput {
-    const input = new FFmpegInput(source);
-    if (this.#hasStreamInput && input.isStream)
-      throw new TypeError('Cannot use more than one streaming input');
-    this.#hasStreamInput = input.isStream;
-    this.#inputs.push(input);
-    return input;
-  }
-  // TODO: implement
-  output(...destinations: Destination[]) {
-    const output = new FFmpegOutput(destinations);
-    this.#outputs.push(output);
-    return output;
-  }
-  // TODO: implement
-  filterComplex(): this {
-    return this;
-  }
-  // TODO: implement
-  args(...args: string[]): this {
-    this.#args.push(...args);
-    return this;
-  }
-  // TODO: implement
-  process(): FFmpegProcess {
-    return new FFmpegProcess(this.#ffmpegPath, this.#inputs, this.#outputs, this.getArgs());
-  }
-  // TODO: implement
-  getArgs(): string[] {
-    return [];
+async function* progressGenerator(process: ChildProcess) {
+  let progress: Partial<Progress> = {};
+  for await (const line of readlines(process.stderr!)) {
+    try {
+      const [part1, part2] = line.split('=');
+      const key = part1.trim();
+      const value = part2.trim();
+      switch (key) {
+        case 'frame':
+          progress.frames = +value >>> 0;
+          break;
+        case 'fps':
+          progress.fps = +value || 0;
+          break;
+        case 'bitrate':
+          progress.bitrate = +value;
+          break;
+        case 'total_size':
+          progress.size = +value >>> 0;
+          break;
+        case 'out_time_us':
+          progress.time = +value * 1000 >>> 0;
+          break;
+        case 'dup_frames':
+          progress.framesDuped = +value >>> 0;
+          break;
+        case 'drop_frames':
+          progress.framesDropped = +value >>> 0;
+          break;
+        case 'speed':
+          progress.speed = +value.slice(0, value.length - 1);
+          break;
+        case 'progress':
+          yield progress as Progress;
+          if (value === 'end')
+            return;
+          progress = {};
+      }
+    } catch {
+      //
+    }
   }
 }
 
-export interface FFmpegOptions {
-  logLevel?: LogLevel;
+function spawnProcess(ffmpegPath: string, args: string[], inputStream: NodeJS.ReadableStream | null, outputStream: NodeJS.WritableStream | AsyncGenerator<void, void, Uint8Array> | null): ChildProcessWithoutNullStreams {
+  const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+  const { stdin, stdout } = process;
+  if (inputStream !== null)
+    inputStream.pipe(stdin);
+  if (outputStream !== null) {
+    if ('write' in outputStream) {
+      stdout.pipe(outputStream);
+    } else {
+      pipeToGenerator(stdout, outputStream);
+    }
+  }
+  return process;
 }
 
-export function ffmpegCommand(ffmpegPath = getFFmpegPath(), options?: FFmpegOptions): FFmpegCommand {
-  return new FFmpegCommand(ffmpegPath, options);
+async function pipeToGenerator(input: NodeJS.ReadableStream, output: AsyncGenerator<void, void, Uint8Array>) {
+  for await (const chunk of input) await output.next(toUint8Array(chunk as Buffer));
 }
