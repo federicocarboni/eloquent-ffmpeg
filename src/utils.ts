@@ -47,7 +47,7 @@ export function isArrayBuffer(o: unknown): o is ArrayBuffer {
 }
 
 export function isBufferLike(o: unknown): o is BufferLike {
-  return Buffer.isBuffer(o) || ArrayBuffer.isView(o);
+  return Buffer.isBuffer(o) || ArrayBuffer.isView(o) || isArrayBuffer(o);
 }
 
 export function toUint8Array(bufferLike: BufferLike): Uint8Array {

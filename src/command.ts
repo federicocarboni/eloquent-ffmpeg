@@ -223,7 +223,7 @@ class Output implements FFmpegOutput {
     if (destinations.length === 0) {
       const sockPath = getSockPath();
       outputStreamMap.set(this, [sockPath, []]);
-      this.#resource = sockPath;
+      this.#resource = 'file:' + sockPath;
       this.isStream = true;
     } else if (destinations.length === 1) {
       const dest = destinations[0];
