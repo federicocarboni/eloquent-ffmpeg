@@ -52,7 +52,7 @@ export interface FFmpegProcess {
   args: string[];
   ffmpegPath: string;
   kill(signal?: NodeJS.Signals | number): boolean;
-  wait(): Promise<void>;
+  complete(): Promise<void>;
   pause(): boolean;
   resume(): boolean;
   unwrap(): ChildProcess;
@@ -120,7 +120,13 @@ class Command implements FFmpegCommand {
     inputStreams.forEach(([, stream], i) => {
       handleInputStream(inputSockets[i], stream);
     });
-    return new Process(ffmpegPath, this.getArgs());
+    const process = new Process(ffmpegPath, this.getArgs());
+    // TODO: clean this up
+    process.unwrap().on('exit', () => {
+      inputSockets.forEach(closeSocketServer);
+      outputSockets.forEach(closeSocketServer);
+    });
+    return process;
   }
   getArgs(): string[] {
     const inputs = ([] as string[]).concat(...this.#inputs.map(i => i.getArgs()));
@@ -153,11 +159,12 @@ class Process implements FFmpegProcess {
     if (isWin32) throw new TypeError('resume() cannot be used on Windows (yet)');
     return this.kill('SIGCONT');
   }
-  wait(): Promise<void> {
+  complete(): Promise<void> {
     return new Promise((resolve, reject) => {
       const onExit = (code: number) => {
         if (code === 0) resolve();
         else reject(); // TODO: add exception
+        process.off('exit', onExit);
       };
       const process = this.#process;
       const code = process.exitCode;
@@ -360,6 +367,10 @@ async function* asyncGeneratorFromStream(stream: NodeJS.WritableStream): AsyncGe
   } finally {
     await end(stream);
   }
+}
+
+function closeSocketServer(socketServer: Server) {
+  if (socketServer.listening) socketServer.close();
 }
 
 // async function* fromIterable(stream: { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
