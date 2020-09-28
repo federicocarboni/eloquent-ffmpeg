@@ -16,17 +16,12 @@ describe('command', function () {
         expect(input.isStream).to.equal(false);
         expect(input.getArgs().pop()).to.equal('protocol:location');
       });
-      it('should add a short buffer as source', function () {
+      it('should add a buffer as source', function () {
         const cmd = ffmpeg();
         const input1 = cmd.input(randomBytes(4096));
         const input2 = cmd.input(randomBytes(4096).buffer);
-        expect(input1.isStream).to.equal(false);
-        expect(input2.isStream).to.equal(false);
-      });
-      it('should add a long buffer as source', function () {
-        const cmd = ffmpeg();
-        const input = cmd.input(randomBytes(16385));
-        expect(input.isStream).to.equal(true);
+        expect(input1.isStream).to.equal(true);
+        expect(input2.isStream).to.equal(true);
       });
       it('should add an iterable as source', function () {
         const cmd = ffmpeg();
@@ -256,6 +251,8 @@ describe('command', function () {
           const process = await cmd.spawn();
           await process.complete();
           expect(process.unwrap().exitCode).to.not.equal(null);
+          await process.complete();
+          expect(process.unwrap().exitCode).to.not.equal(null);
         });
         it('should reject on non-zero exit code', async function () {
           const cmd = ffmpeg();
@@ -278,7 +275,7 @@ describe('command', function () {
           const cmd = ffmpeg();
           cmd.input('test/samples/video.mp4');
           cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
+            .args('-c:a', 'aac', '-c:v', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           for await (const progress of process.progress()) {
             expect(progress.bitrate).to.be.a('number');
@@ -286,7 +283,7 @@ describe('command', function () {
             expect(progress.frames).to.be.a('number');
             expect(progress.framesDropped).to.be.a('number');
             expect(progress.framesDuped).to.be.a('number');
-            expect(progress.size).to.be.a('number');
+            expect(progress.bytes).to.be.a('number');
             expect(progress.speed).to.be.a('number');
             expect(progress.time).to.be.a('number');
           }
