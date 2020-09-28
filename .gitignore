@@ -1,8 +1,10 @@
+.nyc_output/
+coverage/
+
 node_modules/
-lib/
-
 build/Release/
-
 test/samples/
+
+lib/
 
 .env
