@@ -143,7 +143,8 @@ class Command implements FFmpegCommand {
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
   constructor(public ffmpegPath: string, public args: string[]) {
-    this.#process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+    const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+    this.#process = process;
   }
   get pid(): number {
     return this.#process.pid;
@@ -191,16 +192,10 @@ class Input implements FFmpegInput {
       this.#resource = source;
       this.isStream = false;
     } else if (isBufferLike(source)) {
-      if (source.byteLength > MAX_BUFFER_LENGTH) {
-        const sockPath = getSockPath();
-        inputStreamMap.set(this, [sockPath, __asyncValues([source])]);
-        this.#resource = 'file:' + sockPath;
-        this.isStream = true;
-      } else {
-        const buffer = Buffer.isBuffer(source) ? source : Buffer.from(source);
-        this.#resource = `data:application/octet-stream;base64,${buffer.toString('base64')}`;
-        this.isStream = false;
-      }
+      const sockPath = getSockPath();
+      inputStreamMap.set(this, [sockPath, __asyncValues([source])]);
+      this.#resource = 'file:' + sockPath;
+      this.isStream = true;
     } else {
       const sockPath = getSockPath();
       inputStreamMap.set(this, [sockPath, __asyncValues(source)]);
