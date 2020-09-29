@@ -1,7 +1,7 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
 import { createInterface as readlines } from 'readline';
-import { getSocketServer, getSockPath, getSockResource } from './sock';
+import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
@@ -323,9 +323,9 @@ class Input implements FFmpegInput {
       this.#resource = source;
       this.isStream = false;
     } else {
-      const path = getSockPath();
+      const path = getSocketPath();
       inputStreamMap.set(this, [path, __asyncValues(isBufferLike(source) ? [source] : source)]);
-      this.#resource = getSockResource(path);
+      this.#resource = getSocketResource(path);
       this.isStream = true;
     }
   }
@@ -349,9 +349,9 @@ class Output implements FFmpegOutput {
 
   constructor(destinations: OutputDestination[]) {
     if (destinations.length === 0) {
-      const path = getSockPath();
+      const path = getSocketPath();
       outputStreamMap.set(this, [path, []]);
-      this.#resource = getSockResource(path);
+      this.#resource = getSocketResource(path);
       this.isStream = true;
     } else if (destinations.length === 1) {
       const dest = destinations[0];
@@ -359,15 +359,15 @@ class Output implements FFmpegOutput {
         this.#resource = dest;
         this.isStream = false;
       } else {
-        const path = getSockPath();
+        const path = getSocketPath();
         outputStreamMap.set(this, [path, [toAsyncGenerator(dest)]]);
-        this.#resource = getSockResource(path);
+        this.#resource = getSocketResource(path);
         this.isStream = true;
       }
     } else {
       const resources: string[] = [];
       const streams: AsyncGenerator<void, void, Uint8Array>[] = [];
-      const path = getSockPath();
+      const path = getSocketPath();
       this.isStream = false;
       for (const dest of destinations) {
         if (typeof dest === 'string') {
@@ -375,7 +375,7 @@ class Output implements FFmpegOutput {
         } else {
           if (!this.isStream) {
             outputStreamMap.set(this, [path, streams]);
-            resources.push(getSockResource(path));
+            resources.push(getSocketResource(path));
             this.isStream = true;
           }
           streams.push(toAsyncGenerator(dest));
@@ -444,12 +444,12 @@ async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIter
       await write(socket, toUint8Array(chunk));
     }
   } catch {
-    //
+    // Internal async functions should never throw.
   } finally {
     try {
       if (!socket.writableEnded) await end(socket);
     } catch {
-      //
+      // Internal async functions should never throw.
     }
   }
 }
@@ -517,7 +517,7 @@ function closeSocketServer(socketServer: Server) {
   if (socketServer.listening) socketServer.close();
 }
 function getSockServer([path]: [string, any]) {
-  return getSocketServer(path);
+  return createSocketServer(path);
 }
 function isStream(o: Output | Input) {
   return o.isStream;
