@@ -240,22 +240,12 @@ describe('command', function () {
         const process = await cmd.spawn();
         await process.complete();
       });
-      it('should handle a single streaming input source', async function () {
+      it('should handle streaming input sources', async function () {
         const cmd = ffmpeg();
         cmd.input(createReadStream('test/samples/video.webm'));
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        await process.complete();
-      });
-      it('should handle multiple streaming inputs', async function () {
-        const cmd = ffmpeg();
-        cmd.input(createReadStream('test/samples/video.webm'));
-        cmd.input(createReadStream('test/samples/video.mkv'));
-        cmd.output()
-          .args('-map', '0:0', '-map', '1:1', '-c', 'copy', '-f', 'matroska');
-        const process = await cmd.spawn();
-        console.log((await read(process.unwrap().stderr!)).toString());
         await process.complete();
       });
       it('should handle simple inputs', async function () {
