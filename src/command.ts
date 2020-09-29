@@ -4,7 +4,7 @@ import { createInterface as readlines } from 'readline';
 import { getSocketServer, getSockPath, getSockResource } from './sock';
 import { toUint8Array } from './utils';
 // import { __asyncValues } from 'tslib';
-import { getFFmpegPath, resolvePath } from './env';
+import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
 
@@ -29,8 +29,7 @@ export interface FFmpegCommand {
   args(...args: string[]): this;
   /**
    * Starts the conversion, this method is asynchronous so it must be `await`'ed.
-   * @param ffmpegPath Path to the ffmpeg executable. Relative paths CAN be used.
-   * @throws A `TypeError` if the given `ffmpegPath` is not a file.
+   * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
    * @example ```ts
    * const cmd = ffmpeg();
    * cmd.input('input.avi');
@@ -45,6 +44,7 @@ export interface FFmpegCommand {
 export interface FFmpegOptions {
   logLevel?: LogLevel;
   progress?: boolean;
+  overwrite?: boolean;
 }
 
 export interface Progress {
@@ -59,20 +59,40 @@ export interface Progress {
 }
 
 export interface FFmpegInput {
+  /**
+   * Add input arguments, they will be placed before any additional arguments.
+   * @param args
+   */
   args(...args: string[]): this;
+  /**
+   * Returns all the arguments for the input.
+   */
   getArgs(): string[];
+  /**
+   * Whether the input is using streams.
+   */
   readonly isStream: boolean;
 }
 
 export interface FFmpegOutput {
+  /**
+   * Add output arguments, they will be placed before any additional arguments.
+   * @param args
+   */
   args(...args: string[]): this;
+  /**
+   * Returns all the arguments for the output.
+   */
   getArgs(): string[];
+  /**
+   * Whether the output is using streams.
+   */
   readonly isStream: boolean;
 }
 
 export interface FFmpegProcess {
   /**
-   * Numeric pid of the running process.
+   * Returns the process identifier (PID) of the process.
    */
   readonly pid: number;
   /**
@@ -150,13 +170,14 @@ export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
 export const MAX_BUFFER_LENGTH = 16383;
 
 class Command implements FFmpegCommand {
-  #args: string[] = ['-y'];
+  #args: string[] = [];
   #inputs: Input[] = [];
   #outputs: Output[] = [];
 
   private logLevel: LogLevel;
   constructor(options: FFmpegOptions = {}) {
     this.logLevel = options.logLevel ?? LogLevel.Error;
+    this.#args.push(options.overwrite !== false ? '-y' : '-n');
     if (options.progress !== false)
       this.#args.push('-progress', 'pipe:1', '-nostats');
   }
@@ -192,18 +213,20 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
-  ffmpegPath: string;
-  constructor(ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
-    const ffmpegFullPath = resolvePath(ffmpegPath);
-    if (ffmpegFullPath === void 0) throw new TypeError(`'${ffmpegPath}' is not a file`);
-    const process = spawn(ffmpegFullPath, args, { stdio: 'pipe' });
-    const cleanup = () => {
+  constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
+    const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+    const onExit = (): void => {
       inputSocketServers.forEach(closeSocketServer);
       outputSocketServers.forEach(closeSocketServer);
-      process.off('exit', cleanup);
+      process.off('exit', onExit);
+      process.off('error', onError);
     };
-    process.on('exit', cleanup);
-    this.ffmpegPath = ffmpegFullPath;
+    const onError = (error: Error): never => {
+      if (process.exitCode !== null) onExit();
+      throw error;
+    };
+    process.on('exit', onExit);
+    process.on('error', onError);
     this.#process = process;
   }
   get pid(): number {
@@ -228,13 +251,13 @@ class Process implements FFmpegProcess {
     const process = this.#process;
     const code = process.exitCode;
     return new Promise((resolve, reject) => {
-      const fulfill = (code: number) => {
-        if (code === 0) resolve();
+      const onExit = (code: number, signal: NodeJS.Signals | null) => {
+        if (code === 0 || signal !== null) resolve();
         else reject(); // TODO: add exception
-        process.off('exit', fulfill);
+        process.off('exit', onExit);
       };
-      if (code !== null) fulfill(code);
-      else process.on('exit', fulfill);
+      if (code !== null) onExit(code, null);
+      else process.on('exit', onExit);
     });
   }
   progress(): AsyncGenerator<Progress, void, void> {
