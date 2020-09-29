@@ -257,16 +257,33 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
+  #complete: Promise<void>;
   constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
     const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-    const onExit = (): void => {
+    let resolve: () => void;
+    let reject: (error?: Error) => void;
+    this.#complete = new Promise((f, r) => {
+      resolve = f;
+      reject = r;
+    });
+    const onExit = (code: number | null): void => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(); // TODO: add exception.
+      }
+      // Close all socket servers, this is necessary for proper cleanup after
+      // failed conversions, or otherwise errored ffmpeg processes.
       inputSocketServers.forEach(closeSocketServer);
       outputSocketServers.forEach(closeSocketServer);
+      // Remove listeners after cleanup.
       process.off('exit', onExit);
       process.off('error', onError);
     };
     const onError = (error: Error): never => {
-      if (process.exitCode !== null) onExit();
+      const code = process.exitCode;
+      if (code !== null) onExit(code);
+      // This listener is only used to
       throw error;
     };
     process.on('exit', onExit);
@@ -289,20 +306,10 @@ class Process implements FFmpegProcess {
     if (isWin32) throw new TypeError('resume() cannot be used on Windows (yet)');
     const process = this.#process;
     if (process.exitCode !== null) return false;
-    return process.kill('SIGSTOP');
+    return process.kill('SIGCONT');
   }
   complete(): Promise<void> {
-    const process = this.#process;
-    const code = process.exitCode;
-    return new Promise((resolve, reject) => {
-      const onExit = (code: number, signal: NodeJS.Signals | null) => {
-        if (code === 0 || signal !== null) resolve();
-        else reject(); // TODO: add exception
-        process.off('exit', onExit);
-      };
-      if (code !== null) onExit(code, null);
-      else process.on('exit', onExit);
-    });
+    return this.#complete.finally();
   }
   progress(): AsyncGenerator<Progress, void, void> {
     return createProgressGenerator(this.#process.stdout);
@@ -438,55 +445,62 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
 }
 
 async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>) {
-  if (stream.return) socket.on('end', stream.return.bind(stream));
   try {
-    for await (const chunk of stream) {
-      await write(socket, toUint8Array(chunk));
+    try {
+      for await (const chunk of stream) {
+        await write(socket, toUint8Array(chunk));
+      }
+    } finally {
+      if (!socket.writableEnded) await end(socket);
     }
   } catch {
-    // Internal async functions should never throw.
-  } finally {
-    try {
-      if (!socket.writableEnded) await end(socket);
-    } catch {
-      // Internal async functions should never throw.
-    }
+    // Avoids unhandled rejections.
+    // TODO: error handling?
   }
 }
 function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferLike>) {
-  server.on('connection', (socket) => {
+  server.once('connection', (socket) => {
     handleInputStreamSocket(socket, stream);
-    server.close(() => {
-      //
-    });
+    // Do NOT accept further connections, close() will close the server after
+    // all existing connections are ended.
+    server.close();
   });
 }
 function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, Uint8Array>[]) {
-  server.on('connection', async (socket) => {
-    // starts all the streams.
+  server.once('connection', (socket) => {
+    // Start all the streams; .next() is async, rejections handling is left to
+    // the user. This assumes the
     streams.forEach((stream) => stream.next());
 
-    socket.on('data', (data: Buffer) => {
+    // TODO: refactor to use for await of?
+
+    const onData = (data: BufferLike): void => {
       const u8 = toUint8Array(data);
       streams.forEach((stream) => stream.next(u8));
-    });
-    socket.on('end', () => {
+    };
+
+    socket.on('data', onData);
+
+    socket.once('end', () => {
       streams.forEach((stream) => stream.return?.());
+      socket.off('data', onData);
     });
-    server.close(() => {
-      //
-    });
+
+    // Do NOT accept further connections, close() will close the server after
+    // all existing connections are ended.
+    // TODO: add logging?
+    server.close();
   });
 }
 
 function toAsyncGenerator(stream: NodeJS.WritableStream | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; }): AsyncGenerator<void, void, Uint8Array> {
   if ('writable' in stream) {
-    return asyncGeneratorFromStream(stream);
+    return writableStreamValues(stream);
   } else {
     return __asyncValues(stream);
   }
 }
-async function* asyncGeneratorFromStream(stream: NodeJS.WritableStream): AsyncGenerator<void, void, Uint8Array> {
+async function* writableStreamValues(stream: NodeJS.WritableStream): AsyncGenerator<void, void, Uint8Array> {
   try {
     for (; ;) {
       await write(stream, yield);
