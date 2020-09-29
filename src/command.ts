@@ -175,7 +175,7 @@ export interface FFmpegProcess {
    * ```
    * To handle errors:
    * ```ts
-   * const process = cmd.spawn();
+   * const process = await cmd.spawn();
    * try {
    *   await process.complete();
    *   console.log('Conversion complete!');
@@ -381,7 +381,7 @@ class Output implements FFmpegOutput {
           streams.push(toAsyncGenerator(dest));
         }
       }
-      this.#resource = `tee:${resources.join('|')}`;
+      this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
     }
   }
   args(...args: string[]): this {
@@ -438,7 +438,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
 }
 
 async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>) {
-  if (stream.return) socket.on('close', stream.return.bind(stream));
+  if (stream.return) socket.on('end', stream.return.bind(stream));
   try {
     for await (const chunk of stream) {
       await write(socket, toUint8Array(chunk));
@@ -470,7 +470,7 @@ function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, 
       const u8 = toUint8Array(data);
       streams.forEach((stream) => stream.next(u8));
     });
-    socket.on('close', () => {
+    socket.on('end', () => {
       streams.forEach((stream) => stream.return?.());
     });
     server.close(() => {
