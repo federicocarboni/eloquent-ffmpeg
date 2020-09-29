@@ -309,7 +309,6 @@ describe('command', function () {
           cmd.output()
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
-          process.pause();
           expect(() => process.resume()).to.throw();
           process.kill();
         });
