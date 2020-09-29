@@ -280,11 +280,9 @@ class Process implements FFmpegProcess {
       process.off('exit', onExit);
       process.off('error', onError);
     };
-    const onError = (error: Error): never => {
+    const onError = (): void => {
       const code = process.exitCode;
       if (code !== null) onExit(code);
-      // This listener is only used to
-      throw error;
     };
     process.on('exit', onExit);
     process.on('error', onError);
@@ -420,7 +418,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
           progress.bytes = +value >>> 0;
           break;
         case 'out_time_us':
-          progress.time = +value / 1000 | 0;
+          progress.time = +value / 1000 >>> 0;
           break;
         case 'dup_frames':
           progress.framesDuped = +value >>> 0;
@@ -454,8 +452,8 @@ async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIter
       if (!socket.writableEnded) await end(socket);
     }
   } catch {
-    // Avoids unhandled rejections.
-    // TODO: error handling?
+    // Avoid unhandled rejections.
+    // TODO: add logging?
   }
 }
 function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferLike>) {
@@ -468,8 +466,8 @@ function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferL
 }
 function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, Uint8Array>[]) {
   server.once('connection', (socket) => {
-    // Start all the streams; .next() is async, rejections handling is left to
-    // the user. This assumes the
+    // Start all the streams; `.next()` is async, this will never throw but
+    // rejections handling is left to the user.
     streams.forEach((stream) => stream.next());
 
     // TODO: refactor to use for await of?
@@ -502,7 +500,7 @@ function toAsyncGenerator(stream: NodeJS.WritableStream | { [Symbol.asyncIterato
 }
 async function* writableStreamValues(stream: NodeJS.WritableStream): AsyncGenerator<void, void, Uint8Array> {
   try {
-    for (; ;) {
+    for (;;) {
       await write(stream, yield);
     }
   } finally {
@@ -512,7 +510,7 @@ async function* writableStreamValues(stream: NodeJS.WritableStream): AsyncGenera
 
 async function handleOutputs(outputs: Output[]) {
   const streams = outputs.filter(isStream).map(getOutputStream);
-  const servers = await Promise.all(streams.map(getSockServer));
+  const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, streams], i) => {
     handleOutputStream(servers[i], streams);
   });
@@ -520,7 +518,7 @@ async function handleOutputs(outputs: Output[]) {
 }
 async function handleInputs(inputs: Input[]) {
   const streams = inputs.filter(isStream).map(getInputStream);
-  const servers = await Promise.all(streams.map(getSockServer));
+  const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, stream], i) => {
     handleInputStream(servers[i], stream);
   });
@@ -530,7 +528,7 @@ async function handleInputs(inputs: Input[]) {
 function closeSocketServer(socketServer: Server) {
   if (socketServer.listening) socketServer.close();
 }
-function getSockServer([path]: [string, any]) {
+function getSocketServer([path]: [string, any]) {
   return createSocketServer(path);
 }
 function isStream(o: Output | Input) {
