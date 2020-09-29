@@ -53,7 +53,7 @@ export abstract class BaseStream {
   #unwrapped: RawProbeStream;
 
   /** @internal */
-  constructor (stream: RawProbeStream) {
+  constructor(stream: RawProbeStream) {
     this.#unwrapped = stream;
 
     this.index = stream.index >>> 0;
@@ -126,7 +126,7 @@ export class VideoStream extends BaseStream {
   readonly bitsPerRawSample: number;
 
   /** @internal */
-  constructor (stream: RawProbeStream) {
+  constructor(stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as VideoCodec;
     if (stream.profile) this.profile = '' + stream.profile;
@@ -160,7 +160,7 @@ export class AudioStream extends BaseStream {
   readonly bitsPerSample: number;
 
   /** @internal */
-  constructor (stream: RawProbeStream) {
+  constructor(stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as AudioCodec;
     if (stream.profile) this.profile = '' + stream.profile;
@@ -177,7 +177,7 @@ export class SubtitleStream extends BaseStream {
   readonly codec: Maybe<SubtitleCodec>;
 
   /** @internal */
-  constructor (stream: RawProbeStream) {
+  constructor(stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as SubtitleCodec;
   }
@@ -188,7 +188,7 @@ export class DataStream extends BaseStream {
   readonly codec: Maybe<DataCodec>;
 
   /** @internal */
-  constructor (stream: RawProbeStream) {
+  constructor(stream: RawProbeStream) {
     super(stream);
     this.codec = '' + stream.codec_name as DataCodec;
   }
@@ -214,7 +214,7 @@ export class Chapter {
   #unwrapped: RawProbeChapter;
 
   /** @internal */
-  constructor (chapter: RawProbeChapter) {
+  constructor(chapter: RawProbeChapter) {
     this.#unwrapped = chapter;
     this.id = chapter.id >>> 0;
     this.start = chapter.start * 1000000 | 0;
@@ -263,7 +263,7 @@ export class ProbeResult {
   #unwrapped: RawProbeResult;
 
   /** @internal */
-  constructor (result: RawProbeResult) {
+  constructor(result: RawProbeResult) {
     this.#unwrapped = result;
 
     const formatInfo = result.format;
