@@ -1,12 +1,45 @@
 import { PassThrough, Readable } from 'stream';
-import { createReadStream, promises, unlinkSync } from 'fs';
+import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
 import { randomBytes } from 'crypto';
 import { expect } from 'chai';
 
-import { ffmpeg } from '../src/command';
+import { ffmpeg, LogLevel } from '../src/command';
 import { isWin32 } from '../src/utils';
 
 describe('command', function () {
+  describe('ffmpeg()', function () {
+    this.timeout(30000);
+    it('should set ffmpeg\'s log level', function () {
+      const cmd = ffmpeg({
+        logLevel: LogLevel.Debug,
+      });
+      expect(cmd.getArgs().pop()).to.equal(LogLevel.Debug.toString());
+    });
+    it('should set overwrite to true', function () {
+      const cmd = ffmpeg({
+        overwrite: true,
+      });
+      expect(cmd.getArgs().shift()).to.equal('-y');
+    });
+    it('should set overwrite to false', function () {
+      const cmd = ffmpeg({
+        overwrite: false,
+      });
+      expect(cmd.getArgs().shift()).to.equal('-n');
+    });
+    it('should set progress to true', function () {
+      const cmd = ffmpeg({
+        progress: true,
+      });
+      expect(cmd.getArgs()[1]).to.equal('-progress');
+    });
+    it('should set progress to false', function () {
+      const cmd = ffmpeg({
+        progress: false,
+      });
+      expect(cmd.getArgs()[1]).to.not.equal('-progress');
+    });
+  });
   describe('FFmpegCommand', function () {
     this.timeout(30000);
     describe('input()', function () {
@@ -74,6 +107,40 @@ describe('command', function () {
       });
     });
     describe('spawn()', function () {
+      it('should handle a NodeJS\' file write stream', async function () {
+        try {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/video.mp4');
+          cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          await process.complete();
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+        } finally {
+          try {
+            unlinkSync('test/samples/[strange]output.mkv');
+          } catch {
+            //
+          }
+        }
+      });
+      it('should handle NodeJS\' file write streams', async function () {
+        try {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/video.mp4');
+          cmd.output(createWriteStream('test/samples/output.mkv'), createWriteStream('test/samples/[strange]output.mkv'))
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          await process.complete();
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+        } finally {
+          try {
+            unlinkSync('test/samples/[strange]output.mkv');
+          } catch {
+            //
+          }
+        }
+      });
       it('should handle a simple output destination', async function () {
         try {
           const cmd = ffmpeg();
@@ -83,9 +150,11 @@ describe('command', function () {
           const process = await cmd.spawn();
           await process.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/output.mkv')).isFile()).to.equal(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
+            unlinkSync('test/samples/output.mkv');
           } catch {
             //
           }
@@ -230,6 +299,16 @@ describe('command', function () {
           expect(() => process.pause()).to.throw();
           process.kill();
         });
+        else it('should kill SIGSTOP', async function () {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/video.mp4');
+          cmd.output()
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          expect(process.pause()).to.equal(true);
+          expect(process.unwrap().killed).to.equal(true);
+          process.kill();
+        });
       });
       describe('resume()', function () {
         if (isWin32) it('should fail on Windows', async function () {
@@ -239,6 +318,16 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           expect(() => process.resume()).to.throw();
+          process.kill();
+        });
+        else it('should kill SIGCONT', async function () {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/video.mp4');
+          cmd.output()
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          expect(process.resume()).to.equal(true);
+          expect(process.unwrap().killed).to.equal(true);
           process.kill();
         });
       });
