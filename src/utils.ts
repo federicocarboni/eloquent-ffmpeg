@@ -1,3 +1,4 @@
+/** @internal */
 export const isWin32 = process.platform === 'win32';
 
 /** @internal */
@@ -42,14 +43,17 @@ export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
 
 export type BufferLike = Buffer | ArrayBufferView | ArrayBuffer;
 
+/** @internal */
 export function isArrayBuffer(o: unknown): o is ArrayBuffer {
   return o instanceof ArrayBuffer;
 }
 
+/** @internal */
 export function isBufferLike(o: unknown): o is BufferLike {
   return Buffer.isBuffer(o) || ArrayBuffer.isView(o) || isArrayBuffer(o);
 }
 
+/** @internal */
 export function toUint8Array(bufferLike: BufferLike): Uint8Array {
   return new Uint8Array(isArrayBuffer(bufferLike) ? bufferLike : bufferLike.buffer);
 }
