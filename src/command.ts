@@ -24,8 +24,39 @@ export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iter
 export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
 
 export interface FFmpegCommand {
+  /**
+   * Adds an input to the conversion.
+   * @param source
+   * @example ```ts
+   * const cmd = ffmpeg();
+   * cmd.input('input.avi');
+   * cmd.input(fs.createReadStream('input2.avi'));
+   * cmd.output();
+   * const process = await cmd.spawn();
+   * await process.complete();
+   * ```
+   */
   input(source: InputSource): FFmpegInput;
+  /**
+   * Adds an output to the conversion, multiple destinations are supported using
+   * the `tee` protocol. You can use mixed destinations and multiple streams.
+   * Both NodeJS WritableStreams and AsyncGenerators are fully supported.
+   * @param destinations A sequence of OutputDestinations to which the output
+   * will be written. If not destinations are specified the conversion will run,
+   * but any output data will be ignored.
+   * @example ```ts
+   * const cmd = ffmpeg();
+   * cmd.input('input.avi');
+   * cmd.output(fs.createWriteStream('dest1.mkv'), 'dest2.mkv');
+   * const process = await cmd.spawn();
+   * await process.complete();
+   * ```
+   */
   output(...destinations: OutputDestination[]): FFmpegOutput;
+  /**
+   * Add arguments, they will be placed before any input or output arguments.
+   * @param args
+   */
   args(...args: string[]): this;
   /**
    * Starts the conversion, this method is asynchronous so it must be `await`'ed.
@@ -38,12 +69,26 @@ export interface FFmpegCommand {
    * ```
    */
   spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
+  /**
+   * Returns all the arguments with which ffmpeg will be spawned.
+   */
   getArgs(): string[];
 }
 
 export interface FFmpegOptions {
+  /**
+   * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
+   */
   logLevel?: LogLevel;
+  /**
+   * Enabled piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
+   * will silently will silently fail. Defaults to `true`.
+   */
   progress?: boolean;
+  /**
+   * Whether to overwrite the output destinations if they already exist. Required
+   * to be `true` for streaming outputs. Defaults to `true`.
+   */
   overwrite?: boolean;
 }
 
