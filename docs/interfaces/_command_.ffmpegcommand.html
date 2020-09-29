@@ -102,13 +102,20 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/command.ts#L29">command.ts:29</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/3af1411/src/command.ts#L60">command.ts:60</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Add arguments, they will be placed before any input or output arguments.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
@@ -125,9 +132,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/command.ts#L41">command.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/3af1411/src/command.ts#L75">command.ts:75</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns all the arguments with which ffmpeg will be spawned.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
 						</li>
 					</ul>
@@ -142,9 +154,24 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/command.ts#L27">command.ts:27</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/3af1411/src/command.ts#L39">command.ts:39</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds an input to the conversion.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.avi&#x27;</span>);
+cmd.input(fs.createReadStream(<span class="hljs-string">&#x27;input2.avi&#x27;</span>));
+cmd.output();
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -165,13 +192,34 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/command.ts#L28">command.ts:28</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/3af1411/src/command.ts#L55">command.ts:55</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds an output to the conversion, multiple destinations are supported using
+										the <code>tee</code> protocol. You can use mixed destinations and multiple streams.
+									Both NodeJS WritableStreams and AsyncGenerators are fully supported.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.avi&#x27;</span>);
+cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.mkv&#x27;</span>), <span class="hljs-string">&#x27;dest2.mkv&#x27;</span>);
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>destinations: <a href="../modules/_command_.html#outputdestination" class="tsd-signature-type">OutputDestination</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A sequence of OutputDestinations to which the output
+											will be written. If not destinations are specified the conversion will run,
+										but any output data will be ignored.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_command_.ffmpegoutput.html" class="tsd-signature-type">FFmpegOutput</a></h4>
@@ -188,7 +236,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/command.ts#L40">command.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/3af1411/src/command.ts#L71">command.ts:71</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
