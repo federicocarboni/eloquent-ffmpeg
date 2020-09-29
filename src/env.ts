@@ -6,8 +6,8 @@ const { FFMPEG_PATH, FFPROBE_PATH } = process.env;
 let ffmpegPath: string | undefined = FFMPEG_PATH ? resolvePath(FFMPEG_PATH) : void 0;
 /**
  * Manually override the default ffmpeg path.
- * @param path A path to the FFmpeg executable. Relative paths CAN be used.
- * @throws `TypeError` if the `path` is not a file.
+ * @param path Path to the ffmpeg executable. Relative paths CAN be used.
+ * @throws `TypeError` if the given `path` is not a file.
  */
 export function setFFmpegPath(path: string): void {
   const newPath = resolvePath(path);
@@ -21,14 +21,14 @@ export function setFFmpegPath(path: string): void {
  */
 export function getFFmpegPath(): string {
   if (ffmpegPath === void 0)
-    throw new TypeError(`'${ffmpegPath}' is not a file`);
+    throw new TypeError('Cannot find ffmpeg, make sure to set FFMPEG_PATH or call setFFmpegPath()');
   return ffmpegPath;
 }
 
 let ffprobePath: string | undefined = FFPROBE_PATH ? resolvePath(FFPROBE_PATH) : void 0;
 /**
  * Manually override the default ffprobe path.
- * @param path A path to the ffprobe executable. Relative paths CAN be used.
+ * @param path Path to the ffprobe executable. Relative paths CAN be used.
  * @throws `TypeError` if the `path` is not a file.
  */
 export function setFFprobePath(path: string): void {
@@ -43,11 +43,11 @@ export function setFFprobePath(path: string): void {
  */
 export function getFFprobePath(): string {
   if (ffprobePath === void 0)
-    throw new TypeError(`'${ffprobePath}' is not a file`);
+    throw new TypeError('Cannot find ffprobe, make sure to set FFPROBE_PATH or call setFFprobePath()');
   return ffprobePath;
 }
 
-function resolvePath(path: string): string | undefined {
+export function resolvePath(path: string): string | undefined {
   const fullpath = resolve(path);
   if (existsSync(fullpath) && lstatSync(fullpath).isFile())
     return fullpath;

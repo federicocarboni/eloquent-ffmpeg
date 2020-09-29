@@ -4,7 +4,7 @@ import { createInterface as readlines } from 'readline';
 import { getSocketServer, getSockPath, getSockResource } from './sock';
 import { toUint8Array } from './utils';
 // import { __asyncValues } from 'tslib';
-import { getFFmpegPath } from './env';
+import { getFFmpegPath, resolvePath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
 
@@ -23,6 +23,30 @@ export enum LogLevel {
 export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
 export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
 
+export interface FFmpegCommand {
+  input(source: InputSource): FFmpegInput;
+  output(...destinations: OutputDestination[]): FFmpegOutput;
+  args(...args: string[]): this;
+  /**
+   * Starts the conversion, this method is asynchronous so it must be `await`'ed.
+   * @param ffmpegPath Path to the ffmpeg executable. Relative paths CAN be used.
+   * @throws A `TypeError` if the given `ffmpegPath` is not a file.
+   * @example ```ts
+   * const cmd = ffmpeg();
+   * cmd.input('input.avi');
+   * cmd.output('output.mp4');
+   * const process = await cmd.spawn();
+   * ```
+   */
+  spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
+  getArgs(): string[];
+}
+
+export interface FFmpegOptions {
+  logLevel?: LogLevel;
+  progress?: boolean;
+}
+
 export interface Progress {
   frames: number;
   fps: number;
@@ -37,39 +61,86 @@ export interface Progress {
 export interface FFmpegInput {
   args(...args: string[]): this;
   getArgs(): string[];
-  isStream: boolean;
+  readonly isStream: boolean;
 }
 
 export interface FFmpegOutput {
   args(...args: string[]): this;
   getArgs(): string[];
-  isStream: boolean;
+  readonly isStream: boolean;
 }
 
 export interface FFmpegProcess {
+  /**
+   * Numeric pid of the running process.
+   */
+  readonly pid: number;
+  /**
+   * The command line arguments used to spawn the process.
+   */
+  readonly args: readonly string[];
+  /**
+   * Path of the running ffmpeg executable.
+   */
+  readonly ffmpegPath: string;
+  /**
+   * Returns an AsyncGenerator representing the real-time progress of the conversion.
+   * @example ```ts
+   * const process = await cmd.spawn();
+   * for await (const progress of process.progress()) {
+   *   console.log('Speed:', progress.speed);
+   * }
+   * ```
+   * Using NodeJS Streams:
+   * ```ts
+   * const process = await cmd.spawn();
+   * const progressStream = Readable.from(process.progress());
+   * progressStream.on('data', (progress) => {
+   *   console.log('Speed:', progress.speed);
+   * });
+   * ```
+   */
   progress(): AsyncGenerator<Progress, void, void>;
-  pid: number;
-  args: string[];
-  ffmpegPath: string;
-  kill(signal?: NodeJS.Signals | number): boolean;
+  /**
+   * Returns a Promise which resolves when the process exits, or rejects when the
+   * process exits with a non-zero status code.
+   * @example ```ts
+   * const process = cmd.spawn();
+   * await process.complete();
+   * console.log('Conversion complete!');
+   * ```
+   * To handle errors:
+   * ```ts
+   * const process = cmd.spawn();
+   * try {
+   *   await process.complete();
+   *   console.log('Conversion complete!');
+   * } catch (e) {
+   *   console.error('Conversion failed!', error);
+   * }
+   * ```
+   */
   complete(): Promise<void>;
-  pause(): boolean;
-  resume(): boolean;
+  /**
+   * Returns the underlying NodeJS' ChildProcess instance.
+   */
   unwrap(): ChildProcess;
-}
-
-export interface FFmpegCommand {
-  input(source: InputSource): FFmpegInput;
-  output(...destinations: OutputDestination[]): FFmpegOutput;
-  args(...args: string[]): this;
-
-  spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
-  getArgs(): string[];
-}
-
-export interface FFmpegOptions {
-  logLevel?: LogLevel;
-  progress?: boolean;
+  /**
+   * Sends a signal to the running process.
+   * See {@link https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal}
+   * @param signal The signal to send.
+   */
+  kill(signal?: NodeJS.Signals | number): boolean;
+  /**
+   * Pauses the conversion, returns `true` if the operation succeeds, `false` otherwise.
+   * This does NOT currently work on Windows, support is planned.
+   */
+  pause(): boolean;
+  /**
+   * Resumes the conversion, returns `true` if the operation succeeds, `false` otherwise.
+   * This does NOT currently work on Windows, support is planned.
+   */
+  resume(): boolean;
 }
 
 export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
@@ -121,12 +192,18 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
-  constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
-    const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-    process.on('exit', () => {
+  ffmpegPath: string;
+  constructor(ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
+    const ffmpegFullPath = resolvePath(ffmpegPath);
+    if (ffmpegFullPath === void 0) throw new TypeError(`'${ffmpegPath}' is not a file`);
+    const process = spawn(ffmpegFullPath, args, { stdio: 'pipe' });
+    const cleanup = () => {
       inputSocketServers.forEach(closeSocketServer);
       outputSocketServers.forEach(closeSocketServer);
-    });
+      process.off('exit', cleanup);
+    };
+    process.on('exit', cleanup);
+    this.ffmpegPath = ffmpegFullPath;
     this.#process = process;
   }
   get pid(): number {
@@ -137,23 +214,27 @@ class Process implements FFmpegProcess {
   }
   pause(): boolean {
     if (isWin32) throw new TypeError('pause() cannot be used on Windows (yet)');
-    return this.kill('SIGSTOP');
+    const process = this.#process;
+    if (process.exitCode !== null) return false;
+    return process.kill('SIGSTOP');
   }
   resume(): boolean {
     if (isWin32) throw new TypeError('resume() cannot be used on Windows (yet)');
-    return this.kill('SIGCONT');
+    const process = this.#process;
+    if (process.exitCode !== null) return false;
+    return process.kill('SIGSTOP');
   }
   complete(): Promise<void> {
+    const process = this.#process;
+    const code = process.exitCode;
     return new Promise((resolve, reject) => {
-      const onExit = (code: number) => {
+      const fulfill = (code: number) => {
         if (code === 0) resolve();
         else reject(); // TODO: add exception
-        process.off('exit', onExit);
+        process.off('exit', fulfill);
       };
-      const process = this.#process;
-      const code = process.exitCode;
-      if (code !== null) onExit(code);
-      else process.on('exit', onExit);
+      if (code !== null) fulfill(code);
+      else process.on('exit', fulfill);
     });
   }
   progress(): AsyncGenerator<Progress, void, void> {
