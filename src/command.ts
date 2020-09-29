@@ -3,7 +3,6 @@ import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
 import { createInterface as readlines } from 'readline';
 import { getSocketServer, getSockPath, getSockResource } from './sock';
 import { toUint8Array } from './utils';
-// import { __asyncValues } from 'tslib';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
