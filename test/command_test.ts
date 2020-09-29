@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import { expect } from 'chai';
 
 import { ffmpeg, LogLevel } from '../src/command';
-import { isWin32, read } from '../src/utils';
+import { isWin32 } from '../src/utils';
 
 describe('command', function () {
   describe('ffmpeg()', function () {
