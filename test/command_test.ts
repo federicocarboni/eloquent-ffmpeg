@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import { expect } from 'chai';
 
 import { ffmpeg, LogLevel } from '../src/command';
-import { isWin32 } from '../src/utils';
+import { isWin32, read } from '../src/utils';
 
 describe('command', function () {
   describe('ffmpeg()', function () {
@@ -242,7 +242,7 @@ describe('command', function () {
       });
       it('should handle a single streaming input source', async function () {
         const cmd = ffmpeg();
-        cmd.input(createReadStream('test/samples/video.mp4'));
+        cmd.input(createReadStream('test/samples/video.webm'));
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
@@ -250,11 +250,12 @@ describe('command', function () {
       });
       it('should handle multiple streaming inputs', async function () {
         const cmd = ffmpeg();
-        cmd.input(createReadStream('test/samples/video.mp4'));
+        cmd.input(createReadStream('test/samples/video.webm'));
         cmd.input(createReadStream('test/samples/video.mkv'));
         cmd.output()
           .args('-map', '0:0', '-map', '1:1', '-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
+        console.log((await read(process.unwrap().stderr!)).toString());
         await process.complete();
       });
       it('should handle simple inputs', async function () {
@@ -299,7 +300,7 @@ describe('command', function () {
           expect(() => process.pause()).to.throw();
           process.kill();
         });
-        else it('should kill SIGSTOP', async function () {
+        else it('should send signal SIGSTOP', async function () {
           const cmd = ffmpeg();
           cmd.input('test/samples/video.mp4');
           cmd.output()
@@ -307,7 +308,8 @@ describe('command', function () {
           const process = await cmd.spawn();
           expect(process.pause()).to.equal(true);
           expect(process.unwrap().killed).to.equal(true);
-          process.kill();
+          process.resume();
+          process.kill('SIGKILL');
         });
       });
       describe('resume()', function () {
@@ -317,18 +319,20 @@ describe('command', function () {
           cmd.output()
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
+          process.pause();
           expect(() => process.resume()).to.throw();
           process.kill();
         });
-        else it('should kill SIGCONT', async function () {
+        else it('should send signal SIGCONT', async function () {
           const cmd = ffmpeg();
           cmd.input('test/samples/video.mp4');
           cmd.output()
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
+          process.pause();
           expect(process.resume()).to.equal(true);
           expect(process.unwrap().killed).to.equal(true);
-          process.kill();
+          process.kill('SIGKILL');
         });
       });
       describe('complete()', function () {
