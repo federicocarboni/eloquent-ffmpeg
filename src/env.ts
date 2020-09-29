@@ -47,7 +47,7 @@ export function getFFprobePath(): string {
   return ffprobePath;
 }
 
-export function resolvePath(path: string): string | undefined {
+function resolvePath(path: string): string | undefined {
   const fullpath = resolve(path);
   if (existsSync(fullpath) && lstatSync(fullpath).isFile())
     return fullpath;
