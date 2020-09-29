@@ -3,6 +3,8 @@
 
 .editorconfig
 .eslintrc.json
+.mocharc.json
+.nycrc.json
 .env
 
 README.md
@@ -12,6 +14,9 @@ tsconfig.es6.json
 tsconfig.json
 typedoc.json
 
+.nyc_output/
+.github/
+coverage/
 scripts/
 docs/
 test/
