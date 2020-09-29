@@ -70,6 +70,7 @@
 							<h3>Variables</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_sock_.html#getsockpath" class="tsd-kind-icon">get<wbr>Sock<wbr>Path</a></li>
+								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_sock_.html#getsockresource" class="tsd-kind-icon">get<wbr>Sock<wbr>Resource</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -89,7 +90,17 @@
 					<div class="tsd-signature tsd-kind-icon">get<wbr>Sock<wbr>Path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">(Anonymous function)</span><span class="tsd-signature-symbol"> = isWin32 ? (): string &#x3D;&gt; {return &#x60;//./pipe/${v4()}.sock&#x60;;} : (): string &#x3D;&gt; {throw new Error(&#x27;Not implemented.&#x27;);// TODO: test this on unix.// return &#x60;/run/${v4()}.sock&#x60;;}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/sock.ts#L5">sock.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/sock.ts#L5">sock.ts:5</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
+					<a name="getsockresource" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Sock<wbr>Resource</h3>
+					<div class="tsd-signature tsd-kind-icon">get<wbr>Sock<wbr>Resource<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">(Anonymous function)</span><span class="tsd-signature-symbol"> = isWin32 ? (path: string): string &#x3D;&gt; {return &#x60;file:${path}&#x60;;// eslint-disable-next-line @typescript-eslint/no-unused-vars} : (path: string): string &#x3D;&gt; {throw new Error(&#x27;Not implemented.&#x27;);// TODO: test this on unix.// return &#x60;unix:${path}&#x60;;}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/sock.ts#L13">sock.ts:13</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -106,7 +117,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/ba7377b/src/sock.ts#L13">sock.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/f5b14ea/src/sock.ts#L22">sock.ts:22</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -163,6 +174,9 @@
 				<ul class="before-current">
 					<li class=" tsd-kind-variable tsd-parent-kind-module">
 						<a href="_sock_.html#getsockpath" class="tsd-kind-icon">get<wbr>Sock<wbr>Path</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="_sock_.html#getsockresource" class="tsd-kind-icon">get<wbr>Sock<wbr>Resource</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="_sock_.html#getsocketserver" class="tsd-kind-icon">get<wbr>Socket<wbr>Server</a>
