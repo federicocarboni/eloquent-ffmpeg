@@ -1,6 +1,6 @@
 {
   "name": "eloquent-ffmpeg",
-  "version": "0.2.0-alpha.0",
+  "version": "0.3.0-alpha.0",
   "description": "An easy to use API for FFmpeg interactions",
   "module": "lib/lib.es6.js",
   "main": "lib/lib.cjs",
