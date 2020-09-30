@@ -257,21 +257,9 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
-  #complete: Promise<void>;
   constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
     const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
-    let resolve: () => void;
-    let reject: (error?: Error) => void;
-    this.#complete = new Promise((f, r) => {
-      resolve = f;
-      reject = r;
-    });
-    const onExit = (code: number | null): void => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(); // TODO: add exception.
-      }
+    const onExit = (): void => {
       // Close all socket servers, this is necessary for proper cleanup after
       // failed conversions, or otherwise errored ffmpeg processes.
       inputSocketServers.forEach(closeSocketServer);
@@ -281,8 +269,7 @@ class Process implements FFmpegProcess {
       process.off('error', onError);
     };
     const onError = (): void => {
-      const code = process.exitCode;
-      if (code !== null) onExit(code);
+      if (process.exitCode !== null) onExit();
     };
     process.on('exit', onExit);
     process.on('error', onError);
@@ -307,7 +294,27 @@ class Process implements FFmpegProcess {
     return process.kill('SIGCONT');
   }
   complete(): Promise<void> {
-    return this.#complete.finally();
+    const process = this.#process;
+    const exitCode = process.exitCode;
+    return new Promise((resolve, reject) => {
+      const onExit = (exitCode: number | null): void => {
+        if (exitCode === 0) resolve();
+        else reject(); // TODO: add exception
+
+        process.off('exit', onExit);
+        process.off('error', onError);
+      };
+      const onError = (): void => {
+        const exitCode = process.exitCode;
+        if (exitCode !== null) onExit(exitCode);
+      };
+      if (exitCode !== null) {
+        onExit(exitCode);
+      } else {
+        process.on('exit', onExit);
+        process.on('error', onError);
+      }
+    });
   }
   progress(): AsyncGenerator<Progress, void, void> {
     return createProgressGenerator(this.#process.stdout);
