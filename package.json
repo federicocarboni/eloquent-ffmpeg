@@ -9,6 +9,7 @@
     "build": "rollup -c",
     "types": "ts-node -r dotenv/config scripts/ffmpeg_types.ts",
     "lint": "eslint src/**/*.ts",
+    "prepack": "npm run lint && npm run coverage && npm run build",
     "pretest": "ts-node -r dotenv/config scripts/test_samples.ts",
     "test": "mocha -r dotenv/config -r ts-node/register test/**/*_test.ts",
     "coverage": "nyc --reporter=lcov npm test",
