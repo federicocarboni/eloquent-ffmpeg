@@ -29,7 +29,7 @@ setFFmpegPath(which.sync('ffmpeg'));
 Since most of Eloquent FFmpeg's methods are asynchronous it is advised to use
 `async-await` to make your code more readable.
 
-A simple example would use the following code:
+A simple example could use the following:
 
 ```ts
 // create a new command
@@ -46,4 +46,51 @@ cmd.output('output.mp4');
 const process = await cmd.spawn();
 // wait for the conversion to complete
 await process.complete();
+```
+
+### Streams
+Streams can be used as input sources and output destinations, there is no hard limit on how many streams you can use. Pass your streams directly to `FFmpegCommand.input()` and `FFmpegCommand.output()`.
+`FFmpegCommand.input()` can also take `BufferLike` objects.
+
+Example using NodeJS' `fs` module.
+```ts
+const cmd = ffmpeg();
+cmd.input(fs.createReadStream('input.mkv'));
+// The same output will be written to two destinations.
+cmd.output(fs.createWriteStream('output1.avi'), 'output2.avi');
+
+const process = await cmd.spawn();
+await process.complete();
+```
+
+### Monitor progress
+To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
+
+```ts
+const process = await cmd.spawn();
+for await (const { speed, time } of process.progress()) {
+  console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
+}
+// Be careful! The progress generator will return when ffmpeg writes
+// a `progress=end` line, which signals the end of progress updates,
+// not the conversion's completion.
+// Use process.complete() to wait for completion.
+await process.complete();
+console.log('Hooray! Conversion complete!');
+```
+If you want to use NodeJS' streams, turn `FFmpegProcess.progress()` into a `ReadableStream` using `Readable.from()`.
+```ts
+const process = await cmd.spawn();
+const progress = Readable.from(process.progress());
+progress.on('data', ({ speed, time }) => {
+  console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
+});
+progress.on('end', () => {
+  // Be careful! The progress stream will end when ffmpeg writes
+  // a `progress=end` line, which signals the end of progress updates,
+  // not the conversion's completion.
+  console.log('No more progress updates');
+});
+// Use process.complete() to wait for completion.
+process.complete().then(() => console.log('Hooray! Conversion complete!'));
 ```
