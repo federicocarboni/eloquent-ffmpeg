@@ -15,7 +15,7 @@ import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
 setFFmpegPath('/path/to/your/ffmpeg');
 setFFprobePath('/path/to/your/ffprobe');
 ```
-You can use it in conjunction with [which](https://github.com/npm/node-which) to search for `ffmpeg` in `PATH`.
+You can use it in conjunction with [node which](https://github.com/npm/node-which) to search for `ffmpeg` in `PATH`.
 
 `npm install --save which`
 ```ts
