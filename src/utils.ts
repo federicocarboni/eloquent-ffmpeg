@@ -55,5 +55,6 @@ export function isBufferLike(o: unknown): o is BufferLike {
 
 /** @internal */
 export function toUint8Array(bufferLike: BufferLike): Uint8Array {
+  if (Buffer.isBuffer(bufferLike)) return bufferLike;
   return new Uint8Array(isArrayBuffer(bufferLike) ? bufferLike : bufferLike.buffer);
 }
