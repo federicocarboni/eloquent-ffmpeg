@@ -1,4 +1,4 @@
-import { probeUint8Array } from '../src/probe';
+import { probe } from '../src/probe';
 import { join } from 'path';
 import { promises } from 'fs';
 import { expect } from 'chai';
@@ -8,7 +8,7 @@ describe('probe', function () {
   describe('probe()', function () {
     it('should return a ProbeResult', async function () {
       const buffer = await promises.readFile(join(__dirname, 'samples/video.mp4'));
-      const result = await probeUint8Array(buffer);
+      const result = await probe(buffer);
       expect(result.format).to.equal('mov,mp4,m4a,3gp,3g2,mj2');
       expect(result.duration).to.be.a('number');
       expect(result.start).to.be.a('number');
@@ -20,7 +20,7 @@ describe('probe', function () {
       const buffer = randomBytes(6 * 1024 * 1024);
       let caught = false;
       try {
-        await probeUint8Array(buffer);
+        await probe(buffer);
       } catch {
         caught = true;
       }

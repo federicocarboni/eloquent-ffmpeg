@@ -1,7 +1,8 @@
+import { BufferLike, end, isBufferLike, read, toUint8Array, write } from './utils';
+import { InputSource, LogLevel } from './command';
 import { getFFprobePath } from './env';
+import { __asyncValues } from 'tslib';
 import { spawn } from 'child_process';
-import { LogLevel } from './command';
-import { read } from './utils';
 import { Demuxer } from './_types';
 
 /* eslint-disable camelcase */
@@ -225,14 +226,39 @@ export interface ProbeResult {
 }
 
 export interface ProbeOptions {
+  /**
+   * Specify the number of bytes to probe, defaults to `5 * 1024 * 1024`, `5MiB`.
+   */
   probeSize?: number;
+  /**
+   * Specify the number of milliseconds to analyze, defaults to `5000`.
+   */
   analyzeDuration?: number;
+  /**
+   * Path to the `ffprobe` executable.
+   */
   ffprobePath?: string;
+  /**
+   * Set the log level used by ffprobe.
+   */
   logLevel?: LogLevel;
+  /**
+   * Add command line arguments to ffprobe, `args` is appended **after** other
+   * arguments, but **before** source.
+   */
   args?: string[];
 }
 
-export async function probeUint8Array(u8: Uint8Array, options: ProbeOptions = {}): Promise<ProbeResult> {
+/**
+ * Probes the given `source` using ffprobe.
+ * @param source The source to probe. Accepts the same types as `FFmpegCommand.input()`.
+ * @param options Customize ffprobe options.
+ * @example ```ts
+ * const result = await probe('input.mp4');
+ * console.log(result.format);
+ * ```
+ */
+export async function probe(source: InputSource, options: ProbeOptions = {}): Promise<ProbeResult> {
   const {
     probeSize = 5242880,
     analyzeDuration = 5000,
@@ -250,14 +276,18 @@ export async function probeUint8Array(u8: Uint8Array, options: ProbeOptions = {}
     '-show_chapters',
     '-show_error',
     ...args,
-    'pipe:0'
+    typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
+  const { stdin, stdout, stderr } = ffprobe;
   try {
-    await writeStdin(ffprobe.stdin, u8);
-    const output = await read(ffprobe.stdout);
+    if (isBufferLike(source))
+      await writeStdin(stdin, toUint8Array(source));
+    else if (typeof source !== 'string')
+      await pipeStdin(stdin, __asyncValues(source));
+    const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error) {
-      const errors = await read(ffprobe.stderr);
+      const errors = await read(stderr);
       // TODO: add custom exception
       throw new Error(errors.toString('utf-8'));
     }
@@ -267,17 +297,22 @@ export async function probeUint8Array(u8: Uint8Array, options: ProbeOptions = {}
   }
 }
 
+const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
+
 class Result implements ProbeResult {
   #raw: RawProbeResult;
 
   constructor(raw: RawProbeResult) {
     this.#raw = raw;
-    if (raw.format.format_name) this.format = raw.format.format_name as Demuxer;
-    if (raw.format.format_long_name) this.formatName = raw.format.format_long_name;
+    if (raw.format.format_name)
+      this.format = raw.format.format_name as Demuxer;
+    if (raw.format.format_long_name)
+      this.formatName = raw.format.format_long_name;
     this.start = +raw.format.start_time * 1000 | 0;
     this.duration = +raw.format.duration * 1000 | 0;
     this.score = raw.format.probe_score >>> 0;
-    if (raw.format.tags) this.tags = tags(raw.format.tags);
+    if (raw.format.tags)
+      this.tags = tags(raw.format.tags);
   }
 
   format?: Demuxer | undefined;
@@ -294,7 +329,6 @@ class Result implements ProbeResult {
 }
 
 function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
-  const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
   return new Promise((resolve, reject) => {
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code)) {
@@ -308,6 +342,21 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
     });
     stdin.on('error', onError);
   });
+}
+
+async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<BufferLike>) {
+  try {
+    try {
+      for await (const chunk of stream) {
+        await write(stdin, toUint8Array(chunk));
+      }
+    } finally {
+      if (stdin.writable) await end(stdin);
+    }
+  } catch {
+    // Avoid unhandled rejections.
+    // TODO: add logging?
+  }
 }
 
 function toLowerCase([key, value]: [string, any]): [string, string] {
