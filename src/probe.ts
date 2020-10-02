@@ -284,6 +284,9 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
       await writeStdin(stdin, toUint8Array(source));
     else if (typeof source !== 'string')
       await pipeStdin(stdin, __asyncValues(source));
+    if (!stdout.readable || (ffprobe.exitCode !== null && ffprobe.exitCode !== 0))
+      // TODO: add custom exception.
+      throw new Error('FFprobe exited with non-zero status code');
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error) {
@@ -297,7 +300,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   }
 }
 
-const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
+const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF', 'ERR_STREAM_DESTROYED']);
 
 class Result implements ProbeResult {
   #raw: RawProbeResult;
@@ -345,17 +348,20 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
 }
 
 async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<BufferLike>) {
+  stdin.on('error', () => {
+    //
+  });
   try {
-    try {
-      for await (const chunk of stream) {
+    for await (const chunk of stream) {
+      try {
         await write(stdin, toUint8Array(chunk));
+      } catch (error) {
+        if (!IGNORED_ERRORS.has(error.code))
+          throw error;
       }
-    } finally {
-      if (stdin.writable) await end(stdin);
     }
-  } catch {
-    // Avoid unhandled rejections.
-    // TODO: add logging?
+  } finally {
+    if (stdin.writable) await end(stdin);
   }
 }
 
