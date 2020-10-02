@@ -41,7 +41,7 @@ describe('command', function () {
     });
   });
   describe('FFmpegCommand', function () {
-    this.timeout(30000);
+    this.timeout(10000);
     describe('input()', function () {
       it('should add a string as source', function () {
         const cmd = ffmpeg();
@@ -94,6 +94,71 @@ describe('command', function () {
         expect(input.isStream).to.equal(true);
         expect(lastArg).to.be.a('string');
         expect(lastArg!.startsWith('tee:')).to.equal(true);
+      });
+    });
+    describe('probe()', function () {
+      it('should probe simple inputs', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input('test/samples/video.mkv');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const result = await input.probe();
+        expect(result.unwrap()).to.be.an('object');
+        const process = await cmd.spawn();
+        await process.complete();
+      });
+      it('should probe buffer inputs', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input(await promises.readFile('test/samples/video.mkv'));
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const result = await input.probe();
+        expect(result.unwrap()).to.be.an('object');
+        const process = await cmd.spawn();
+        await process.complete();
+      });
+      it('should probe streaming inputs', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input(createReadStream('test/samples/video.mkv'));
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const result = await input.probe();
+        expect(result.unwrap()).to.be.an('object');
+        const process = await cmd.spawn();
+        await process.complete();
+      });
+      it('should throw on an invalid input path', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input('test/samples/invalid');
+        let caught = false;
+        try {
+          await input.probe();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
+      it('should throw on an invalid input stream', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input(createReadStream('test/samples/invalid'));
+        let caught = false;
+        try {
+          await input.probe();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
+      it('should throw on an invalid input buffer', async function () {
+        const cmd = ffmpeg();
+        const input = cmd.input(await promises.readFile('test/samples/invalid'));
+        let caught = false;
+        try {
+          await input.probe();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
       });
     });
     describe('args()', function () {
