@@ -1,10 +1,10 @@
 import { createReadStream, promises } from 'fs';
-import { randomBytes } from 'crypto';
 import { probe } from '../src/probe';
 import { expect } from 'chai';
 
 describe('probe', function () {
   describe('probe()', function () {
+    this.timeout(10000);
     it('should probe a buffer', async function () {
       const buffer = await promises.readFile('test/samples/video.mp4');
       const result = await probe(buffer);
@@ -33,11 +33,28 @@ describe('probe', function () {
       expect(result.tags).to.be.an.instanceOf(Map);
       expect(result.unwrap()).to.be.an('object');
     });
-    it('should throw on invalid input', async function () {
-      const buffer = randomBytes(6 * 1024 * 1024);
+    it('should throw on invalid input path', async function () {
       let caught = false;
       try {
-        await probe(buffer);
+        await probe('test/samples/invalid');
+      } catch {
+        caught = true;
+      }
+      expect(caught).to.equal(true);
+    });
+    it('should throw on invalid input stream', async function () {
+      let caught = false;
+      try {
+        await probe(createReadStream('test/samples/invalid'));
+      } catch {
+        caught = true;
+      }
+      expect(caught).to.equal(true);
+    });
+    it('should throw on invalid input buffer', async function () {
+      let caught = false;
+      try {
+        await probe(await promises.readFile('test/samples/invalid'));
       } catch {
         caught = true;
       }
