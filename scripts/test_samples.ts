@@ -1,13 +1,13 @@
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { getFFmpegPath } from '../src/env';
 import { spawnSync } from 'child_process';
-import { existsSync, mkdirSync } from 'fs';
-
-if (existsSync('test/samples/video.mp4') && existsSync('test/samples/video.mkv') && existsSync('test/samples/video.webm'))
-  process.exit();
+import { randomBytes } from 'crypto';
 
 if (!existsSync('test/samples')) mkdirSync('test/samples');
 
 console.log('Generating videos for testing, this may take a while...');
+
+writeFileSync('test/samples/invalid', randomBytes(1363148));
 
 const { status } = spawnSync(getFFmpegPath(), [
   '-y',
@@ -28,4 +28,5 @@ const { status } = spawnSync(getFFmpegPath(), [
 ]);
 
 if (status !== 0) console.log(`FFmpeg exited with code ${status}`);
+
 process.exit(status!);
