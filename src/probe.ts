@@ -300,7 +300,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   }
 }
 
-const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF', 'ERR_STREAM_DESTROYED']);
+const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 class Result implements ProbeResult {
   #raw: RawProbeResult;
