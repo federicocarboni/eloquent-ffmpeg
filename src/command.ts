@@ -475,7 +475,7 @@ async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIter
         await write(socket, toUint8Array(chunk));
       }
     } finally {
-      if (!socket.writableEnded) await end(socket);
+      if (socket.writable) await end(socket);
     }
   } catch {
     // Avoid unhandled rejections.
