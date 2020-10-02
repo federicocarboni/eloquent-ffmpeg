@@ -577,7 +577,5 @@ async function readAtLeast(stream: AsyncIterableIterator<BufferLike>, length: nu
     if (byteLength >= length)
       break;
   }
-  const u8 = Buffer.concat(chunks);
-  console.log(byteLength);
-  return u8;
+  return Buffer.concat(chunks);
 }
