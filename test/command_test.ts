@@ -1,6 +1,5 @@
-import { PassThrough, Readable } from 'stream';
 import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
-import { randomBytes } from 'crypto';
+import { PassThrough, Readable } from 'stream';
 import { expect } from 'chai';
 
 import { ffmpeg, LogLevel } from '../src/command';
@@ -49,27 +48,28 @@ describe('command', function () {
         expect(input.isStream).to.equal(false);
         expect(input.getArgs().pop()).to.equal('protocol:location');
       });
-      it('should add a buffer as source', function () {
+      it('should add a buffer as source', async function () {
         const cmd = ffmpeg();
-        const input1 = cmd.input(randomBytes(4096));
-        const input2 = cmd.input(randomBytes(4096).buffer);
+        const invalidBuffer = await promises.readFile('test/samples/invalid');
+        const input1 = cmd.input(invalidBuffer);
+        const input2 = cmd.input(invalidBuffer.buffer);
         expect(input1.isStream).to.equal(true);
         expect(input2.isStream).to.equal(true);
       });
-      it('should add an iterable as source', function () {
+      it('should add an iterable as source', async function () {
         const cmd = ffmpeg();
-        const input = cmd.input([randomBytes(4096)]);
+        const input = cmd.input([await promises.readFile('test/samples/invalid')]);
         expect(input.isStream).to.equal(true);
       });
       it('should add an async iterable as source', function () {
-        async function* asyncIterable() { yield randomBytes(4906); }
+        async function* asyncIterable() { yield await promises.readFile('test/samples/invalid'); }
         const cmd = ffmpeg();
         const input = cmd.input(asyncIterable());
         expect(input.isStream).to.equal(true);
       });
-      it('should add a NodeJS.ReadableStream as source', function () {
+      it('should add a NodeJS.ReadableStream as source', async function () {
         const cmd = ffmpeg();
-        const input = cmd.input(Readable.from([randomBytes(4096)]));
+        const input = cmd.input(Readable.from([await promises.readFile('test/samples/invalid')]));
         expect(input.isStream).to.equal(true);
       });
     });
@@ -102,8 +102,10 @@ describe('command', function () {
         const input = cmd.input('test/samples/video.mkv');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const result = await input.probe();
+        const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(result.unwrap()).to.be.an('object');
+        const result1 = await input.probe();
+        expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -112,8 +114,10 @@ describe('command', function () {
         const input = cmd.input(await promises.readFile('test/samples/video.mkv'));
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const result = await input.probe();
+        const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(result.unwrap()).to.be.an('object');
+        const result1 = await input.probe();
+        expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -122,8 +126,10 @@ describe('command', function () {
         const input = cmd.input(createReadStream('test/samples/video.mkv'));
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const result = await input.probe();
+        const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(result.unwrap()).to.be.an('object');
+        const result1 = await input.probe();
+        expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -407,6 +413,21 @@ describe('command', function () {
           cmd.output()
             .args('-c', 'copy', '-f', 'my_invalid_muxer');
           const process = await cmd.spawn();
+          let caught = false;
+          try {
+            await process.complete();
+          } catch {
+            caught = true;
+          }
+          expect(process.unwrap().exitCode).to.not.equal(null);
+          expect(caught).to.equal(true);
+        });
+        it('should reject on errored process', async function () {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/video.mp4');
+          cmd.output()
+            .args('-c', 'copy', '-f', 'my_invalid_muxer');
+          const process = await cmd.spawn('./my_invalid_ffmpeg');
           let caught = false;
           try {
             await process.complete();
