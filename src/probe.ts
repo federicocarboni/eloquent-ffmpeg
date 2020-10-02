@@ -286,7 +286,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
       await pipeStdin(stdin, __asyncValues(source));
     if (!stdout.readable || (ffprobe.exitCode !== null && ffprobe.exitCode !== 0))
       // TODO: add custom exception.
-      throw new Error('FFprobe exited with non-zero status code');
+      throw new Error('FFprobe exited with non-zero exit code');
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error) {
