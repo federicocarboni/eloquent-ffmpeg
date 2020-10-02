@@ -1,7 +1,8 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
-import { createInterface as readlines } from 'readline';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
+import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
+import { probe, ProbeOptions, ProbeResult } from './probe';
+import { createInterface as readlines } from 'readline';
 import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
@@ -103,6 +104,7 @@ export interface Progress {
 }
 
 export interface FFmpegInput {
+  probe(options?: ProbeOptions): Promise<ProbeResult>;
   /**
    * Add input arguments, they will be placed before any additional arguments.
    * @param args
@@ -325,6 +327,7 @@ class Process implements FFmpegProcess {
 }
 
 const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<BufferLike>]>();
+const inputChunksMap = new WeakMap<Input, Uint8Array>();
 class Input implements FFmpegInput {
   #resource: string;
   #args: string[] = [];
@@ -340,6 +343,18 @@ class Input implements FFmpegInput {
       this.#resource = getSocketResource(path);
       this.isStream = true;
     }
+  }
+  probe(options: ProbeOptions = {}): Promise<ProbeResult> {
+    if (!this.isStream)
+      return probe(this.#resource, options);
+    if (inputChunksMap.has(this))
+      return probe(inputChunksMap.get(this)!, options);
+
+    return (async () => {
+      const u8 = await readAtLeast(inputStreamMap.get(this)![1], options.probeSize ?? 5 * 1024 * 1024);
+      inputChunksMap.set(this, new Uint8Array(u8.buffer.slice(0)));
+      return await probe(u8, options);
+    })();
   }
   getArgs(): string[] {
     return [
@@ -449,9 +464,13 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>) {
+async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>, input: Input) {
   try {
     try {
+      if (inputChunksMap.has(input)) {
+        await write(socket, toUint8Array(inputChunksMap.get(input)!));
+        inputChunksMap.delete(input);
+      }
       for await (const chunk of stream) {
         await write(socket, toUint8Array(chunk));
       }
@@ -463,9 +482,9 @@ async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIter
     // TODO: add logging?
   }
 }
-function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferLike>) {
+function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferLike>, input: Input) {
   server.once('connection', (socket) => {
-    handleInputStreamSocket(socket, stream);
+    handleInputStreamSocket(socket, stream, input);
     // Do NOT accept further connections, close() will close the server after
     // all existing connections are ended.
     server.close();
@@ -524,10 +543,11 @@ async function handleOutputs(outputs: Output[]) {
   return servers;
 }
 async function handleInputs(inputs: Input[]) {
-  const streams = inputs.filter(isStream).map(getInputStream);
+  const inputsOnly = inputs.filter(isStream);
+  const streams = inputsOnly.map(getInputStream);
   const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, stream], i) => {
-    handleInputStream(servers[i], stream);
+    handleInputStream(servers[i], stream, inputsOnly[i]);
   });
   return servers;
 }
@@ -546,4 +566,18 @@ function getOutputStream(output: Output) {
 }
 function getInputStream(input: Input) {
   return inputStreamMap.get(input)!;
+}
+async function readAtLeast(stream: AsyncIterableIterator<BufferLike>, length: number) {
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+  for (let r: IteratorResult<BufferLike, void>; !(r = await stream.next()).done; ) {
+    const u8 = toUint8Array(r.value);
+    byteLength += u8.byteLength;
+    chunks.push(u8);
+    if (byteLength >= length)
+      break;
+  }
+  const u8 = Buffer.concat(chunks);
+  console.log(byteLength);
+  return u8;
 }
