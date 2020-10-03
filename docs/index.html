@@ -64,7 +64,8 @@
 					<h1>Eloquent FFmpeg</h1>
 				</a>
 				<p>Eloquent FFmpeg simplifies interactions with
-				<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.</p>
+					<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.
+				View the <a href="https://federicocarboni.github.io/eloquent-ffmpeg/">documentation</a>.</p>
 				<p>If something doesn&#39;t feel right, feel free to open an issue or a pull request to
 					change it. This library is still in a very early stage, but there shouldn&#39;t be
 				any major breaking changes.</p>
@@ -93,8 +94,7 @@ setFFprobePath(which.sync(<span class="hljs-string">&#x27;ffprobe&#x27;</span>))
 					<h2>Usage</h2>
 				</a>
 				<p>Since most of Eloquent FFmpeg&#39;s methods are asynchronous it is advised to use
-					<code>async-await</code> to make your code more readable. To view the library in detail
-				view the <a href="https://federicocarboni.github.io/eloquent-ffmpeg/">full documentation</a>.</p>
+				<code>async-await</code> to make your code more readable.</p>
 				<p>A simple example could use the following:</p>
 				<pre><code class="language-ts"><span class="hljs-comment">// create a new command</span>
 <span class="hljs-keyword">const</span> cmd = ffmpeg({
@@ -102,7 +102,7 @@ setFFprobePath(which.sync(<span class="hljs-string">&#x27;ffprobe&#x27;</span>))
 });
 
 <span class="hljs-comment">// select your input(s)</span>
-cmd.input(<span class="hljs-string">&#x27;input.avi&#x27;</span>);
+cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
 <span class="hljs-comment">// ... and your output(s)</span>
 cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 
@@ -119,7 +119,7 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(fs.createReadStream(<span class="hljs-string">&#x27;input.mkv&#x27;</span>));
 <span class="hljs-comment">// The same output will be written to two destinations.</span>
-cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;output1.avi&#x27;</span>), <span class="hljs-string">&#x27;output2.avi&#x27;</span>);
+cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.webm&#x27;</span>), <span class="hljs-string">&#x27;dest2.webm&#x27;</span>);
 
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
@@ -128,7 +128,7 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;output1.avi&#x27
 				</a>
 				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
-cmd.input(<span class="hljs-string">&#x27;input.avi&#x27;</span>);
+cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
 cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">for</span> <span class="hljs-keyword">await</span> (<span class="hljs-keyword">const</span> { speed, time } <span class="hljs-keyword">of</span> process.progress()) {
@@ -140,8 +140,12 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>);</code></pre>
-				<p>If you want to use NodeJS&#39; streams, turn <code>FFmpegProcess.progress()</code> into a <code>ReadableStream</code> using <code>Readable.from()</code>.</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+				<p>If you want to use NodeJS&#39; streams, turn <code>FFmpegProcess.progress()</code> into a
+				NodeJS readable stream using <code>Readable.from()</code>.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
+cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">const</span> progress = Readable.from(process.progress());
 progress.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">{ speed, time }</span>) =&gt;</span> {
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
@@ -153,7 +157,8 @@ progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;No more progress updates&#x27;</span>);
 });
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
-process.complete().then(<span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>));</code></pre>
+<span class="hljs-keyword">await</span> process.complete();
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>);</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
