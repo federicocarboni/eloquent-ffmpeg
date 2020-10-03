@@ -1,6 +1,7 @@
 # Eloquent FFmpeg
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
+View the [documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
 
 If something doesn't feel right, feel free to open an issue or a pull request to
 change it. This library is still in a very early stage, but there shouldn't be
@@ -34,8 +35,7 @@ setFFprobePath(which.sync('ffprobe'));
 
 ## Usage
 Since most of Eloquent FFmpeg's methods are asynchronous it is advised to use
-`async-await` to make your code more readable. To view the library in detail
-view the [full documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
+`async-await` to make your code more readable.
 
 A simple example could use the following:
 
@@ -46,7 +46,7 @@ const cmd = ffmpeg({
 });
 
 // select your input(s)
-cmd.input('input.avi');
+cmd.input('input.mkv');
 // ... and your output(s)
 cmd.output('output.mp4');
 
@@ -65,7 +65,7 @@ Example using NodeJS' `fs` module.
 const cmd = ffmpeg();
 cmd.input(fs.createReadStream('input.mkv'));
 // The same output will be written to two destinations.
-cmd.output(fs.createWriteStream('output1.avi'), 'output2.avi');
+cmd.output(fs.createWriteStream('dest1.webm'), 'dest2.webm');
 
 const process = await cmd.spawn();
 await process.complete();
@@ -76,7 +76,7 @@ To receive real-time updates on your conversion's progress, use the `FFmpegProce
 
 ```ts
 const cmd = ffmpeg();
-cmd.input('input.avi');
+cmd.input('input.mkv');
 cmd.output('output.mp4');
 const process = await cmd.spawn();
 for await (const { speed, time } of process.progress()) {
@@ -89,8 +89,12 @@ for await (const { speed, time } of process.progress()) {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
-If you want to use NodeJS' streams, turn `FFmpegProcess.progress()` into a `ReadableStream` using `Readable.from()`.
+If you want to use NodeJS' streams, turn `FFmpegProcess.progress()` into a
+NodeJS readable stream using `Readable.from()`.
 ```ts
+const cmd = ffmpeg();
+cmd.input('input.mkv');
+cmd.output('output.mp4');
 const process = await cmd.spawn();
 const progress = Readable.from(process.progress());
 progress.on('data', ({ speed, time }) => {
@@ -103,5 +107,6 @@ progress.on('end', () => {
   console.log('No more progress updates');
 });
 // Use process.complete() to wait for completion.
-process.complete().then(() => console.log('Hooray! Conversion complete!'));
+await process.complete();
+console.log('Hooray! Conversion complete!');
 ```
