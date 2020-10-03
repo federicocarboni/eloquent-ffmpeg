@@ -453,7 +453,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
           progress.fps = +value || 0;
           break;
         case 'bitrate':
-          progress.bitrate = +value;
+          progress.bitrate = parseFloat(value) || 0;
           break;
         case 'total_size':
           progress.bytes = +value >>> 0;
@@ -468,7 +468,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
           progress.framesDropped = +value >>> 0;
           break;
         case 'speed':
-          progress.speed = +value.slice(0, value.length - 1);
+          progress.speed = parseFloat(value) || 0;
           break;
         case 'progress':
           yield progress as Progress;
