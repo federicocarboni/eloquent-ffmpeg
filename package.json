@@ -18,7 +18,12 @@
     "type": "git",
     "url": "git+https://github.com/FedericoCarboni/eloquent-ffmpeg.git"
   },
-  "keywords": ["ffmpeg", "video", "audio", "conversion"],
+  "keywords": [
+    "ffmpeg",
+    "video",
+    "audio",
+    "conversion"
+  ],
   "author": {
     "name": "Federico Carboni",
     "email": "fr3ddydev@gmail.com"
