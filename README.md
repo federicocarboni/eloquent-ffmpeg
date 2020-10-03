@@ -2,32 +2,40 @@
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
 
-If something doesn't feel right, feel free to open an issue or a pull request to change it.
-This library is still in a very early stage, but there should be no breaking changes.
+If something doesn't feel right, feel free to open an issue or a pull request to
+change it. This library is still in a very early stage, but there shouldn't be
+any major breaking changes.
 
 **Only NodeJS 10.x or higher is supported**
 
 ## Prerequisites
-Eloquent FFmpeg must know where to find your `ffmpeg` and/or `ffprobe` executables, you can set the environment variables `FFMPEG_PATH` and `FFPROBE_PATH`, or set the path programmatically using `setFFmpegPath()` and `setFFprobePath()`.
+Eloquent FFmpeg must know where to find your `ffmpeg` or `ffprobe` executables,
+you can use the environment variables `FFMPEG_PATH` and `FFPROBE_PATH`, pointing
+to the `ffmpeg` and `ffprobe` executables respectively.
+To set the path programmatically use `setFFmpegPath()` or `setFFprobePath()`.
 ```ts
 import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
 
 setFFmpegPath('/path/to/your/ffmpeg');
 setFFprobePath('/path/to/your/ffprobe');
 ```
-You can use it in conjunction with [node which](https://github.com/npm/node-which) to search for `ffmpeg` in `PATH`.
+**Note** Eloquent FFmpeg will not search your `PATH`, if you want to search the
+executables use [node which](https://github.com/npm/node-which), which mimics
+unix operating systems' `which` command.
 
 `npm install --save which`
 ```ts
-import { setFFmpegPath } from 'eloquent-ffmpeg';
+import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
 import which from 'which';
 
 setFFmpegPath(which.sync('ffmpeg'));
+setFFprobePath(which.sync('ffprobe'));
 ```
 
 ## Usage
 Since most of Eloquent FFmpeg's methods are asynchronous it is advised to use
-`async-await` to make your code more readable.
+`async-await` to make your code more readable. To view the library in detail
+view the [full documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
 
 A simple example could use the following:
 
@@ -67,6 +75,9 @@ await process.complete();
 To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
 
 ```ts
+const cmd = ffmpeg();
+cmd.input('input.avi');
+cmd.output('output.mp4');
 const process = await cmd.spawn();
 for await (const { speed, time } of process.progress()) {
   console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
