@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>RawProbeChapter | Eloquent FFmpeg</title>
+	<title>RawProbeError | Eloquent FFmpeg</title>
 	<meta name="description" content="Documentation for Eloquent FFmpeg">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,13 +52,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_probe_result_.html">&quot;probe/result&quot;</a>
+					<a href="../modules/_probe_.html">&quot;probe&quot;</a>
 				</li>
 				<li>
-					<a href="_probe_result_.rawprobechapter.html">RawProbeChapter</a>
+					<a href="_probe_.rawprobeerror.html">RawProbeError</a>
 				</li>
 			</ul>
-			<h1>Interface RawProbeChapter</h1>
+			<h1>Interface RawProbeError</h1>
 		</div>
 	</div>
 </header>
@@ -69,13 +69,9 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">RawProbeChapter</span>
+						<span class="target">RawProbeError</span>
 					</li>
 				</ul>
-			</section>
-			<section class="tsd-panel tsd-kind-interface tsd-parent-kind-module">
-				<h3 class="tsd-before-signature">Indexable</h3>
-				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>extra: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
@@ -84,7 +80,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_probe_result_.rawprobechapter.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_probe_.rawprobeerror.html#code" class="tsd-kind-icon">code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_probe_.rawprobeerror.html#string" class="tsd-kind-icon">string</a></li>
 							</ul>
 						</section>
 					</div>
@@ -93,12 +90,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="id" class="tsd-anchor"></a>
-					<h3>id</h3>
-					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="code" class="tsd-anchor"></a>
+					<h3>code</h3>
+					<div class="tsd-signature tsd-kind-icon">code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d2853e5/src/probe/result.ts#L293">probe/result.ts:293</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/probe.ts#L17">probe.ts:17</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="string" class="tsd-anchor"></a>
+					<h3>string</h3>
+					<div class="tsd-signature tsd-kind-icon">string<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/probe.ts#L18">probe.ts:18</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -128,11 +135,8 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/_lib_.html">&quot;lib&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/_probe_mod_.html">&quot;probe/mod&quot;</a>
-					</li>
 					<li class="current tsd-kind-module">
-						<a href="../modules/_probe_result_.html">&quot;probe/result&quot;</a>
+						<a href="../modules/_probe_.html">&quot;probe&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/_sock_.html">&quot;sock&quot;</a>
@@ -144,53 +148,44 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-enum tsd-parent-kind-module">
-						<a href="../enums/_probe_result_.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_probe_.probeoptions.html" class="tsd-kind-icon">Probe<wbr>Options</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.audiostream.html" class="tsd-kind-icon">Audio<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_probe_.proberesult.html" class="tsd-kind-icon">Probe<wbr>Result</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.basestream.html" class="tsd-kind-icon">Base<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_probe_.rawprobechapter.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Chapter</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.chapter.html" class="tsd-kind-icon">Chapter</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.datastream.html" class="tsd-kind-icon">Data<wbr>Stream</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.proberesult.html" class="tsd-kind-icon">Probe<wbr>Result</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.subtitlestream.html" class="tsd-kind-icon">Subtitle<wbr>Stream</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_probe_result_.videostream.html" class="tsd-kind-icon">Video<wbr>Stream</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_probe_.rawprobedisposition.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Disposition</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawprobechapter.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Chapter</a>
+						<a href="_probe_.rawprobeerror.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Error</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_probe_result_.rawprobechapter.html#id" class="tsd-kind-icon">id</a>
+								<a href="_probe_.rawprobeerror.html#code" class="tsd-kind-icon">code</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_probe_.rawprobeerror.html#string" class="tsd-kind-icon">string</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawproberesult.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Result</a>
+						<a href="_probe_.rawprobeformat.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Format</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
-						<a href="_probe_result_.rawprobestream.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Stream</a>
+						<a href="_probe_.rawproberesult.html" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Result</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
-						<a href="../modules/_probe_result_.html#stream" class="tsd-kind-icon">Stream</a>
+						<a href="../modules/_probe_.html#rawprobestream" class="tsd-kind-icon">Raw<wbr>Probe<wbr>Stream</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
-						<a href="../modules/_probe_result_.html#tags" class="tsd-kind-icon">Tags</a>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/_probe_.html#probe" class="tsd-kind-icon">probe</a>
 					</li>
 				</ul>
 			</nav>
@@ -212,9 +207,6 @@
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>

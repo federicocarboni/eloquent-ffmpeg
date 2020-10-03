@@ -88,6 +88,7 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#args" class="tsd-kind-icon">args</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#probe" class="tsd-kind-icon">probe</a></li>
 							</ul>
 						</section>
 					</div>
@@ -101,7 +102,7 @@
 					<div class="tsd-signature tsd-kind-icon">is<wbr>Stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d2853e5/src/command.ts#L118">command.ts:118</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/command.ts#L136">command.ts:136</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -123,7 +124,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d2853e5/src/command.ts#L110">command.ts:110</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/command.ts#L128">command.ts:128</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -153,7 +154,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d2853e5/src/command.ts#L114">command.ts:114</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/command.ts#L132">command.ts:132</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -162,6 +163,48 @@
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="probe" class="tsd-anchor"></a>
+					<h3>probe</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">probe<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="_probe_.probeoptions.html" class="tsd-signature-type">ProbeOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_probe_.proberesult.html" class="tsd-signature-type">ProbeResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/d77e358/src/command.ts#L123">command.ts:123</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get information about the input, this is especially helpful when working
+										with streams. If the source is a stream <code>options.probeSize</code> number of bytes
+										will be read and passed to ffprobe; those bytes will be kept in memory
+									until the input is used in conversion.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
+<span class="hljs-keyword">const</span> input = cmd.input(fs.createReadStream(<span class="hljs-string">&#x27;input.mkv&#x27;</span>));
+<span class="hljs-keyword">const</span> info = <span class="hljs-keyword">await</span> input.probe();
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Video duration: <span class="hljs-subst">${info.duration}</span>, format: <span class="hljs-subst">${info.format}</span>`</span>);
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="_probe_.probeoptions.html" class="tsd-signature-type">ProbeOptions</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_probe_.proberesult.html" class="tsd-signature-type">ProbeResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -192,10 +235,7 @@
 						<a href="../modules/_lib_.html">&quot;lib&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/_probe_mod_.html">&quot;probe/mod&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/_probe_result_.html">&quot;probe/result&quot;</a>
+						<a href="../modules/_probe_.html">&quot;probe&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/_sock_.html">&quot;sock&quot;</a>
@@ -226,6 +266,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_command_.ffmpeginput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#probe" class="tsd-kind-icon">probe</a>
 							</li>
 						</ul>
 					</li>
@@ -276,9 +319,6 @@
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>

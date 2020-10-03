@@ -64,11 +64,85 @@
 					<h1>Eloquent FFmpeg</h1>
 				</a>
 				<p>Eloquent FFmpeg simplifies interactions with
-					<a href="https://ffmpeg.org/">FFmpeg command line tools</a> into a simple yet powerful API.
-					It&#39;s still in a very early stage, but there should be no breaking changes.
-					If something&#39;s missing or broken feel free to open an issue or a pull request to
-				see your feature added or bug fixed.</p>
+				<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.</p>
+				<p>If something doesn&#39;t feel right, feel free to open an issue or a pull request to change it.
+				This library is still in a very early stage, but there should be no breaking changes.</p>
 				<p><strong>Only NodeJS 10.x or higher is supported</strong></p>
+				<a href="#prerequisites" id="prerequisites" style="color: inherit; text-decoration: none;">
+					<h2>Prerequisites</h2>
+				</a>
+				<p>Eloquent FFmpeg must know where to find your <code>ffmpeg</code> and/or <code>ffprobe</code> executables, you can set the environment variables <code>FFMPEG_PATH</code> and <code>FFPROBE_PATH</code>, or set the path programmatically using <code>setFFmpegPath()</code> and <code>setFFprobePath()</code>.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { setFFmpegPath, setFFprobePath } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;eloquent-ffmpeg&#x27;</span>;
+
+setFFmpegPath(<span class="hljs-string">&#x27;/path/to/your/ffmpeg&#x27;</span>);
+setFFprobePath(<span class="hljs-string">&#x27;/path/to/your/ffprobe&#x27;</span>);</code></pre>
+				<p>You can use it in conjunction with <a href="https://github.com/npm/node-which">node which</a> to search for <code>ffmpeg</code> in <code>PATH</code>.</p>
+				<p><code>npm install --save which</code></p>
+				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { setFFmpegPath } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;eloquent-ffmpeg&#x27;</span>;
+<span class="hljs-keyword">import</span> which <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;which&#x27;</span>;
+
+setFFmpegPath(which.sync(<span class="hljs-string">&#x27;ffmpeg&#x27;</span>));</code></pre>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<p>Since most of Eloquent FFmpeg&#39;s methods are asynchronous it is advised to use
+				<code>async-await</code> to make your code more readable.</p>
+				<p>A simple example could use the following:</p>
+				<pre><code class="language-ts"><span class="hljs-comment">// create a new command</span>
+<span class="hljs-keyword">const</span> cmd = ffmpeg({
+  <span class="hljs-comment">// include any options here...</span>
+});
+
+<span class="hljs-comment">// select your input(s)</span>
+cmd.input(<span class="hljs-string">&#x27;input.avi&#x27;</span>);
+<span class="hljs-comment">// ... and your output(s)</span>
+cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
+
+<span class="hljs-comment">// spawn ffmpeg as a child process</span>
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-comment">// wait for the conversion to complete</span>
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+				<a href="#streams" id="streams" style="color: inherit; text-decoration: none;">
+					<h3>Streams</h3>
+				</a>
+				<p>Streams can be used as input sources and output destinations, there is no hard limit on how many streams you can use. Pass your streams directly to <code>FFmpegCommand.input()</code> and <code>FFmpegCommand.output()</code>.
+				<code>FFmpegCommand.input()</code> can also take <code>BufferLike</code> objects.</p>
+				<p>Example using NodeJS&#39; <code>fs</code> module.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(fs.createReadStream(<span class="hljs-string">&#x27;input.mkv&#x27;</span>));
+<span class="hljs-comment">// The same output will be written to two destinations.</span>
+cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;output1.avi&#x27;</span>), <span class="hljs-string">&#x27;output2.avi&#x27;</span>);
+
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+				<a href="#monitor-progress" id="monitor-progress" style="color: inherit; text-decoration: none;">
+					<h3>Monitor progress</h3>
+				</a>
+				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">for</span> <span class="hljs-keyword">await</span> (<span class="hljs-keyword">const</span> { speed, time } <span class="hljs-keyword">of</span> process.progress()) {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
+}
+<span class="hljs-comment">// Be careful! The progress generator will return when ffmpeg writes</span>
+<span class="hljs-comment">// a `progress=end` line, which signals the end of progress updates,</span>
+<span class="hljs-comment">// not the conversion&#x27;s completion.</span>
+<span class="hljs-comment">// Use process.complete() to wait for completion.</span>
+<span class="hljs-keyword">await</span> process.complete();
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>);</code></pre>
+				<p>If you want to use NodeJS&#39; streams, turn <code>FFmpegProcess.progress()</code> into a <code>ReadableStream</code> using <code>Readable.from()</code>.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">const</span> progress = Readable.from(process.progress());
+progress.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">{ speed, time }</span>) =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
+});
+progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-comment">// Be careful! The progress stream will end when ffmpeg writes</span>
+  <span class="hljs-comment">// a `progress=end` line, which signals the end of progress updates,</span>
+  <span class="hljs-comment">// not the conversion&#x27;s completion.</span>
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;No more progress updates&#x27;</span>);
+});
+<span class="hljs-comment">// Use process.complete() to wait for completion.</span>
+process.complete().then(<span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>));</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -96,10 +170,7 @@
 						<a href="modules/_lib_.html">&quot;lib&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="modules/_probe_mod_.html">&quot;probe/mod&quot;</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="modules/_probe_result_.html">&quot;probe/result&quot;</a>
+						<a href="modules/_probe_.html">&quot;probe&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="modules/_sock_.html">&quot;sock&quot;</a>
@@ -130,9 +201,6 @@
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>
