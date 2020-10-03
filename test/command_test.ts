@@ -447,13 +447,21 @@ describe('command', function () {
           const process = await cmd.spawn();
           for await (const progress of process.progress()) {
             expect(progress.bitrate).to.be.a('number');
+            expect(progress.bitrate).to.not.be.NaN;
             expect(progress.fps).to.be.a('number');
+            expect(progress.fps).to.not.be.NaN;
             expect(progress.frames).to.be.a('number');
+            expect(progress.frames).to.not.be.NaN;
             expect(progress.framesDropped).to.be.a('number');
+            expect(progress.framesDropped).to.not.be.NaN;
             expect(progress.framesDuped).to.be.a('number');
+            expect(progress.framesDuped).to.not.be.NaN;
             expect(progress.bytes).to.be.a('number');
+            expect(progress.bytes).to.not.be.NaN;
             expect(progress.speed).to.be.a('number');
+            expect(progress.speed).to.not.be.NaN;
             expect(progress.time).to.be.a('number');
+            expect(progress.time).to.not.be.NaN;
           }
           await process.complete();
           expect(process.unwrap().exitCode).to.be.a('number');
