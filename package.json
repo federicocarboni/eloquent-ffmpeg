@@ -1,6 +1,6 @@
 {
   "name": "eloquent-ffmpeg",
-  "version": "0.3.0-alpha.0",
+  "version": "0.4.0-alpha.0",
   "description": "An easy to use API for FFmpeg interactions",
   "module": "lib/lib.es6.js",
   "main": "lib/lib.cjs",
@@ -18,7 +18,7 @@
     "type": "git",
     "url": "git+https://github.com/FedericoCarboni/eloquent-ffmpeg.git"
   },
-  "keywords": [],
+  "keywords": ["ffmpeg", "video", "audio", "conversion"],
   "author": {
     "name": "Federico Carboni",
     "email": "fr3ddydev@gmail.com"
