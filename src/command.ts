@@ -42,7 +42,7 @@ export interface FFmpegCommand {
    * the `tee` protocol. You can use mixed destinations and multiple streams.
    * Both NodeJS WritableStreams and AsyncGenerators are fully supported.
    * @param destinations A sequence of OutputDestinations to which the output
-   * will be written. If not destinations are specified the conversion will run,
+   * will be written. If no destinations are specified the conversion will run,
    * but any output data will be ignored.
    * @example ```ts
    * const cmd = ffmpeg();
@@ -82,7 +82,7 @@ export interface FFmpegOptions {
   logLevel?: LogLevel;
   /**
    * Enabled piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
-   * will silently will silently fail. Defaults to `true`.
+   * will silently fail. Defaults to `true`.
    */
   progress?: boolean;
   /**
@@ -104,6 +104,22 @@ export interface Progress {
 }
 
 export interface FFmpegInput {
+  /**
+   * Get information about the input, this is especially helpful when working
+   * with streams. If the source is a stream `options.probeSize` number of bytes
+   * will be read and passed to ffprobe; those bytes will be kept in memory
+   * until the input is used in conversion.
+   * @param options
+   * @example ```ts
+   * const cmd = ffmpeg();
+   * cmd.output('output.mp4');
+   * const input = cmd.input(fs.createReadStream('input.mkv'));
+   * const info = await input.probe();
+   * console.log(`Video duration: ${info.duration}, format: ${info.format}`);
+   * const process = await cmd.spawn();
+   * await process.complete();
+   * ```
+   */
   probe(options?: ProbeOptions): Promise<ProbeResult>;
   /**
    * Add input arguments, they will be placed before any additional arguments.
@@ -262,6 +278,9 @@ class Process implements FFmpegProcess {
   constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
     const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
     const onExit = (): void => {
+      const closeSocketServer = (server: Server): void => {
+        if (server.listening) server.close();
+      };
       // Close all socket servers, this is necessary for proper cleanup after
       // failed conversions, or otherwise errored ffmpeg processes.
       inputSocketServers.forEach(closeSocketServer);
@@ -535,7 +554,7 @@ async function* writableStreamValues(stream: NodeJS.WritableStream): AsyncGenera
 }
 
 async function handleOutputs(outputs: Output[]) {
-  const streams = outputs.filter(isStream).map(getOutputStream);
+  const streams = outputs.filter((output) => output.isStream).map(getOutputStream);
   const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, streams], i) => {
     handleOutputStream(servers[i], streams);
@@ -543,7 +562,7 @@ async function handleOutputs(outputs: Output[]) {
   return servers;
 }
 async function handleInputs(inputs: Input[]) {
-  const inputsOnly = inputs.filter(isStream);
+  const inputsOnly = inputs.filter((input) => input.isStream);
   const streams = inputsOnly.map(getInputStream);
   const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, stream], i) => {
@@ -552,14 +571,8 @@ async function handleInputs(inputs: Input[]) {
   return servers;
 }
 
-function closeSocketServer(socketServer: Server) {
-  if (socketServer.listening) socketServer.close();
-}
 function getSocketServer([path]: [string, any]) {
   return createSocketServer(path);
-}
-function isStream(o: Output | Input) {
-  return o.isStream;
 }
 function getOutputStream(output: Output) {
   return outputStreamMap.get(output)!;
