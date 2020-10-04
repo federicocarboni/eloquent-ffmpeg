@@ -3,6 +3,7 @@ import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isWin32, write } from './utils';
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
+import { extractMessage, FFmpegError } from './errors';
 import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
@@ -275,6 +276,8 @@ class Command implements FFmpegCommand {
 
 class Process implements FFmpegProcess {
   #process: ChildProcessWithoutNullStreams;
+  #stderr: string[] | undefined;
+
   constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
     const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
     const onExit = (): void => {
@@ -316,24 +319,35 @@ class Process implements FFmpegProcess {
   }
   complete(): Promise<void> {
     const process = this.#process;
-    const exitCode = process.exitCode;
+    const { exitCode } = process;
     return new Promise((resolve, reject) => {
-      const onExit = (exitCode: number | null): void => {
-        if (exitCode === 0) resolve();
-        else reject(); // TODO: add exception
-
-        process.off('exit', onExit);
-        process.off('error', onError);
-      };
-      const onError = (): void => {
-        const exitCode = process.exitCode;
-        if (exitCode !== null) onExit(exitCode);
+      const abruptComplete = async (exitCode: number): Promise<void> => {
+        if (!this.#stderr) {
+          const stderr: string[] = this.#stderr = [];
+          for await (const line of readlines(process.stderr)) {
+            stderr.push(line);
+          }
+        }
+        const message = extractMessage(this.#stderr) ??
+          `FFmpeg exited with code ${exitCode}`;
+        reject(new FFmpegError(message, this.#stderr));
       };
       if (exitCode !== null) {
-        onExit(exitCode);
+        if (exitCode === 0) resolve();
+        else abruptComplete(exitCode);
       } else {
-        process.on('exit', onExit);
+        const onExit = (exitCode: number): void => {
+          if (exitCode === 0) resolve();
+          else abruptComplete(exitCode);
+          process.off('error', onError);
+          process.off('exit', onExit);
+        };
+        const onError = (): void => {
+          const { exitCode } = process;
+          if (exitCode !== null) onExit(exitCode);
+        };
         process.on('error', onError);
+        process.on('exit', onExit);
       }
     });
   }
