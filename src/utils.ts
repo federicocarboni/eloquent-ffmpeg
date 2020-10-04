@@ -2,6 +2,9 @@
 export const isWin32 = process.platform === 'win32';
 
 /** @internal */
+export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
+
+/** @internal */
 export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
   if (!stream.readable) throw new TypeError('Cannot read stream');
   const chunks: Buffer[] = [];

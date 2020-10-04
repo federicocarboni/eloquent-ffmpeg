@@ -1,4 +1,4 @@
-import { BufferLike, end, isBufferLike, read, toUint8Array, write } from './utils';
+import { BufferLike, end, IGNORED_ERRORS, isBufferLike, read, toUint8Array, write } from './utils';
 import { InputSource, LogLevel } from './command';
 import { getFFprobePath } from './env';
 import { __asyncValues } from 'tslib';
@@ -279,6 +279,15 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
+  // stdin.on('close', () => {
+  //   console.log('closed');
+  // });
+  // stdin.on('error', (error) => {
+  //   console.log(error);
+  // });
+  // stdout.on('error', (error) => {
+  //   console.log(error);
+  // });
   try {
     if (isBufferLike(source))
       await writeStdin(stdin, toUint8Array(source));
@@ -299,8 +308,6 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     if (ffprobe.exitCode === null) ffprobe.kill();
   }
 }
-
-const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 class Result implements ProbeResult {
   #raw: RawProbeResult;
@@ -336,27 +343,35 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code)) {
         stdin.off('error', onError);
+        stdin.off('close', onClose);
         reject(error);
       }
     };
-    stdin.end(u8, () => {
+    const onClose = (): void => {
       stdin.off('error', onError);
+      stdin.off('close', onClose);
       resolve();
-    });
+    };
+    stdin.on('close', onClose);
     stdin.on('error', onError);
+    stdin.end(u8);
   });
 }
 
 async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<BufferLike>) {
   let error: Error | undefined;
-  stdin.on('error', (err: Error & { code: string }) => {
+  const onError = (err: Error & { code: string }): void => {
     if (!IGNORED_ERRORS.has(err.code))
       error = err;
-  });
+  };
+  stdin.on('error', onError);
   try {
-    for await (const chunk of stream)
+    for await (const chunk of stream) {
       await write(stdin, toUint8Array(chunk));
+    }
   } finally {
+    stdin.off('error', onError);
+
     if (stdin.writable) await end(stdin);
     if (error) throw error;
   }

@@ -1,6 +1,6 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { BufferLike, end, isBufferLike, isWin32, write } from './utils';
+import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isWin32, write } from './utils';
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
 import { toUint8Array } from './utils';
@@ -484,6 +484,9 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
 }
 
 async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>, input: Input) {
+  socket.on('error', () => {
+    //
+  });
   try {
     try {
       if (inputChunksMap.has(input)) {
@@ -511,6 +514,13 @@ function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferL
 }
 function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, Uint8Array>[]) {
   server.once('connection', (socket) => {
+    // TODO: improve error handling
+    const onError = (error: Error & { code: string }): void => {
+      if (!IGNORED_ERRORS.has(error.code))
+        socket.end();
+    };
+    socket.on('error', onError);
+
     // Start all the streams; `.next()` is async, this will never throw but
     // rejections handling is left to the user.
     streams.forEach((stream) => stream.next());
@@ -526,6 +536,7 @@ function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, 
 
     socket.once('end', () => {
       streams.forEach((stream) => stream.return?.());
+      socket.off('error', onError);
       socket.off('data', onData);
     });
 
