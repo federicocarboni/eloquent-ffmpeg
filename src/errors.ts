@@ -4,6 +4,12 @@ export class FFmpegError extends Error {
   }
 }
 
+export class FFprobeError extends Error {
+  constructor(message: string, public stderr: readonly string[], public code?: number) {
+    super(message);
+  }
+}
+
 export function extractMessage(stderr: string[]): string | undefined {
   let message: string | undefined;
   for (const line of stderr) {

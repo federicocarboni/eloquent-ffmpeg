@@ -4,6 +4,8 @@ import { getFFprobePath } from './env';
 import { __asyncValues } from 'tslib';
 import { spawn } from 'child_process';
 import { Demuxer } from './_types';
+import { extractMessage, FFprobeError } from './errors';
+import { createInterface as readlines } from 'readline';
 
 /* eslint-disable camelcase */
 export interface RawProbeResult {
@@ -279,30 +281,29 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
-  // stdin.on('close', () => {
-  //   console.log('closed');
-  // });
-  // stdin.on('error', (error) => {
-  //   console.log(error);
-  // });
-  // stdout.on('error', (error) => {
-  //   console.log(error);
-  // });
+  const error = async (error?: RawProbeError): Promise<FFprobeError> => {
+    const logs: string[] = [];
+    if (stderr.readable) for await (const line of readlines(stderr)) {
+      logs.push(line);
+    }
+    if (error) {
+      return new FFprobeError(error.string, logs, error.code);
+    } else {
+      return new FFprobeError(
+        extractMessage(logs) ?? 'An unknown error occurred', logs);
+    }
+  };
   try {
     if (isBufferLike(source))
       await writeStdin(stdin, toUint8Array(source));
     else if (typeof source !== 'string')
       await pipeStdin(stdin, __asyncValues(source));
-    if (!stdout.readable || (ffprobe.exitCode !== null && ffprobe.exitCode !== 0))
-      // TODO: add custom exception.
-      throw new Error('FFprobe exited with non-zero exit code');
+    if (ffprobe.exitCode !== null && ffprobe.exitCode !== 0)
+      throw await error();
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
-    if (raw.error) {
-      const errors = await read(stderr);
-      // TODO: add custom exception
-      throw new Error(errors.toString('utf-8'));
-    }
+    if (raw.error)
+      throw await error(raw.error);
     return new Result(raw);
   } finally {
     if (ffprobe.exitCode === null) ffprobe.kill();
