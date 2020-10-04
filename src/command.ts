@@ -450,7 +450,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
           progress.frames = parseInt(value, 10) >>> 0;
           break;
         case 'fps':
-          progress.fps = parseInt(value, 10) || 0;
+          progress.fps = parseFloat(value) || 0;
           break;
         case 'bitrate':
           progress.bitrate = parseFloat(value) || 0;
