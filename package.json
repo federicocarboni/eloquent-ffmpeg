@@ -2,9 +2,14 @@
   "name": "eloquent-ffmpeg",
   "version": "0.5.0-alpha.0",
   "description": "A high level API for FFmpeg",
+  "type": "module",
   "module": "lib/lib.es6.js",
   "main": "lib/lib.cjs",
   "types": "lib/lib.d.ts",
+  "exports": {
+    "import": "./lib/lib.es6.js",
+    "require": "./lib/lib.cjs"
+  },
   "scripts": {
     "typedoc": "typedoc && node -e \"require('fs').writeFileSync('docs/.nojekyll', '')\"",
     "prepack": "npm run lint && npm run build && npm run coverage",
