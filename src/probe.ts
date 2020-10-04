@@ -1,11 +1,11 @@
 import { BufferLike, end, IGNORED_ERRORS, isBufferLike, read, toUint8Array, write } from './utils';
+import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
+import { FFprobeError } from './errors';
 import { getFFprobePath } from './env';
 import { __asyncValues } from 'tslib';
 import { spawn } from 'child_process';
 import { Demuxer } from './_types';
-import { extractMessage, FFprobeError } from './errors';
-import { createInterface as readlines } from 'readline';
 
 /* eslint-disable camelcase */
 export interface RawProbeResult {
@@ -281,25 +281,18 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
-  const error = async (error?: RawProbeError): Promise<FFprobeError> => {
+  const error = async (error: RawProbeError): Promise<FFprobeError> => {
     const logs: string[] = [];
     if (stderr.readable) for await (const line of readlines(stderr)) {
       logs.push(line);
     }
-    if (error) {
-      return new FFprobeError(error.string, logs, error.code);
-    } else {
-      return new FFprobeError(
-        extractMessage(logs) ?? 'An unknown error occurred', logs);
-    }
+    return new FFprobeError(error.string, logs, error.code);
   };
   try {
     if (isBufferLike(source))
       await writeStdin(stdin, toUint8Array(source));
     else if (typeof source !== 'string')
       await pipeStdin(stdin, __asyncValues(source));
-    if (ffprobe.exitCode !== null && ffprobe.exitCode !== 0)
-      throw await error();
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
