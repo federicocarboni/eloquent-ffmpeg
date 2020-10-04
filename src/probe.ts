@@ -348,27 +348,20 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
 }
 
 async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<BufferLike>) {
-  stdin.on('error', () => {
-    //
+  let error: Error | undefined;
+  stdin.on('error', (err: Error & { code: string }) => {
+    if (!IGNORED_ERRORS.has(err.code))
+      error = err;
   });
   try {
-    for await (const chunk of stream) {
-      try {
-        await write(stdin, toUint8Array(chunk));
-      } catch (error) {
-        if (!IGNORED_ERRORS.has(error.code))
-          throw error;
-      }
-    }
+    for await (const chunk of stream)
+      await write(stdin, toUint8Array(chunk));
   } finally {
     if (stdin.writable) await end(stdin);
+    if (error) throw error;
   }
 }
 
-function toLowerCase([key, value]: [string, any]): [string, string] {
-  return [key.toLowerCase(), '' + value];
-}
-
 function tags(o: any): Map<string, string> {
-  return new Map(Object.entries(o).map(toLowerCase));
+  return new Map(Object.entries(o).map(([key, value]) => [key.toLowerCase(), '' + value]));
 }
