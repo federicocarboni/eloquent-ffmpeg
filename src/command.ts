@@ -484,9 +484,6 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
 }
 
 async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>, input: Input) {
-  socket.on('error', () => {
-    //
-  });
   try {
     try {
       if (inputChunksMap.has(input)) {
