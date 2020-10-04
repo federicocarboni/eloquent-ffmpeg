@@ -421,6 +421,35 @@ describe('command', function () {
           }
           expect(process.unwrap().exitCode).to.not.equal(null);
           expect(caught).to.equal(true);
+          caught = false;
+          try {
+            await process.complete();
+          } catch {
+            caught = true;
+          }
+          expect(caught).to.equal(true);
+        });
+        it('should reject on non-zero exit code (invalid input)', async function () {
+          const cmd = ffmpeg();
+          cmd.input('test/samples/invalid');
+          cmd.output()
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          let caught = false;
+          try {
+            await process.complete();
+          } catch {
+            caught = true;
+          }
+          expect(process.unwrap().exitCode).to.not.equal(null);
+          expect(caught).to.equal(true);
+          caught = false;
+          try {
+            await process.complete();
+          } catch {
+            caught = true;
+          }
+          expect(caught).to.equal(true);
         });
         it('should reject on errored process', async function () {
           const cmd = ffmpeg();
@@ -435,6 +464,13 @@ describe('command', function () {
             caught = true;
           }
           expect(process.unwrap().exitCode).to.not.equal(null);
+          expect(caught).to.equal(true);
+          caught = false;
+          try {
+            await process.complete();
+          } catch {
+            caught = true;
+          }
           expect(caught).to.equal(true);
         });
       });
