@@ -447,25 +447,25 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
       const value = rawValue.trim();
       switch (key.trim()) {
         case 'frame':
-          progress.frames = +value >>> 0;
+          progress.frames = parseInt(value, 10) >>> 0;
           break;
         case 'fps':
-          progress.fps = +value || 0;
+          progress.fps = parseInt(value, 10) || 0;
           break;
         case 'bitrate':
           progress.bitrate = parseFloat(value) || 0;
           break;
         case 'total_size':
-          progress.bytes = +value >>> 0;
+          progress.bytes = parseInt(value, 10) >>> 0;
           break;
         case 'out_time_us':
-          progress.time = +value / 1000 >>> 0;
+          progress.time = parseInt(value, 10) / 1000 >>> 0;
           break;
         case 'dup_frames':
-          progress.framesDuped = +value >>> 0;
+          progress.framesDuped = parseInt(value, 10) >>> 0;
           break;
         case 'drop_frames':
-          progress.framesDropped = +value >>> 0;
+          progress.framesDropped = parseInt(value, 10) >>> 0;
           break;
         case 'speed':
           progress.speed = parseFloat(value) || 0;
