@@ -80,7 +80,7 @@ describe('command', function () {
         expect(input.isStream).to.equal(false);
         expect(input.getArgs().pop()).to.equal('protocol:location');
       });
-      it('should add a async generator as destination', function () {
+      it('should add an async generator as destination', function () {
         async function* asyncGenerator() { yield; }
         const cmd = ffmpeg();
         const input = cmd.output(asyncGenerator());
