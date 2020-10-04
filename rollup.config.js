@@ -1,4 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
+import resolve from '@rollup/plugin-node-resolve';
 import cleanup from 'rollup-plugin-cleanup';
 import { execSync } from 'child_process';
 import pkg from './package.json';
@@ -28,11 +29,12 @@ export default [{
   }],
   plugins: [
     typescript({ tsconfig: './tsconfig.es6.json' }),
+    resolve(),
     cleanup({
       comments: 'none',
       include: ['src/**/*.ts', 'node_modules/**'],
       extensions: ['ts', 'js'],
     }),
   ],
-  external: ['tslib', 'uuid', 'child_process', 'readline', 'stream', 'net', 'path', 'fs'],
+  external: ['child_process', 'crypto', 'readline', 'stream', 'net', 'path', 'fs'],
 }];
