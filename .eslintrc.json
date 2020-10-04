@@ -25,6 +25,7 @@
       "anonymous": "always",
       "named": "never"
     }],
+    "no-unsafe-finally": "off",
     "no-new-func": "error",
     "no-eval": "error",
     "eol-last": "error",
