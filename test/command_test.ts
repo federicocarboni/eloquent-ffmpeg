@@ -2,43 +2,10 @@ import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
 import { PassThrough, Readable } from 'stream';
 import { expect } from 'chai';
 
-import { ffmpeg, LogLevel } from '../src/command';
+import { ffmpeg } from '../src/command';
 import { isWin32 } from '../src/utils';
 
 describe('command', function () {
-  describe('ffmpeg()', function () {
-    this.timeout(30000);
-    it('should set ffmpeg\'s log level', function () {
-      const cmd = ffmpeg({
-        logLevel: LogLevel.Debug,
-      });
-      expect(cmd.getArgs().pop()).to.equal(LogLevel.Debug.toString());
-    });
-    it('should set overwrite to true', function () {
-      const cmd = ffmpeg({
-        overwrite: true,
-      });
-      expect(cmd.getArgs().shift()).to.equal('-y');
-    });
-    it('should set overwrite to false', function () {
-      const cmd = ffmpeg({
-        overwrite: false,
-      });
-      expect(cmd.getArgs().shift()).to.equal('-n');
-    });
-    it('should set progress to true', function () {
-      const cmd = ffmpeg({
-        progress: true,
-      });
-      expect(cmd.getArgs()[1]).to.equal('-progress');
-    });
-    it('should set progress to false', function () {
-      const cmd = ffmpeg({
-        progress: false,
-      });
-      expect(cmd.getArgs()[1]).to.not.equal('-progress');
-    });
-  });
   describe('FFmpegCommand', function () {
     this.timeout(10000);
     describe('input()', function () {
@@ -328,180 +295,180 @@ describe('command', function () {
         await process.complete();
       });
     });
-    describe('FFmpegProcess', function () {
-      describe('get pid()', function () {
-        it('should return the process\' pid', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          expect(process.pid).to.be.a('number');
-          expect(process.pid).to.equal(process.unwrap().pid);
-        });
+  });
+  describe('FFmpegProcess', function () {
+    describe('get pid()', function () {
+      it('should return the process\' pid', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        expect(process.pid).to.be.a('number');
+        expect(process.pid).to.equal(process.unwrap().pid);
       });
-      describe('kill()', function () {
-        it('should send a signal to the process', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          expect(process.kill()).to.be.a('boolean');
-          expect(process.unwrap().killed).to.equal(true);
-        });
+    });
+    describe('kill()', function () {
+      it('should send a signal to the process', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        expect(process.kill()).to.be.a('boolean');
+        expect(process.unwrap().killed).to.equal(true);
       });
-      describe('pause()', function () {
-        if (isWin32) it('should fail on Windows', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          expect(() => process.pause()).to.throw();
-          process.kill();
-        });
-        else it('should send signal SIGSTOP', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          expect(process.pause()).to.equal(true);
-          expect(process.unwrap().killed).to.equal(true);
-          process.resume();
-          process.kill('SIGKILL');
-        });
+    });
+    describe('pause()', function () {
+      if (isWin32) it('should fail on Windows', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        expect(() => process.pause()).to.throw();
+        process.kill();
       });
-      describe('resume()', function () {
-        if (isWin32) it('should fail on Windows', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          expect(() => process.resume()).to.throw();
-          process.kill();
-        });
-        else it('should send signal SIGCONT', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          process.pause();
-          expect(process.resume()).to.equal(true);
-          expect(process.unwrap().killed).to.equal(true);
-          process.kill('SIGKILL');
-        });
+      else it('should send signal SIGSTOP', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        expect(process.pause()).to.equal(true);
+        expect(process.unwrap().killed).to.equal(true);
+        process.resume();
+        process.kill('SIGKILL');
       });
-      describe('complete()', function () {
-        it('should resolve on completion', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
+    });
+    describe('resume()', function () {
+      if (isWin32) it('should fail on Windows', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        expect(() => process.resume()).to.throw();
+        process.kill();
+      });
+      else it('should send signal SIGCONT', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        process.pause();
+        expect(process.resume()).to.equal(true);
+        expect(process.unwrap().killed).to.equal(true);
+        process.kill('SIGKILL');
+      });
+    });
+    describe('complete()', function () {
+      it('should resolve on completion', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        await process.complete();
+        expect(process.unwrap().exitCode).to.not.equal(null);
+        await process.complete();
+        expect(process.unwrap().exitCode).to.not.equal(null);
+      });
+      it('should reject on non-zero exit code', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'my_invalid_muxer');
+        const process = await cmd.spawn();
+        let caught = false;
+        try {
           await process.complete();
-          expect(process.unwrap().exitCode).to.not.equal(null);
+        } catch {
+          caught = true;
+        }
+        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(caught).to.equal(true);
+        caught = false;
+        try {
           await process.complete();
-          expect(process.unwrap().exitCode).to.not.equal(null);
-        });
-        it('should reject on non-zero exit code', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'my_invalid_muxer');
-          const process = await cmd.spawn();
-          let caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(process.unwrap().exitCode).to.not.equal(null);
-          expect(caught).to.equal(true);
-          caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(caught).to.equal(true);
-        });
-        it('should reject on non-zero exit code (invalid input)', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/invalid');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          let caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(process.unwrap().exitCode).to.not.equal(null);
-          expect(caught).to.equal(true);
-          caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(caught).to.equal(true);
-        });
-        it('should reject on errored process', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c', 'copy', '-f', 'my_invalid_muxer');
-          const process = await cmd.spawn('./my_invalid_ffmpeg');
-          let caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(process.unwrap().exitCode).to.not.equal(null);
-          expect(caught).to.equal(true);
-          caught = false;
-          try {
-            await process.complete();
-          } catch {
-            caught = true;
-          }
-          expect(caught).to.equal(true);
-        });
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
       });
-      describe('progress()', function () {
-        it('should return an async generator of Progress', async function () {
-          const cmd = ffmpeg();
-          cmd.input('test/samples/video.mp4');
-          cmd.output()
-            .args('-c:a', 'aac', '-c:v', 'copy', '-f', 'matroska');
-          const process = await cmd.spawn();
-          for await (const progress of process.progress()) {
-            expect(progress.bitrate).to.be.a('number');
-            expect(progress.bitrate).to.not.be.NaN;
-            expect(progress.fps).to.be.a('number');
-            expect(progress.fps).to.not.be.NaN;
-            expect(progress.frames).to.be.a('number');
-            expect(progress.frames).to.not.be.NaN;
-            expect(progress.framesDropped).to.be.a('number');
-            expect(progress.framesDropped).to.not.be.NaN;
-            expect(progress.framesDuped).to.be.a('number');
-            expect(progress.framesDuped).to.not.be.NaN;
-            expect(progress.bytes).to.be.a('number');
-            expect(progress.bytes).to.not.be.NaN;
-            expect(progress.speed).to.be.a('number');
-            expect(progress.speed).to.not.be.NaN;
-            expect(progress.time).to.be.a('number');
-            expect(progress.time).to.not.be.NaN;
-          }
+      it('should reject on non-zero exit code (invalid input)', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        let caught = false;
+        try {
           await process.complete();
-          expect(process.unwrap().exitCode).to.be.a('number');
-        });
+        } catch {
+          caught = true;
+        }
+        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(caught).to.equal(true);
+        caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
+      it('should reject on errored process', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'my_invalid_muxer');
+        const process = await cmd.spawn('./my_invalid_ffmpeg');
+        let caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(caught).to.equal(true);
+        caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
+    });
+    describe('progress()', function () {
+      it('should return an async generator of Progress', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c:a', 'aac', '-c:v', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        for await (const progress of process.progress()) {
+          expect(progress.bitrate).to.be.a('number');
+          expect(progress.bitrate).to.not.be.NaN;
+          expect(progress.fps).to.be.a('number');
+          expect(progress.fps).to.not.be.NaN;
+          expect(progress.frames).to.be.a('number');
+          expect(progress.frames).to.not.be.NaN;
+          expect(progress.framesDropped).to.be.a('number');
+          expect(progress.framesDropped).to.not.be.NaN;
+          expect(progress.framesDuped).to.be.a('number');
+          expect(progress.framesDuped).to.not.be.NaN;
+          expect(progress.bytes).to.be.a('number');
+          expect(progress.bytes).to.not.be.NaN;
+          expect(progress.speed).to.be.a('number');
+          expect(progress.speed).to.not.be.NaN;
+          expect(progress.time).to.be.a('number');
+          expect(progress.time).to.not.be.NaN;
+        }
+        await process.complete();
+        expect(process.unwrap().exitCode).to.be.a('number');
       });
     });
   });
