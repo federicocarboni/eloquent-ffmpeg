@@ -26,6 +26,10 @@ export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterat
 
 export interface FFmpegCommand {
   /**
+   * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
+   */
+  readonly logLevel: LogLevel;
+  /**
    * Adds an input to the conversion.
    * @param source
    * @example ```ts
@@ -237,7 +241,7 @@ class Command implements FFmpegCommand {
   #inputs: Input[] = [];
   #outputs: Output[] = [];
 
-  private logLevel: LogLevel;
+  logLevel: LogLevel;
   constructor(options: FFmpegOptions = {}) {
     this.logLevel = options.logLevel ?? LogLevel.Error;
     this.#args.push(options.overwrite !== false ? '-y' : '-n');
