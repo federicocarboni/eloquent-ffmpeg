@@ -1,7 +1,8 @@
 # Eloquent FFmpeg
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
-View the [documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
+This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
+You may also want to [view the documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
 
 If something doesn't feel right, feel free to open an issue or a pull request to
 change it. This library is still in a very early stage, but there shouldn't be
@@ -71,9 +72,10 @@ const process = await cmd.spawn();
 await process.complete();
 ```
 
-### Monitor progress
+### Controlling your conversion
+#### Monitor progress
 To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
-
+See [Progress interface](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.progress.html).
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
@@ -82,8 +84,8 @@ const process = await cmd.spawn();
 for await (const { speed, time } of process.progress()) {
   console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
 }
-// Be careful! The progress generator will return when ffmpeg writes
-// a `progress=end` line, which signals the end of progress updates,
+// NOTE: The progress generator will return when ffmpeg writes a
+// `progress=end` line, which signals the end of progress updates,
 // not the conversion's completion.
 // Use process.complete() to wait for completion.
 await process.complete();
@@ -101,12 +103,30 @@ progress.on('data', ({ speed, time }) => {
   console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
 });
 progress.on('end', () => {
-  // Be careful! The progress stream will end when ffmpeg writes
-  // a `progress=end` line, which signals the end of progress updates,
-  // not the conversion's completion.
+  // NOTE: The progress stream will end when ffmpeg writes a
+  // `progress=end` line, which signals the end of progress
+  // updates, not the conversion's completion.
   console.log('No more progress updates');
 });
 // Use process.complete() to wait for completion.
 await process.complete();
 console.log('Hooray! Conversion complete!');
+```
+#### Pause & Resume
+The conversion can be paused and resumed using `FFmpegProcess.pause()`
+and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true` if they succeeded `false` otherwise.
+
+These methods are currently **NOT** supported on Windows, support is planned.
+
+```ts
+const cmd = ffmpeg();
+cmd.input('input.mkv');
+cmd.output('output.mp4');
+const process = await cmd.spawn();
+// Pause the conversion
+process.pause();
+// Resume...
+process.resume();
+
+await process.complete();
 ```
