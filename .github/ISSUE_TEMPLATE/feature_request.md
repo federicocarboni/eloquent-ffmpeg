@@ -1,17 +1,20 @@
 ---
-name: Feature request
-about: Suggest a new feature
+name: Feature Request
+about: Request a new feature or a change
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-<!-- Describe your additions or changes -->
-**Description:**
+<!-- Describe the feature or change clearly and concisely -->
+### Description
 
-<!-- Show how this feature would be used -->
-**Examples:**
+<!--
+  Show how the new feature or change would be used.
+  Show if and how existing code would be affected.
+-->
+### Examples
 
-<!--  Did find any issues that looked similar?  -->
-**Related Issues:**
+<!--  Are there any issues related to the new feature or change?  -->
+### Related Issues
