@@ -13,12 +13,10 @@ export class FFprobeError extends Error {
 export function extractMessage(stderr: string[]): string | undefined {
   let message: string | undefined;
   for (const line of stderr) {
-    if (line !== '') {
-      if (!message && line.includes(': '))
-        message = line.slice(line.indexOf(': ') + 2);
-      if (line.startsWith('[NULL @ '))
-        message = line.slice(line.indexOf('] ') + 2);
-    }
+    if (!message && line.includes(': '))
+      message = line.slice(line.indexOf(': ') + 2);
+    if (line.startsWith('[NULL @ '))
+      message = line.slice(line.indexOf('] ') + 2);
   }
   return message;
 }
