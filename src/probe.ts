@@ -1,4 +1,4 @@
-import { BufferLike, end, IGNORED_ERRORS, isBufferLike, read, toUint8Array, write } from './utils';
+import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, read, toUint8Array, write } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
@@ -6,6 +6,7 @@ import { getFFprobePath } from './env';
 import { __asyncValues } from 'tslib';
 import { spawn } from 'child_process';
 import { Demuxer } from './_types';
+import { PassThrough } from 'stream';
 
 /* eslint-disable camelcase */
 export interface RawProbeResult {
@@ -281,6 +282,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
+  const stdoutStream = stdout.pipe(new PassThrough());
   const error = async (error: RawProbeError): Promise<FFprobeError> => {
     const logs: string[] = [];
     if (stderr.readable) for await (const line of readlines(stderr)) {
@@ -293,13 +295,13 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
       await writeStdin(stdin, toUint8Array(source));
     else if (typeof source !== 'string')
       await pipeStdin(stdin, __asyncValues(source));
-    const output = await read(stdout);
+    const output = await read(stdoutStream);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
       throw await error(raw.error);
     return new Result(raw);
   } finally {
-    if (ffprobe.exitCode === null) ffprobe.kill();
+    if (isNullish(process.exitCode)) ffprobe.kill();
   }
 }
 
