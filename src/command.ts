@@ -263,17 +263,22 @@ class Command implements FFmpegCommand {
     return this;
   }
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
+    const args = this.getArgs();
     const [inputSocketServers, outputSocketServers] = await Promise.all([handleInputs(this.#inputs), handleOutputs(this.#outputs)]);
-    return new Process(ffmpegPath, this.getArgs(), inputSocketServers, outputSocketServers);
+    return new Process(ffmpegPath, args, inputSocketServers, outputSocketServers);
   }
   getArgs(): string[] {
-    const inputs = ([] as string[]).concat(...this.#inputs.map(i => i.getArgs()));
-    const outputs = ([] as string[]).concat(...this.#outputs.map(o => o.getArgs()));
+    const inputs = this.#inputs;
+    if (inputs.length === 0)
+      throw new TypeError('At least one input file should be specified');
+    const outputs = this.#outputs;
+    if (outputs.length === 0)
+      throw new TypeError('At least one output file should be specified');
     return [
       ...this.#args,
       '-v', this.logLevel.toString(),
-      ...inputs,
-      ...outputs,
+      ...([] as string[]).concat(...this.#inputs.map(o => o.getArgs())),
+      ...([] as string[]).concat(...this.#outputs.map(o => o.getArgs())),
     ];
   }
 }
