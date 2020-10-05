@@ -1,6 +1,6 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isWin32, write } from './utils';
+import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, isWin32, write } from './utils';
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
 import { extractMessage, FFmpegError } from './errors';
@@ -293,7 +293,7 @@ class Process implements FFmpegProcess {
       process.off('error', onError);
     };
     const onError = (): void => {
-      if (process.exitCode !== null) onExit();
+      if (!isNullish(process.exitCode)) onExit();
     };
     process.on('exit', onExit);
     process.on('error', onError);
@@ -308,13 +308,13 @@ class Process implements FFmpegProcess {
   pause(): boolean {
     if (isWin32) throw new TypeError('pause() cannot be used on Windows (yet)');
     const process = this.#process;
-    if (process.exitCode !== null) return false;
+    if (!isNullish(process.exitCode)) return false;
     return process.kill('SIGSTOP');
   }
   resume(): boolean {
     if (isWin32) throw new TypeError('resume() cannot be used on Windows (yet)');
     const process = this.#process;
-    if (process.exitCode !== null) return false;
+    if (!isNullish(process.exitCode)) return false;
     return process.kill('SIGCONT');
   }
   complete(): Promise<void> {
@@ -332,7 +332,7 @@ class Process implements FFmpegProcess {
           `FFmpeg exited with code ${exitCode}`;
         reject(new FFmpegError(message, this.#stderr));
       };
-      if (exitCode !== null) {
+      if (!isNullish(exitCode)) {
         if (exitCode === 0) resolve();
         else abruptComplete(exitCode);
       } else {
@@ -344,7 +344,7 @@ class Process implements FFmpegProcess {
         };
         const onError = (): void => {
           const { exitCode } = process;
-          if (exitCode !== null) onExit(exitCode);
+          if (!isNullish(exitCode)) onExit(exitCode);
         };
         process.on('error', onError);
         process.on('exit', onExit);
