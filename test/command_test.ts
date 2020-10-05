@@ -295,6 +295,18 @@ describe('command', function () {
         await process.complete();
       });
     });
+    describe('getArgs()', function () {
+      it('should throw when no inputs are specified', async function () {
+        const cmd = ffmpeg();
+        cmd.output();
+        expect(() => cmd.getArgs()).to.throw();
+      });
+      it('should throw when no outputs are specified', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        expect(() => cmd.getArgs()).to.throw();
+      });
+    });
   });
   describe('FFmpegProcess', function () {
     describe('get pid()', function () {
