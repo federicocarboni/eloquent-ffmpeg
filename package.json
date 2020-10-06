@@ -2,7 +2,6 @@
   "name": "eloquent-ffmpeg",
   "version": "0.6.0-alpha.0",
   "description": "A high level API for FFmpeg",
-  "type": "module",
   "module": "lib/lib.es6.js",
   "main": "lib/lib.cjs",
   "types": "lib/lib.d.ts",
