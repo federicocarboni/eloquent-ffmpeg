@@ -8,7 +8,7 @@ import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
-import { AudioCodec, AudioDecoder, Demuxer, Format, SubtitleCodec, SubtitleDecoder, VideoCodec, VideoDecoder } from './_types';
+import { AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer, SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec, VideoDecoder, VideoEncoder } from './_types';
 
 export enum LogLevel {
   Quiet = 'quiet',
@@ -196,6 +196,48 @@ export interface FFmpegOutput {
    * @param args
    */
   args(...args: string[]): this;
+  /**
+   * Select the output format.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param format
+   */
+  format(format: Format | Demuxer): this;
+  /**
+   * Select the codec for all streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
+   */
+  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder): this;
+  /**
+   * Select the codec for video streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
+   */
+  videoCodec(codec: VideoCodec | VideoEncoder): this;
+  /**
+   * Select the codec for audio streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
+   */
+  audioCodec(codec: AudioCodec | AudioEncoder): this;
+  /**
+   * Select the codec for subtitle streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
+   */
+  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder): this;
+  /**
+   * Limit the duration of the data written to the output.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param duration The limit for the duration in milliseconds.
+   */
+  duration(duration: number): this;
+  /**
+   * Decodes but discards the input until `start` is reached.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param start The number of milliseconds to discard.
+   */
+  start(start: number): this;
   /**
    * Returns all the arguments for the output.
    */
@@ -421,7 +463,7 @@ const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<BufferL
 const inputChunksMap = new WeakMap<Input, Uint8Array>();
 class Input implements FFmpegInput {
   #resource: string;
-  #format: Demuxer | undefined;
+  #format: Format | Demuxer | undefined;
   #codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | undefined;
   #videoCodec: VideoCodec | VideoDecoder | undefined;
   #audioCodec: AudioCodec | AudioDecoder | undefined;
@@ -455,7 +497,7 @@ class Input implements FFmpegInput {
     this.#start = start;
     return this;
   }
-  format(format: Demuxer): this {
+  format(format: Format | Demuxer): this {
     this.#format = format;
     return this;
   }
@@ -467,11 +509,11 @@ class Input implements FFmpegInput {
     this.#videoCodec = codec;
     return this;
   }
-  audioCodec(codec: AudioDecoder): this {
+  audioCodec(codec: AudioCodec | AudioDecoder): this {
     this.#audioCodec = codec;
     return this;
   }
-  subtitleCodec(codec: SubtitleDecoder): this {
+  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this {
     this.#subtitleCodec = codec;
     return this;
   }
@@ -518,6 +560,13 @@ class Input implements FFmpegInput {
 const outputStreamMap = new WeakMap<Output, [string, AsyncGenerator<void, void, Uint8Array>[]]>();
 class Output implements FFmpegOutput {
   #resource: string;
+  #format: Format | Muxer | undefined;
+  #codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | undefined;
+  #videoCodec: VideoCodec | VideoEncoder | undefined;
+  #audioCodec: AudioCodec | AudioEncoder | undefined;
+  #subtitleCodec: SubtitleCodec | SubtitleEncoder | undefined;
+  #duration: number | undefined;
+  #start: number | undefined;
   #args: string[] = [];
   isStream: boolean;
 
@@ -558,12 +607,57 @@ class Output implements FFmpegOutput {
       this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
     }
   }
+  format(format: Format | Muxer): this {
+    this.#format = format;
+    return this;
+  }
+  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder): this {
+    this.#codec = codec;
+    return this;
+  }
+  videoCodec(codec: VideoCodec | VideoEncoder): this {
+    this.#videoCodec = codec;
+    return this;
+  }
+  audioCodec(codec: AudioCodec | AudioEncoder): this {
+    this.#audioCodec = codec;
+    return this;
+  }
+  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder): this {
+    this.#subtitleCodec = codec;
+    return this;
+  }
+  duration(duration: number): this {
+    this.#duration = duration;
+    return this;
+  }
+  start(start: number): this {
+    this.#start = start;
+    return this;
+  }
   args(...args: string[]): this {
     this.#args.push(...args);
     return this;
   }
   getArgs(): string[] {
-    return [...this.#args, this.#resource];
+    const duration = this.#duration;
+    const start = this.#start;
+    const format = this.#format;
+    const codec = this.#codec;
+    const videoCodec = this.#videoCodec;
+    const audioCodec = this.#audioCodec;
+    const subtitleCodec = this.#subtitleCodec;
+    return [
+      ...this.#args,
+      ...(start !== void 0 ? ['-ss', `${duration}ms`] : []),
+      ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
+      ...(codec !== void 0 ? ['-c', codec] : []),
+      ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
+      ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
+      ...(subtitleCodec !== void 0 ? ['-c:s', subtitleCodec] : []),
+      ...(format !== void 0 ? ['-f', format] : []),
+      this.#resource,
+    ];
   }
 }
 
