@@ -504,7 +504,7 @@ describe('command', function () {
       const input = cmd.input('test/samples/video.mp4');
       expect(input.videoCodec('h264')).to.equal(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-c:v') + 1]).to.equal('h264');
+      expect(args[args.indexOf('-c:V') + 1]).to.equal('h264');
     });
     it('audioCodec()', function () {
       const cmd = ffmpeg();
@@ -519,6 +519,78 @@ describe('command', function () {
       expect(input.subtitleCodec('mov_text')).to.equal(input);
       const args = input.getArgs();
       expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
+    });
+    it('duration()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.duration(2000)).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-t') + 1]).to.equal('2000ms');
+    });
+    it('start()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.start(2000)).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-ss') + 1]).to.equal('2000ms');
+    });
+    it('offset()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.offset(2000)).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-itsoffset') + 1]).to.equal('2000ms');
+    });
+  });
+  describe('FFmpegOutput', function () {
+    it('format()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.format('mp4')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-f') + 1]).to.equal('mp4');
+    });
+    it('codec()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.codec('h264')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-c') + 1]).to.equal('h264');
+    });
+    it('videoCodec()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.videoCodec('h264')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-c:V') + 1]).to.equal('h264');
+    });
+    it('audioCodec()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.audioCodec('aac')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-c:a') + 1]).to.equal('aac');
+    });
+    it('subtitleCodec()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.subtitleCodec('mov_text')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
+    });
+    it('duration()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.duration(2000)).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-t') + 1]).to.equal('2000ms');
+    });
+    it('start()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.start(2000)).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-ss') + 1]).to.equal('2000ms');
     });
   });
 });
