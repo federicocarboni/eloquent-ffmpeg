@@ -153,6 +153,15 @@ export interface FFmpegInput {
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this;
   /**
+   *
+   */
+  duration(ms: number): this;
+  /**
+   *
+   * @param ms
+   */
+  start(ms: number): this;
+  /**
    * Returns all the arguments for the input.
    */
   getArgs(): string[];
@@ -398,6 +407,8 @@ class Input implements FFmpegInput {
   #videoCodec: VideoCodec | VideoDecoder | undefined;
   #audioCodec: AudioCodec | AudioDecoder | undefined;
   #subtitleCodec: SubtitleCodec | SubtitleDecoder | undefined;
+  #duration: number | undefined;
+  #start: number | undefined;
   #args: string[] = [];
 
   isStream: boolean;
@@ -411,6 +422,14 @@ class Input implements FFmpegInput {
       this.#resource = getSocketResource(path);
       this.isStream = true;
     }
+  }
+  duration(ms: number): this {
+    this.#duration = ms;
+    return this;
+  }
+  start(ms: number): this {
+    this.#start = ms;
+    return this;
   }
   format(format: Demuxer): this {
     this.#format = format;
@@ -445,6 +464,8 @@ class Input implements FFmpegInput {
     })();
   }
   getArgs(): string[] {
+    const duration = this.#duration;
+    const start = this.#start;
     const format = this.#format;
     const codec = this.#codec;
     const videoCodec = this.#videoCodec;
@@ -452,11 +473,13 @@ class Input implements FFmpegInput {
     const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
-      ...(codec ? ['-c', codec] : []),
-      ...(!codec && videoCodec ? ['-c:V', videoCodec] : []),
-      ...(!codec && audioCodec ? ['-c:a', audioCodec] : []),
-      ...(!codec && subtitleCodec ? ['-c:s', subtitleCodec] : []),
-      ...(format ? ['-f', format] : []),
+      ...(start !== void 0 ? ['-ss', `${duration}ms`] : []),
+      ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
+      ...(codec !== void 0 ? ['-c', codec] : []),
+      ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
+      ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
+      ...(subtitleCodec !== void 0 ? ['-c:s', subtitleCodec] : []),
+      ...(format !== void 0 ? ['-f', format] : []),
       '-i', this.#resource,
     ];
   }
