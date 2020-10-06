@@ -33,7 +33,7 @@
     "name": "Federico Carboni",
     "email": "fr3ddydev@gmail.com"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/FedericoCarboni/eloquent-ffmpeg/issues"
   },
