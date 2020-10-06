@@ -8,6 +8,7 @@ import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
+import { AudioCodec, AudioDecoder, Demuxer, Format, SubtitleCodec, SubtitleDecoder, VideoCodec, VideoDecoder } from './_types';
 
 export enum LogLevel {
   Quiet = 'quiet',
@@ -131,6 +132,26 @@ export interface FFmpegInput {
    * @param args
    */
   args(...args: string[]): this;
+  /**
+   *
+   */
+  format(format: Format | Demuxer): this;
+  /**
+   *
+   */
+  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder): this;
+  /**
+   *
+   */
+  videoCodec(codec: VideoCodec | VideoDecoder): this;
+  /**
+   *
+   */
+  audioCodec(codec: AudioCodec | AudioDecoder): this;
+  /**
+   *
+   */
+  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this;
   /**
    * Returns all the arguments for the input.
    */
@@ -372,6 +393,11 @@ const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<BufferL
 const inputChunksMap = new WeakMap<Input, Uint8Array>();
 class Input implements FFmpegInput {
   #resource: string;
+  #format: Demuxer | undefined;
+  #codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | undefined;
+  #videoCodec: VideoCodec | VideoDecoder | undefined;
+  #audioCodec: AudioCodec | AudioDecoder | undefined;
+  #subtitleCodec: SubtitleCodec | SubtitleDecoder | undefined;
   #args: string[] = [];
 
   isStream: boolean;
@@ -386,6 +412,26 @@ class Input implements FFmpegInput {
       this.isStream = true;
     }
   }
+  format(format: Demuxer): this {
+    this.#format = format;
+    return this;
+  }
+  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder): this {
+    this.#codec = codec;
+    return this;
+  }
+  videoCodec(codec: VideoCodec | VideoDecoder): this {
+    this.#videoCodec = codec;
+    return this;
+  }
+  audioCodec(codec: AudioDecoder): this {
+    this.#audioCodec = codec;
+    return this;
+  }
+  subtitleCodec(codec: SubtitleDecoder): this {
+    this.#subtitleCodec = codec;
+    return this;
+  }
   probe(options: ProbeOptions = {}): Promise<ProbeResult> {
     if (!this.isStream)
       return probe(this.#resource, options);
@@ -399,8 +445,18 @@ class Input implements FFmpegInput {
     })();
   }
   getArgs(): string[] {
+    const format = this.#format;
+    const codec = this.#codec;
+    const videoCodec = this.#videoCodec;
+    const audioCodec = this.#audioCodec;
+    const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
+      ...(codec ? ['-c', codec] : []),
+      ...(!codec && videoCodec ? ['-c:v', videoCodec] : []),
+      ...(!codec && audioCodec ? ['-c:a', audioCodec] : []),
+      ...(!codec && subtitleCodec ? ['-c:s', subtitleCodec] : []),
+      ...(format ? ['-f', format] : []),
       '-i', this.#resource,
     ];
   }
