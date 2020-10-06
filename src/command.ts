@@ -133,34 +133,53 @@ export interface FFmpegInput {
    */
   args(...args: string[]): this;
   /**
-   *
+   * Select the input format.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param format
    */
   format(format: Format | Demuxer): this;
   /**
-   *
+   * Select the codec for all streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
    */
   codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder): this;
   /**
-   *
+   * Select the codec for video streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
    */
   videoCodec(codec: VideoCodec | VideoDecoder): this;
   /**
-   *
+   * Select the codec for audio streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
    */
   audioCodec(codec: AudioCodec | AudioDecoder): this;
   /**
-   *
+   * Select the codec for subtitle streams.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param codec
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this;
   /**
-   *
+   * Limit the duration of the data read from the input.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param duration The limit for the duration in milliseconds.
    */
-  duration(ms: number): this;
+  duration(duration: number): this;
   /**
-   *
-   * @param ms
+   * Seeks in the input file to `start`.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param start The position to seek to in milliseconds.
    */
-  start(ms: number): this;
+  start(start: number): this;
+  /**
+   * Adds `offset` to the input timestamps.
+   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * @param offset The offset in milliseconds. MAY be negative.
+   */
+  offset(offset: number): this;
   /**
    * Returns all the arguments for the input.
    */
@@ -409,6 +428,7 @@ class Input implements FFmpegInput {
   #subtitleCodec: SubtitleCodec | SubtitleDecoder | undefined;
   #duration: number | undefined;
   #start: number | undefined;
+  #offset: number | undefined;
   #args: string[] = [];
 
   isStream: boolean;
@@ -423,12 +443,16 @@ class Input implements FFmpegInput {
       this.isStream = true;
     }
   }
-  duration(ms: number): this {
-    this.#duration = ms;
+  offset(offset: number): this {
+    this.#offset = offset;
     return this;
   }
-  start(ms: number): this {
-    this.#start = ms;
+  duration(duration: number): this {
+    this.#duration = duration;
+    return this;
+  }
+  start(start: number): this {
+    this.#start = start;
     return this;
   }
   format(format: Demuxer): this {
@@ -466,6 +490,7 @@ class Input implements FFmpegInput {
   getArgs(): string[] {
     const duration = this.#duration;
     const start = this.#start;
+    const offset = this.#offset;
     const format = this.#format;
     const codec = this.#codec;
     const videoCodec = this.#videoCodec;
@@ -475,6 +500,7 @@ class Input implements FFmpegInput {
       ...this.#args,
       ...(start !== void 0 ? ['-ss', `${duration}ms`] : []),
       ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
+      ...(offset !== void 0 ? ['-itsoffset', `${offset}ms`] : []),
       ...(codec !== void 0 ? ['-c', codec] : []),
       ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
       ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
