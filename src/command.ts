@@ -453,7 +453,7 @@ class Input implements FFmpegInput {
     return [
       ...this.#args,
       ...(codec ? ['-c', codec] : []),
-      ...(!codec && videoCodec ? ['-c:v', videoCodec] : []),
+      ...(!codec && videoCodec ? ['-c:V', videoCodec] : []),
       ...(!codec && audioCodec ? ['-c:a', audioCodec] : []),
       ...(!codec && subtitleCodec ? ['-c:s', subtitleCodec] : []),
       ...(format ? ['-f', format] : []),
