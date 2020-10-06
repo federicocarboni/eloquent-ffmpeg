@@ -1,6 +1,11 @@
 import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, isWin32, write } from './utils';
+import {
+  AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer,
+  SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
+  VideoDecoder, VideoEncoder
+} from './_types';
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
 import { extractMessage, FFmpegError } from './errors';
@@ -8,7 +13,6 @@ import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
-import { AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer, SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec, VideoDecoder, VideoEncoder } from './_types';
 
 export enum LogLevel {
   Quiet = 'quiet',
