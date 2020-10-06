@@ -540,7 +540,7 @@ class Input implements FFmpegInput {
     const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
-      ...(start !== void 0 ? ['-ss', `${duration}ms`] : []),
+      ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
       ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
       ...(offset !== void 0 ? ['-itsoffset', `${offset}ms`] : []),
       ...(codec !== void 0 ? ['-c', codec] : []),
@@ -649,7 +649,7 @@ class Output implements FFmpegOutput {
     const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
-      ...(start !== void 0 ? ['-ss', `${duration}ms`] : []),
+      ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
       ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
       ...(codec !== void 0 ? ['-c', codec] : []),
       ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
