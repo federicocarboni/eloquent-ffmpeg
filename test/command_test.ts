@@ -484,4 +484,41 @@ describe('command', function () {
       });
     });
   });
+  describe('FFmpegInput', function () {
+    it('format()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.format('mp4')).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-f') + 1]).to.equal('mp4');
+    });
+    it('codec()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.codec('h264')).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-c') + 1]).to.equal('h264');
+    });
+    it('videoCodec()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.videoCodec('h264')).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-c:v') + 1]).to.equal('h264');
+    });
+    it('audioCodec()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.audioCodec('aac')).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-c:a') + 1]).to.equal('aac');
+    });
+    it('subtitleCodec()', function () {
+      const cmd = ffmpeg();
+      const input = cmd.input('test/samples/video.mp4');
+      expect(input.subtitleCodec('mov_text')).to.equal(input);
+      const args = input.getArgs();
+      expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
+    });
+  });
 });
