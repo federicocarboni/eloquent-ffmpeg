@@ -1,4 +1,4 @@
-import { getCodecs, getDecoders, getDemuxers, getEncoders, getFFmpegPath, getFilters, getMuxers, getPixelFormats, getVersion } from '../src/lib';
+import { getCodecs, getDecoders, getDemuxers, getEncoders, getFFmpegPath, getFilters, getFormats, getMuxers, getPixelFormats, getVersion } from '../src/lib';
 import { promises } from 'fs';
 import pkg from '../package.json';
 
@@ -10,6 +10,7 @@ async function main(): Promise<void> {
   const codecs = await getCodecs(ffmpegPath);
   const demuxers = await getDemuxers(ffmpegPath);
   const muxers = await getMuxers(ffmpegPath);
+  const formats = await getFormats(ffmpegPath);
   const pixelFormats = await getPixelFormats(ffmpegPath);
   const filters = await getFilters(ffmpegPath);
 
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
 // Copyright (c) 2020 Federico Carboni. ${pkg.license}.
 // Generated on ${new Date().toUTCString()}
 // Current FFmpeg version ${(await getVersion()).version}
+export type Format = ${Array.from(formats).map(addQuotes).join(' | ')};
 export type Muxer = ${Array.from(muxers).map(addQuotes).join(' | ')};
 export type Demuxer = ${Array.from(demuxers).map(addQuotes).join(' | ')};
 export type VideoEncoder = ${Array.from(encoders.video).map(addQuotes).join(' | ')};
