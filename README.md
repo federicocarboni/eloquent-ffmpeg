@@ -88,7 +88,7 @@ and [FFmpegOutput](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/
 const cmd = ffmpeg();
 cmd.input('input.mp4')
   .format('mp4');
-cmd.output('output.webm')
+cmd.output('output.mkv')
   .audioCodec('aac');
 ```
 
@@ -98,7 +98,7 @@ To set input and output options you could also use their `.args()` method.
 const cmd = ffmpeg();
 cmd.input('input.mp4')
   .args('-format', 'mp4');
-cmd.output('output.webm')
+cmd.output('output.mkv')
   .args('-codec:a', 'aac');
 ```
 
