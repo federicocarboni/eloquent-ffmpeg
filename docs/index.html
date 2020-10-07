@@ -82,7 +82,7 @@
 
 setFFmpegPath(<span class="hljs-string">&#x27;/path/to/your/ffmpeg&#x27;</span>);
 setFFprobePath(<span class="hljs-string">&#x27;/path/to/your/ffprobe&#x27;</span>);</code></pre>
-				<p><strong>Note</strong> Eloquent FFmpeg will not search your <code>PATH</code>, if you want to search the
+				<p><strong>Note:</strong> Eloquent FFmpeg will not search your <code>PATH</code>, if you want to search the
 					executables use <a href="https://github.com/npm/node-which">node which</a>, which mimics
 				unix operating systems&#39; <code>which</code> command.</p>
 				<p><code>npm install --save which</code></p>
@@ -114,8 +114,9 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 				<a href="#streams" id="streams" style="color: inherit; text-decoration: none;">
 					<h3>Streams</h3>
 				</a>
-				<p>Streams can be used as input sources and output destinations, there is no hard limit on how many streams you can use. Pass your streams directly to <code>FFmpegCommand.input()</code> and <code>FFmpegCommand.output()</code>.
-				<code>FFmpegCommand.input()</code> can also take <code>BufferLike</code> objects.</p>
+				<p>Streams can be used as input sources and output destinations, there is no hard
+					limit on how many streams you can use. Pass your streams directly to
+				<code>FFmpegCommand.input()</code> and <code>FFmpegCommand.output()</code>.</p>
 				<p>Example using NodeJS&#39; <code>fs</code> module.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(fs.createReadStream(<span class="hljs-string">&#x27;input.mkv&#x27;</span>));
@@ -124,6 +125,27 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.webm&#x27;
 
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
+				<p><strong>Note:</strong> Some formats require inputs and/or outputs to be seekable which means
+					that they cannot be used with streams, notable example being MP4. Other formats
+					require a special format name to be explicitly set, for example to use streams
+				for GIF files the input format must be <code>gif_pipe</code>.</p>
+				<a href="#input-amp-output-options" id="input-amp-output-options" style="color: inherit; text-decoration: none;">
+					<h3>Input &amp; Output Options</h3>
+				</a>
+				<p>Eloquent FFmpeg exposes a few methods which act as a shortcut to set a few
+					options. See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.ffmpeginput.html">FFmpegInput</a>
+				and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.ffmpegoutput.html">FFmpegOutput</a></p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.mp4&#x27;</span>)
+  .format(<span class="hljs-string">&#x27;mp4&#x27;</span>);
+cmd.output(<span class="hljs-string">&#x27;output.webm&#x27;</span>)
+  .audioCodec(<span class="hljs-string">&#x27;aac&#x27;</span>);</code></pre>
+				<p>To set input and output options you could also use their <code>.args()</code> method.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.mp4&#x27;</span>)
+  .args(<span class="hljs-string">&#x27;-format&#x27;</span>, <span class="hljs-string">&#x27;mp4&#x27;</span>);
+cmd.output(<span class="hljs-string">&#x27;output.webm&#x27;</span>)
+  .args(<span class="hljs-string">&#x27;-codec:a&#x27;</span>, <span class="hljs-string">&#x27;aac&#x27;</span>);</code></pre>
 				<a href="#controlling-your-conversion" id="controlling-your-conversion" style="color: inherit; text-decoration: none;">
 					<h3>Controlling your conversion</h3>
 				</a>
