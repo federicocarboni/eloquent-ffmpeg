@@ -74,9 +74,9 @@ await process.complete();
 ```
 
 **Note:** Some formats require inputs and/or outputs to be seekable which means
-that they cannot be used with streams, notable example being MP4. Other formats
-require a special format name to be explicitly set, for example to use streams
-for GIF files the input format must be `gif_pipe`.
+that they cannot be used with streams, notable example being MP4. Some other
+formats require a special format name to be explicitly set, for example to use
+streams for GIF files the input format must be `gif_pipe`.
 
 ### Input & Output Options
 
@@ -145,7 +145,8 @@ console.log('Hooray! Conversion complete!');
 
 #### Pause & Resume
 The conversion can be paused and resumed using `FFmpegProcess.pause()`
-and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true` if they succeeded `false` otherwise.
+and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true`
+upon success, `false` otherwise.
 
 These methods are currently **NOT** supported on Windows, support is planned.
 
