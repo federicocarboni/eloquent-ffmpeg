@@ -21,7 +21,7 @@ import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
 setFFmpegPath('/path/to/your/ffmpeg');
 setFFprobePath('/path/to/your/ffprobe');
 ```
-**Note** Eloquent FFmpeg will not search your `PATH`, if you want to search the
+**Note:** Eloquent FFmpeg will not search your `PATH`, if you want to search the
 executables use [node which](https://github.com/npm/node-which), which mimics
 unix operating systems' `which` command.
 
@@ -58,8 +58,9 @@ await process.complete();
 ```
 
 ### Streams
-Streams can be used as input sources and output destinations, there is no hard limit on how many streams you can use. Pass your streams directly to `FFmpegCommand.input()` and `FFmpegCommand.output()`.
-`FFmpegCommand.input()` can also take `BufferLike` objects.
+Streams can be used as input sources and output destinations, there is no hard
+limit on how many streams you can use. Pass your streams directly to
+`FFmpegCommand.input()` and `FFmpegCommand.output()`.
 
 Example using NodeJS' `fs` module.
 ```ts
@@ -70,6 +71,35 @@ cmd.output(fs.createWriteStream('dest1.webm'), 'dest2.webm');
 
 const process = await cmd.spawn();
 await process.complete();
+```
+
+**Note:** Some formats require inputs and/or outputs to be seekable which means
+that they cannot be used with streams, notable example being MP4. Other formats
+require a special format name to be explicitly set, for example to use streams
+for GIF files the input format must be `gif_pipe`.
+
+### Input & Output Options
+
+Eloquent FFmpeg exposes a few methods which act as a shortcut to set a few
+options. See [FFmpegInput](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.ffmpeginput.html)
+and [FFmpegOutput](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.ffmpegoutput.html)
+
+```ts
+const cmd = ffmpeg();
+cmd.input('input.mp4')
+  .format('mp4');
+cmd.output('output.webm')
+  .audioCodec('aac');
+```
+
+To set input and output options you could also use their `.args()` method.
+
+```ts
+const cmd = ffmpeg();
+cmd.input('input.mp4')
+  .args('-format', 'mp4');
+cmd.output('output.webm')
+  .args('-codec:a', 'aac');
 ```
 
 ### Controlling your conversion
@@ -112,6 +142,7 @@ progress.on('end', () => {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
+
 #### Pause & Resume
 The conversion can be paused and resumed using `FFmpegProcess.pause()`
 and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true` if they succeeded `false` otherwise.
