@@ -65,7 +65,8 @@
 				</a>
 				<p>Eloquent FFmpeg simplifies interactions with
 					<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.
-				View the <a href="https://federicocarboni.github.io/eloquent-ffmpeg/">documentation</a>.</p>
+					This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
+				You may also want to <a href="https://federicocarboni.github.io/eloquent-ffmpeg/">view the documentation</a>.</p>
 				<p>If something doesn&#39;t feel right, feel free to open an issue or a pull request to
 					change it. This library is still in a very early stage, but there shouldn&#39;t be
 				any major breaking changes.</p>
@@ -123,10 +124,14 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.webm&#x27;
 
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
-				<a href="#monitor-progress" id="monitor-progress" style="color: inherit; text-decoration: none;">
-					<h3>Monitor progress</h3>
+				<a href="#controlling-your-conversion" id="controlling-your-conversion" style="color: inherit; text-decoration: none;">
+					<h3>Controlling your conversion</h3>
 				</a>
-				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.</p>
+				<a href="#monitor-progress" id="monitor-progress" style="color: inherit; text-decoration: none;">
+					<h4>Monitor progress</h4>
+				</a>
+				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.
+				See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.progress.html">Progress interface</a>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
 cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
@@ -134,8 +139,8 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 <span class="hljs-keyword">for</span> <span class="hljs-keyword">await</span> (<span class="hljs-keyword">const</span> { speed, time } <span class="hljs-keyword">of</span> process.progress()) {
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
 }
-<span class="hljs-comment">// Be careful! The progress generator will return when ffmpeg writes</span>
-<span class="hljs-comment">// a `progress=end` line, which signals the end of progress updates,</span>
+<span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> The progress generator will return when ffmpeg writes a</span>
+<span class="hljs-comment">// `progress=end` line, which signals the end of progress updates,</span>
 <span class="hljs-comment">// not the conversion&#x27;s completion.</span>
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
@@ -151,14 +156,30 @@ progress.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class="hljs
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
 });
 progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-function">() =&gt;</span> {
-  <span class="hljs-comment">// Be careful! The progress stream will end when ffmpeg writes</span>
-  <span class="hljs-comment">// a `progress=end` line, which signals the end of progress updates,</span>
-  <span class="hljs-comment">// not the conversion&#x27;s completion.</span>
+  <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> The progress stream will end when ffmpeg writes a</span>
+  <span class="hljs-comment">// `progress=end` line, which signals the end of progress</span>
+  <span class="hljs-comment">// updates, not the conversion&#x27;s completion.</span>
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;No more progress updates&#x27;</span>);
 });
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;Hooray! Conversion complete!&#x27;</span>);</code></pre>
+				<a href="#pause-amp-resume" id="pause-amp-resume" style="color: inherit; text-decoration: none;">
+					<h4>Pause &amp; Resume</h4>
+				</a>
+				<p>The conversion can be paused and resumed using <code>FFmpegProcess.pause()</code>
+				and <code>FFmpegProcess.resume()</code>. Both methods are synchronous, they return <code>true</code> if they succeeded <code>false</code> otherwise.</p>
+				<p>These methods are currently <strong>NOT</strong> supported on Windows, support is planned.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
+cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-comment">// Pause the conversion</span>
+process.pause();
+<span class="hljs-comment">// Resume...</span>
+process.resume();
+
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -175,6 +196,9 @@ progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="modules/_env_.html">&quot;env&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_errors_.html">&quot;errors&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="modules/_filters_.html">&quot;filters&quot;</a>
@@ -217,6 +241,9 @@ progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>

@@ -87,8 +87,16 @@
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#args" class="tsd-kind-icon">args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#audiocodec" class="tsd-kind-icon">audio<wbr>Codec</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#codec" class="tsd-kind-icon">codec</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#duration" class="tsd-kind-icon">duration</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#format" class="tsd-kind-icon">format</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#offset" class="tsd-kind-icon">offset</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#probe" class="tsd-kind-icon">probe</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#start" class="tsd-kind-icon">start</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#subtitlecodec" class="tsd-kind-icon">subtitle<wbr>Codec</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpeginput.html#videocodec" class="tsd-kind-icon">video<wbr>Codec</a></li>
 							</ul>
 						</section>
 					</div>
@@ -102,7 +110,7 @@
 					<div class="tsd-signature tsd-kind-icon">is<wbr>Stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L136">command.ts:136</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L194">src/command.ts:194</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -124,7 +132,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L128">command.ts:128</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L138">src/command.ts:138</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -145,6 +153,131 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="audiocodec" class="tsd-anchor"></a>
+					<h3>audio<wbr>Codec</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">audio<wbr>Codec<span class="tsd-signature-symbol">(</span>codec<span class="tsd-signature-symbol">: </span><a href="../modules/__types_.html#audiocodec" class="tsd-signature-type">AudioCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiodecoder" class="tsd-signature-type">AudioDecoder</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L162">src/command.ts:162</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Select the codec for audio streams.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>codec: <a href="../modules/__types_.html#audiocodec" class="tsd-signature-type">AudioCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiodecoder" class="tsd-signature-type">AudioDecoder</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="codec" class="tsd-anchor"></a>
+					<h3>codec</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">codec<span class="tsd-signature-symbol">(</span>codec<span class="tsd-signature-symbol">: </span><a href="../modules/__types_.html#videocodec" class="tsd-signature-type">VideoCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#videodecoder" class="tsd-signature-type">VideoDecoder</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiocodec" class="tsd-signature-type">AudioCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiodecoder" class="tsd-signature-type">AudioDecoder</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitledecoder" class="tsd-signature-type">SubtitleDecoder</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L150">src/command.ts:150</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Select the codec for all streams.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>codec: <a href="../modules/__types_.html#videocodec" class="tsd-signature-type">VideoCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#videodecoder" class="tsd-signature-type">VideoDecoder</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiocodec" class="tsd-signature-type">AudioCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#audiodecoder" class="tsd-signature-type">AudioDecoder</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitledecoder" class="tsd-signature-type">SubtitleDecoder</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="duration" class="tsd-anchor"></a>
+					<h3>duration</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">duration<span class="tsd-signature-symbol">(</span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L174">src/command.ts:174</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Limit the duration of the data read from the input.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>duration: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The limit for the duration in milliseconds.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="format" class="tsd-anchor"></a>
+					<h3>format</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">format<span class="tsd-signature-symbol">(</span>format<span class="tsd-signature-symbol">: </span><a href="../modules/__types_.html#format" class="tsd-signature-type">Format</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#demuxer" class="tsd-signature-type">Demuxer</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L144">src/command.ts:144</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Select the input format.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>format: <a href="../modules/__types_.html#format" class="tsd-signature-type">Format</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#demuxer" class="tsd-signature-type">Demuxer</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
 					<a name="getargs" class="tsd-anchor"></a>
 					<h3>get<wbr>Args</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -154,7 +287,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L132">command.ts:132</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L190">src/command.ts:190</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -163,6 +296,38 @@
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="offset" class="tsd-anchor"></a>
+					<h3>offset</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">offset<span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L186">src/command.ts:186</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds <code>offset</code> to the input timestamps.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>offset: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The offset in milliseconds. MAY be negative.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -176,7 +341,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L123">command.ts:123</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L133">src/command.ts:133</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -208,6 +373,100 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="start" class="tsd-anchor"></a>
+					<h3>start</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">start<span class="tsd-signature-symbol">(</span>start<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L180">src/command.ts:180</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Seeks in the input file to <code>start</code>.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>start: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The position to seek to in milliseconds.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="subtitlecodec" class="tsd-anchor"></a>
+					<h3>subtitle<wbr>Codec</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">subtitle<wbr>Codec<span class="tsd-signature-symbol">(</span>codec<span class="tsd-signature-symbol">: </span><a href="../modules/__types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitledecoder" class="tsd-signature-type">SubtitleDecoder</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L168">src/command.ts:168</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Select the codec for subtitle streams.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>codec: <a href="../modules/__types_.html#subtitlecodec" class="tsd-signature-type">SubtitleCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#subtitledecoder" class="tsd-signature-type">SubtitleDecoder</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="videocodec" class="tsd-anchor"></a>
+					<h3>video<wbr>Codec</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">video<wbr>Codec<span class="tsd-signature-symbol">(</span>codec<span class="tsd-signature-symbol">: </span><a href="../modules/__types_.html#videocodec" class="tsd-signature-type">VideoCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#videodecoder" class="tsd-signature-type">VideoDecoder</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L156">src/command.ts:156</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Select the codec for video streams.
+									See <a href="http://ffmpeg.org/ffmpeg-all.html#Main-options" class="external">http://ffmpeg.org/ffmpeg-all.html#Main-options</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>codec: <a href="../modules/__types_.html#videocodec" class="tsd-signature-type">VideoCodec</a><span class="tsd-signature-symbol"> | </span><a href="../modules/__types_.html#videodecoder" class="tsd-signature-type">VideoDecoder</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
 			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -224,6 +483,9 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/_env_.html">&quot;env&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_errors_.html">&quot;errors&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/_filters_.html">&quot;filters&quot;</a>
@@ -265,10 +527,34 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 								<a href="_command_.ffmpeginput.html#args" class="tsd-kind-icon">args</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#audiocodec" class="tsd-kind-icon">audio<wbr>Codec</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#codec" class="tsd-kind-icon">codec</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#duration" class="tsd-kind-icon">duration</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#format" class="tsd-kind-icon">format</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_command_.ffmpeginput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#offset" class="tsd-kind-icon">offset</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_command_.ffmpeginput.html#probe" class="tsd-kind-icon">probe</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#start" class="tsd-kind-icon">start</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#subtitlecodec" class="tsd-kind-icon">subtitle<wbr>Codec</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpeginput.html#videocodec" class="tsd-kind-icon">video<wbr>Codec</a>
 							</li>
 						</ul>
 					</li>
@@ -319,6 +605,9 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>

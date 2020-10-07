@@ -78,6 +78,12 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_command_.ffmpegcommand.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegcommand.html#args" class="tsd-kind-icon">args</a></li>
@@ -87,6 +93,24 @@
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegcommand.html#spawn" class="tsd-kind-icon">spawn</a></li>
 							</ul>
 						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="loglevel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> log<wbr>Level</h3>
+					<div class="tsd-signature tsd-kind-icon">log<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="../enums/_command_.loglevel.html" class="tsd-signature-type">LogLevel</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L36">src/command.ts:36</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The log level that will be used for the command. Set it using <a href="_command_.ffmpegoptions.html">FFmpegOptions</a>.</p>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -102,7 +126,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L60">command.ts:60</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L70">src/command.ts:70</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -132,7 +156,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L75">command.ts:75</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L85">src/command.ts:85</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -154,7 +178,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L39">command.ts:39</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L49">src/command.ts:49</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -192,7 +216,7 @@ cmd.output();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L55">command.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L65">src/command.ts:65</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -236,7 +260,7 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.mkv&#x27;<
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/8c652ea/src/command.ts#L71">command.ts:71</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/1054682/src/command.ts#L81">src/command.ts:81</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -283,6 +307,9 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 						<a href="../modules/_env_.html">&quot;env&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/_errors_.html">&quot;errors&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/_filters_.html">&quot;filters&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -312,6 +339,9 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
 						<a href="_command_.ffmpegcommand.html" class="tsd-kind-icon">FFmpeg<wbr>Command</a>
 						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_command_.ffmpegcommand.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a>
+							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_command_.ffmpegcommand.html#args" class="tsd-kind-icon">args</a>
 							</li>
@@ -374,10 +404,14 @@ cmd.output(<span class="hljs-string">&#x27;output.mp4&#x27;</span>);
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
 			</ul>
 		</div>
 	</div>
