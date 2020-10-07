@@ -126,9 +126,9 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">&#x27;dest1.webm&#x27;
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
 				<p><strong>Note:</strong> Some formats require inputs and/or outputs to be seekable which means
-					that they cannot be used with streams, notable example being MP4. Other formats
-					require a special format name to be explicitly set, for example to use streams
-				for GIF files the input format must be <code>gif_pipe</code>.</p>
+					that they cannot be used with streams, notable example being MP4. Some other
+					formats require a special format name to be explicitly set, for example to use
+				streams for GIF files the input format must be <code>gif_pipe</code>.</p>
 				<a href="#input-amp-output-options" id="input-amp-output-options" style="color: inherit; text-decoration: none;">
 					<h3>Input &amp; Output Options</h3>
 				</a>
@@ -190,7 +190,8 @@ progress.on(<span class="hljs-string">&#x27;end&#x27;</span>, <span class="hljs-
 					<h4>Pause &amp; Resume</h4>
 				</a>
 				<p>The conversion can be paused and resumed using <code>FFmpegProcess.pause()</code>
-				and <code>FFmpegProcess.resume()</code>. Both methods are synchronous, they return <code>true</code> if they succeeded <code>false</code> otherwise.</p>
+					and <code>FFmpegProcess.resume()</code>. Both methods are synchronous, they return <code>true</code>
+				upon success, <code>false</code> otherwise.</p>
 				<p>These methods are currently <strong>NOT</strong> supported on Windows, support is planned.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">&#x27;input.mkv&#x27;</span>);
