@@ -7,8 +7,8 @@ assignees: ''
 
 ---
 
-<!-- Describe what your concern to do clearly and concisely -->
+<!-- Describe your concern clearly and concisely -->
 
-<!-- If you wrote any code, show it either inside a code block or share a repository -->
+<!-- If the question is about code, show what you've tried -->
 
 <!-- Are there any other issues related to your question? Link them below -->
