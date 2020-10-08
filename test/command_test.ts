@@ -592,5 +592,13 @@ describe('command', function () {
       const args = output.getArgs();
       expect(args[args.indexOf('-ss') + 1]).to.equal('2000ms');
     });
+    it('map()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output();
+      expect(output.map('0:1', '1:0')).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-map') + 1]).to.equal('0:1');
+      expect(args[args.lastIndexOf('-map') + 1]).to.equal('1:0');
+    });
   });
 });

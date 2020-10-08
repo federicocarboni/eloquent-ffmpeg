@@ -243,6 +243,27 @@ export interface FFmpegOutput {
    */
   start(start: number): this;
   /**
+   * Maps inputs' streams to output streams. This is an advanced option.
+   * {@link http://ffmpeg.org/ffmpeg-all.html#Advanced-options}
+   * {@link http://ffmpeg.org/ffmpeg-all.html#Stream-specifiers-1}
+   * {@link http://ffmpeg.org/ffmpeg-all.html#Automatic-stream-selection}
+   * @param stream The stream specifier.
+   * ```ts
+   * const cmd = ffmpeg();
+   * cmd.input('input0.mkv');
+   * cmd.input('input1.avi');
+   * cmd.output('output0.webm')
+   * // Takes input0's video streams and input1's audio streams.
+   *   .map('0:v', '1:a');
+   * cmd.output('output1.webm')
+   * // Streams will be mapped in the order they were specified
+   * // here output1's first stream will be input0's second stream
+   * // and its second stream will be input1's first stream.
+   *   .map('0:1', '1:0');
+   * ```
+   */
+  map(...streams: string[]): this;
+  /**
    * Returns all the arguments for the output.
    */
   getArgs(): string[];
@@ -571,6 +592,7 @@ class Output implements FFmpegOutput {
   #subtitleCodec: SubtitleCodec | SubtitleEncoder | undefined;
   #duration: number | undefined;
   #start: number | undefined;
+  #streams: string[] | undefined;
   #args: string[] = [];
   isStream: boolean;
 
@@ -611,6 +633,10 @@ class Output implements FFmpegOutput {
       this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
     }
   }
+  map(...streams: string[]): this {
+    this.#streams = streams;
+    return this;
+  }
   format(format: Format | Muxer): this {
     this.#format = format;
     return this;
@@ -646,6 +672,7 @@ class Output implements FFmpegOutput {
   getArgs(): string[] {
     const duration = this.#duration;
     const start = this.#start;
+    const streams = this.#streams;
     const format = this.#format;
     const codec = this.#codec;
     const videoCodec = this.#videoCodec;
@@ -655,6 +682,9 @@ class Output implements FFmpegOutput {
       ...this.#args,
       ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
       ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
+      ...(streams !== void 0 ? ([] as string[]).concat(...streams.map(
+        (stream) => ['-map', stream]
+      )) : []),
       ...(codec !== void 0 ? ['-c', codec] : []),
       ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
       ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
