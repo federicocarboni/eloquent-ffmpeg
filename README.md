@@ -149,6 +149,7 @@ and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true`
 upon success, `false` otherwise.
 
 These methods are currently **NOT** supported on Windows, support is planned.
+See [#1](https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1).
 
 ```ts
 const cmd = ffmpeg();
