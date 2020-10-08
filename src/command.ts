@@ -268,6 +268,14 @@ export interface FFmpegOutput {
    */
   map(...streams: string[]): this;
   /**
+   * Add metadata to a stream or an output.
+   * {@link http://ffmpeg.org/ffmpeg.html#Main-options}
+   * @param metadata The metadata to add to the stream.
+   * @param specifier The stream to add metadata to, if not given `metadata`
+   * will be added to the output file.
+   */
+  metadata(metadata: Record<string, string>, specifier?: string): this;
+  /**
    * Returns all the arguments for the output.
    */
   getArgs(): string[];
@@ -601,6 +609,7 @@ class Output implements FFmpegOutput {
   #videoCodec: VideoCodec | VideoEncoder | undefined;
   #audioCodec: AudioCodec | AudioEncoder | undefined;
   #subtitleCodec: SubtitleCodec | SubtitleEncoder | undefined;
+  #metadata: [Record<string, string>, string?] | undefined;
   #duration: number | undefined;
   #start: number | undefined;
   #streams: string[] | undefined;
@@ -644,6 +653,10 @@ class Output implements FFmpegOutput {
       this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
     }
   }
+  metadata(metadata: Record<string, string>, specifier?: string): this {
+    this.#metadata = [metadata, specifier];
+    return this;
+  }
   map(...streams: string[]): this {
     this.#streams = streams;
     return this;
@@ -681,8 +694,14 @@ class Output implements FFmpegOutput {
     return this;
   }
   getArgs(): string[] {
+    const toMetadataArgs = ([metadata, specifier]: [Record<string, string>, string?]) => {
+      return ([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
+        return [`-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`];
+      }));
+    };
     const duration = this.#duration;
     const start = this.#start;
+    const metadata = this.#metadata;
     const streams = this.#streams;
     const format = this.#format;
     const codec = this.#codec;
@@ -693,6 +712,7 @@ class Output implements FFmpegOutput {
       ...this.#args,
       ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
       ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
+      ...(metadata !== void 0 ? toMetadataArgs(metadata) : []),
       ...(streams !== void 0 ? ([] as string[]).concat(...streams.map(
         (stream) => ['-map', stream]
       )) : []),
