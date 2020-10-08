@@ -141,31 +141,31 @@ export interface FFmpegInput {
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format
    */
-  format(format: Format | Demuxer): this;
+  format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder): this;
+  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  videoCodec(codec: VideoCodec | VideoDecoder): this;
+  videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  audioCodec(codec: AudioCodec | AudioDecoder): this;
+  audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this;
+  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Limit the duration of the data read from the input.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
@@ -205,31 +205,31 @@ export interface FFmpegOutput {
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format
    */
-  format(format: Format | Demuxer): this;
+  format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder): this;
+  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  videoCodec(codec: VideoCodec | VideoEncoder): this;
+  videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  audioCodec(codec: AudioCodec | AudioEncoder): this;
+  audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
    */
-  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder): this;
+  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Limit the duration of the data written to the output.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
