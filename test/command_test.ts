@@ -600,5 +600,19 @@ describe('command', function () {
       expect(args[args.indexOf('-map') + 1]).to.equal('0:1');
       expect(args[args.lastIndexOf('-map') + 1]).to.equal('1:0');
     });
+    it('metadata()', async function () {
+      const cmd = ffmpeg();
+      let output = cmd.output();
+      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
+      let args = output.getArgs();
+      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=something');
+      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).to.equal('artist=someone');
+      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
+      output = cmd.output();
+      expect(output.metadata({ title: 'something', artist: 'someone' })).to.equal(output);
+      args = output.getArgs();
+      expect(args[args.indexOf('-metadata') + 1]).to.equal('title=something');
+      expect(args[args.lastIndexOf('-metadata') + 1]).to.equal('artist=someone');
+    });
   });
 });
