@@ -354,11 +354,14 @@ export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
   return new Command(options);
 }
 
-export function spawn(args: string[], ffmpegPath = getFFmpegPath()): FFmpegProcess {
+/**
+ * Start an FFmpeg process with the given arguments.
+ * @param args The arguments to spawn FFmpeg with.
+ * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ */
+export function spawn(args: string[], ffmpegPath: string = getFFmpegPath()): FFmpegProcess {
   return new Process(ffmpegPath, args, [], []);
 }
-
-export const MAX_BUFFER_LENGTH = 16383;
 
 class Command implements FFmpegCommand {
   #args: string[] = [];
