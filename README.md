@@ -4,9 +4,9 @@ Eloquent FFmpeg simplifies interactions with
 This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
 You may also want to [view the documentation](https://federicocarboni.github.io/eloquent-ffmpeg/).
 
-If something doesn't feel right, feel free to open an issue or a pull request to
-change it. This library is still in a very early stage, but there shouldn't be
-any major breaking changes.
+If something is missing or doesn't feel right, feel free to open an issue or a
+pull request to change it. This library is still in a very early stage, but
+there shouldn't be any major breaking changes.
 
 **Only NodeJS 10.x or higher is supported**
 
