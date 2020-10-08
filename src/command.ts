@@ -1,4 +1,8 @@
-import { ChildProcess, ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import {
+  ChildProcess,
+  ChildProcessWithoutNullStreams,
+  spawn as spawnProcess
+} from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, isWin32, write } from './utils';
 import {
@@ -350,6 +354,10 @@ export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
   return new Command(options);
 }
 
+export function spawn(args: string[], ffmpegPath = getFFmpegPath()): FFmpegProcess {
+  return new Process(ffmpegPath, args, [], []);
+}
+
 export const MAX_BUFFER_LENGTH = 16383;
 
 class Command implements FFmpegCommand {
@@ -404,7 +412,7 @@ class Process implements FFmpegProcess {
   #stderr: string[] | undefined;
 
   constructor(public ffmpegPath: string, public args: string[], inputSocketServers: Server[], outputSocketServers: Server[]) {
-    const process = spawn(ffmpegPath, args, { stdio: 'pipe' });
+    const process = spawnProcess(ffmpegPath, args, { stdio: 'pipe' });
     const onExit = (): void => {
       const closeSocketServer = (server: Server): void => {
         if (server.listening) server.close();
