@@ -15,7 +15,7 @@
     "types": "ts-node -r dotenv/config scripts/ffmpeg_types.ts",
     "coverage": "nyc --reporter=lcov --reporter=text npm test",
     "build": "rollup -c",
-    "lint": "eslint",
+    "lint": "eslint {src,test}/**/*.ts",
     "test": "mocha"
   },
   "repository": {
