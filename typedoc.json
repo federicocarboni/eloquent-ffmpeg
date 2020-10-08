@@ -1,7 +1,7 @@
 {
   "mode": "modules",
   "name": "Eloquent FFmpeg",
-  "out": "./docs",
+  "out": "./pages",
   "readme": "README.md",
   "exclude": [],
   "inputFiles": [
