@@ -6,7 +6,7 @@
   "main": "lib/lib.cjs",
   "types": "lib/lib.d.ts",
   "exports": {
-    "import": "./lib/lib.es6.js",
+    "import": "./lib/lib.mjs",
     "require": "./lib/lib.cjs"
   },
   "scripts": {

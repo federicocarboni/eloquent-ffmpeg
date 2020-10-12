@@ -399,7 +399,10 @@ class Command implements FFmpegCommand {
   }
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
     const args = this.getArgs();
-    const [inputSocketServers, outputSocketServers] = await Promise.all([handleInputs(this.#inputs), handleOutputs(this.#outputs)]);
+    const [inputSocketServers, outputSocketServers] = await Promise.all([
+      handleInputs(this.#inputs),
+      handleOutputs(this.#outputs)
+    ]);
     return new Process(ffmpegPath, args, inputSocketServers, outputSocketServers);
   }
   getArgs(): string[] {
