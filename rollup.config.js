@@ -17,7 +17,7 @@ const banner = `/**
 export default [{
   input: 'src/lib.ts',
   output: [{
-    entryFileNames: 'lib.es6.js',
+    entryFileNames: 'lib.mjs',
     format: 'es',
     dir: 'lib',
     banner,
