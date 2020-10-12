@@ -38,6 +38,7 @@
   },
   "homepage": "https://github.com/FedericoCarboni/eloquent-ffmpeg#readme",
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.10.4",
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/chai": "^4.2.12",
