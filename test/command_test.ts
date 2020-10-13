@@ -337,7 +337,7 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         expect(() => process.pause()).to.throw();
-        process.kill();
+        process.unwrap().kill();
       });
       else it('should send signal SIGSTOP', async function () {
         const cmd = ffmpeg();
@@ -348,7 +348,7 @@ describe('command', function () {
         expect(process.pause()).to.equal(true);
         expect(process.unwrap().killed).to.equal(true);
         process.resume();
-        process.kill('SIGKILL');
+        process.unwrap().kill('SIGKILL');
       });
     });
     describe('resume()', function () {
@@ -359,7 +359,7 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         expect(() => process.resume()).to.throw();
-        process.kill();
+        process.unwrap().kill();
       });
       else it('should send signal SIGCONT', async function () {
         const cmd = ffmpeg();
@@ -370,7 +370,7 @@ describe('command', function () {
         process.pause();
         expect(process.resume()).to.equal(true);
         expect(process.unwrap().killed).to.equal(true);
-        process.kill('SIGKILL');
+        process.unwrap().kill('SIGKILL');
       });
     });
     describe('complete()', function () {
