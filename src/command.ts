@@ -39,7 +39,11 @@ export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array> | Iter
 /**
  * @public
  */
-export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
+export type OutputDestination = string | {
+  [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>;
+} | {
+  [Symbol.iterator](): Iterator<any, any, Uint8Array>;
+} | NodeJS.WritableStream;
 
 /**
  * @public
