@@ -18,6 +18,9 @@ import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
 
+/**
+ * @alpha
+ */
 export enum LogLevel {
   Quiet = 'quiet',
   Panic = 'panic',
@@ -30,9 +33,18 @@ export enum LogLevel {
   Trace = 'trace',
 }
 
+/**
+ * @alpha
+ */
 export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
+/**
+ * @alpha
+ */
 export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
 
+/**
+ * @public
+ */
 export interface FFmpegCommand {
   /**
    * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
@@ -98,6 +110,9 @@ export interface FFmpegCommand {
   getArgs(): string[];
 }
 
+/**
+ * @public
+ */
 export interface FFmpegOptions {
   /**
    * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
@@ -118,6 +133,9 @@ export interface FFmpegOptions {
   overwrite?: boolean;
 }
 
+/**
+ * @public
+ */
 export interface Progress {
   frames: number;
   fps: number;
@@ -129,6 +147,9 @@ export interface Progress {
   speed: number;
 }
 
+/**
+ * @public
+ */
 export interface FFmpegInput {
   /**
    * Get information about the input, this is especially helpful when working
@@ -223,6 +244,9 @@ export interface FFmpegInput {
   readonly isStream: boolean;
 }
 
+/**
+ * @public
+ */
 export interface FFmpegOutput {
   /**
    * Add output arguments, they will be placed before any additional arguments.
@@ -323,6 +347,9 @@ export interface FFmpegOutput {
   readonly isStream: boolean;
 }
 
+/**
+ * @public
+ */
 export interface FFmpegProcess {
   /**
    * Returns the process identifier (PID) of the process.
@@ -395,11 +422,13 @@ export interface FFmpegProcess {
   /**
    * Pauses the conversion, returns `true` if the operation succeeds, `false` otherwise.
    * This does NOT currently work on Windows, support is planned.
+   * @alpha
    */
   pause(): boolean;
   /**
    * Resumes the conversion, returns `true` if the operation succeeds, `false` otherwise.
    * This does NOT currently work on Windows, support is planned.
+   * @alpha
    */
   resume(): boolean;
 }
