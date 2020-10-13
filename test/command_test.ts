@@ -19,9 +19,7 @@ describe('command', function () {
         const cmd = ffmpeg();
         const invalidBuffer = await promises.readFile('test/samples/invalid');
         const input1 = cmd.input(invalidBuffer);
-        const input2 = cmd.input(invalidBuffer.buffer);
         expect(input1.isStream).to.equal(true);
-        expect(input2.isStream).to.equal(true);
       });
       it('should add an iterable as source', async function () {
         const cmd = ffmpeg();
