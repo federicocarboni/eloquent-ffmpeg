@@ -22,27 +22,93 @@ async function main(): Promise<void> {
 // Copyright (c) 2020 Federico Carboni. ${pkg.license}.
 // Generated on ${new Date().toUTCString()}
 // Current FFmpeg version ${(await getVersion()).version}
+/**
+ * @public
+ */
 export type Format = ${Array.from(formats).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type Muxer = ${Array.from(muxers).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type Demuxer = ${Array.from(demuxers).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type VideoEncoder = ${Array.from(encoders.video).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type VideoDecoder = ${Array.from(decoders.video).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type VideoCodec = ${Array.from(codecs.video).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type VideoFilter = ${Array.from(filters.video).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type AudioEncoder = ${Array.from(encoders.audio).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type AudioDecoder = ${Array.from(decoders.audio).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type AudioCodec = ${Array.from(codecs.audio).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type AudioFilter = ${Array.from(filters.audio).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type SubtitleEncoder = ${Array.from(encoders.subtitle).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type SubtitleDecoder = ${Array.from(decoders.subtitle).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type SubtitleCodec = ${Array.from(codecs.subtitle).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type DataCodec = ${Array.from(codecs.data).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type PixelFormat = ${Array.from(pixelFormats).map(addQuotes).join(' | ')};
+/**
+ * @public
+ */
 export type SampleFormat = 'u8' | 's16' | 's32' | 'flt' | 'dbl' | 'u8p' | 's16p' | 's32p' | 'fltp' | 'dblp' | 's64' | 's64p';
+/**
+ * @public
+ */
 export type ChannelLayout = 'mono' | 'stereo' | '2.1' | '3.0' | '3.0(back)' | '4.0' | 'quad' | 'quad(side)' | '3.1' | '5.0' | '5.0(side)' | '4.1' | '5.1' | '5.1(side)' | '6.0' | '6.0(front)' | 'hexagonal' | '6.1' | '6.1(back)' | '6.1(front)' | '7.0' | '7.0(front)' | '7.1' | '7.1(wide)' | '7.1(wide-side)' | 'octagonal' | 'hexadecagonal' | 'downmix';
+/**
+ * @public
+ */
 export type ChromaLocation = 'left' | 'center' | 'topleft' | 'top' | 'bottomleft' | 'bottom';
+/**
+ * @public
+ */
 export type FieldOrder = 'progressive' | 'tt' | 'bb' | 'tb' | 'bt';
+/**
+ * @public
+ */
 export type ColorRange = 'limited' | 'tv' | 'mpeg' | 'full' | 'pc' | 'jpeg';
+/**
+ * @public
+ */
 export type ColorSpace = 'gbr' | 'bt709' | 'fcc' | 'bt470bg' | 'smpte170m' | 'smpte240m' | 'ycgco' | 'bt2020nc' | 'bt2020c' | 'smpte2085' | 'chroma-derived-nc' | 'chroma-derived-c' | 'ictcp';
 `;
   await promises.writeFile('src/_types.ts', code);
