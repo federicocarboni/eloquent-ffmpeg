@@ -34,11 +34,11 @@ export enum LogLevel {
 }
 
 /**
- * @alpha
+ * @public
  */
 export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
 /**
- * @alpha
+ * @public
  */
 export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>; } | { [Symbol.iterator](): Iterator<any, any, Uint8Array>; } | NodeJS.WritableStream;
 
@@ -48,12 +48,12 @@ export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterat
 export interface FFmpegCommand {
   /**
    * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
-   * @public
+   * @alpha
    */
   readonly logLevel: LogLevel;
   /**
    * Adds an input to the conversion.
-   * @param source
+   * @param source -
    * @example
    * ```ts
    * const cmd = ffmpeg();
@@ -86,7 +86,7 @@ export interface FFmpegCommand {
   output(...destinations: OutputDestination[]): FFmpegOutput;
   /**
    * Add arguments, they will be placed before any input or output arguments.
-   * @param args
+   * @param args -
    * @public
    */
   args(...args: string[]): this;
@@ -156,7 +156,7 @@ export interface FFmpegInput {
    * with streams. If the source is a stream `options.probeSize` number of bytes
    * will be read and passed to ffprobe; those bytes will be kept in memory
    * until the input is used in conversion.
-   * @param options
+   * @param options -
    * @example
    * ```ts
    * const cmd = ffmpeg();
@@ -172,42 +172,42 @@ export interface FFmpegInput {
   probe(options?: ProbeOptions): Promise<ProbeResult>;
   /**
    * Add input arguments, they will be placed before any additional arguments.
-   * @param args
+   * @param args -
    * @public
    */
   args(...args: string[]): this;
   /**
    * Select the input format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param format
+   * @param format -
    * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
@@ -250,42 +250,42 @@ export interface FFmpegInput {
 export interface FFmpegOutput {
   /**
    * Add output arguments, they will be placed before any additional arguments.
-   * @param args
+   * @param args -
    * @public
    */
   args(...args: string[]): this;
   /**
    * Select the output format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param format
+   * @param format -
    * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec
+   * @param codec -
    * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
@@ -435,7 +435,7 @@ export interface FFmpegProcess {
 
 /**
  * Create a new FFmpegCommand.
- * @param options
+ * @param options -
  * @public
  */
 export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
