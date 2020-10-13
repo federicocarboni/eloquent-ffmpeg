@@ -1,4 +1,4 @@
-import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, read, toUint8Array, write } from './utils';
+import { end, IGNORED_ERRORS, isNullish, read, write } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
@@ -276,7 +276,6 @@ export interface ProbeOptions {
   /**
    * Add command line arguments to ffprobe, `args` is appended **after** other
    * arguments, but **before** source.
-   * @alpha
    */
   args?: string[];
 }
@@ -322,8 +321,8 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     return new FFprobeError(error.string, logs, error.code);
   };
   try {
-    if (isBufferLike(source))
-      await writeStdin(stdin, toUint8Array(source));
+    if (source instanceof Uint8Array)
+      await writeStdin(stdin, source);
     else if (typeof source !== 'string')
       await pipeStdin(stdin, __asyncValues(source));
     const output = await read(stdoutStream);
@@ -385,7 +384,7 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   });
 }
 
-async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<BufferLike>) {
+async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<Uint8Array>) {
   let error: Error | undefined;
   const onError = (err: Error & { code: string }): void => {
     if (!IGNORED_ERRORS.has(err.code))
@@ -394,7 +393,7 @@ async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIter
   stdin.on('error', onError);
   try {
     for await (const chunk of stream) {
-      await write(stdin, toUint8Array(chunk));
+      await write(stdin, chunk);
     }
   } finally {
     stdin.off('error', onError);

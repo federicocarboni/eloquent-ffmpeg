@@ -4,7 +4,7 @@ import {
   spawn as spawnProcess
 } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { BufferLike, end, IGNORED_ERRORS, isBufferLike, isNullish, isWin32, write } from './utils';
+import { end, IGNORED_ERRORS, isNullish, isWin32, write } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer,
   SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
@@ -13,7 +13,6 @@ import {
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
 import { extractMessage, FFmpegError } from './errors';
-import { toUint8Array } from './utils';
 import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
@@ -36,7 +35,7 @@ export enum LogLevel {
 /**
  * @public
  */
-export type InputSource = string | BufferLike | AsyncIterable<BufferLike> | Iterable<BufferLike> | NodeJS.ReadableStream;
+export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array> | Iterable<Uint8Array> | NodeJS.ReadableStream;
 /**
  * @public
  */
@@ -587,7 +586,7 @@ class Process implements FFmpegProcess {
   }
 }
 
-const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<BufferLike>]>();
+const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<Uint8Array>]>();
 const inputChunksMap = new WeakMap<Input, Uint8Array>();
 class Input implements FFmpegInput {
   #resource: string;
@@ -608,7 +607,7 @@ class Input implements FFmpegInput {
       this.isStream = false;
     } else {
       const path = getSocketPath();
-      inputStreamMap.set(this, [path, __asyncValues(isBufferLike(source) ? [source] : source)]);
+      inputStreamMap.set(this, [path, __asyncValues(source instanceof Uint8Array ? [source] : source)]);
       this.#resource = getSocketResource(path);
       this.isStream = true;
     }
@@ -854,15 +853,15 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<BufferLike>, input: Input) {
+async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<Uint8Array>, input: Input) {
   try {
     try {
       if (inputChunksMap.has(input)) {
-        await write(socket, toUint8Array(inputChunksMap.get(input)!));
+        await write(socket, inputChunksMap.get(input)!);
         inputChunksMap.delete(input);
       }
       for await (const chunk of stream) {
-        await write(socket, toUint8Array(chunk));
+        await write(socket, chunk);
       }
     } finally {
       if (socket.writable) await end(socket);
@@ -872,7 +871,7 @@ async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIter
     // TODO: add logging?
   }
 }
-function handleInputStream(server: Server, stream: AsyncIterableIterator<BufferLike>, input: Input) {
+function handleInputStream(server: Server, stream: AsyncIterableIterator<Uint8Array>, input: Input) {
   server.once('connection', (socket) => {
     handleInputStreamSocket(socket, stream, input);
     // Do NOT accept further connections, close() will close the server after
@@ -895,9 +894,8 @@ function handleOutputStream(server: Server, streams: AsyncGenerator<void, void, 
 
     // TODO: refactor to use for await of?
 
-    const onData = (data: BufferLike): void => {
-      const u8 = toUint8Array(data);
-      streams.forEach((stream) => stream.next(u8));
+    const onData = (data: Uint8Array): void => {
+      streams.forEach((stream) => stream.next(data));
     };
 
     socket.on('data', onData);
@@ -959,11 +957,11 @@ function getOutputStream(output: Output) {
 function getInputStream(input: Input) {
   return inputStreamMap.get(input)!;
 }
-async function readAtLeast(stream: AsyncIterableIterator<BufferLike>, length: number) {
+async function readAtLeast(stream: AsyncIterableIterator<Uint8Array>, length: number) {
   const chunks: Uint8Array[] = [];
   let byteLength = 0;
-  for (let r: IteratorResult<BufferLike, void>; !(r = await stream.next()).done; ) {
-    const u8 = toUint8Array(r.value);
+  for (let r: IteratorResult<Uint8Array, void>; !(r = await stream.next()).done; ) {
+    const u8 = r.value;
     byteLength += u8.byteLength;
     chunks.push(u8);
     if (byteLength >= length)
