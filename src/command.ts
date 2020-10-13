@@ -36,12 +36,14 @@ export type OutputDestination = string | { [Symbol.asyncIterator](): AsyncIterat
 export interface FFmpegCommand {
   /**
    * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
+   * @public
    */
   readonly logLevel: LogLevel;
   /**
    * Adds an input to the conversion.
    * @param source
-   * @example ```ts
+   * @example
+   * ```ts
    * const cmd = ffmpeg();
    * cmd.input('input.avi');
    * cmd.input(fs.createReadStream('input2.avi'));
@@ -49,42 +51,49 @@ export interface FFmpegCommand {
    * const process = await cmd.spawn();
    * await process.complete();
    * ```
+   * @public
    */
   input(source: InputSource): FFmpegInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
    * the `tee` protocol. You can use mixed destinations and multiple streams.
    * Both NodeJS WritableStreams and AsyncGenerators are fully supported.
-   * @param destinations A sequence of OutputDestinations to which the output
+   * @param destinations - A sequence of OutputDestinations to which the output
    * will be written. If no destinations are specified the conversion will run,
    * but any output data will be ignored.
-   * @example ```ts
+   * @example
+   * ```ts
    * const cmd = ffmpeg();
    * cmd.input('input.avi');
    * cmd.output(fs.createWriteStream('dest1.mkv'), 'dest2.mkv');
    * const process = await cmd.spawn();
    * await process.complete();
    * ```
+   * @public
    */
   output(...destinations: OutputDestination[]): FFmpegOutput;
   /**
    * Add arguments, they will be placed before any input or output arguments.
    * @param args
+   * @public
    */
   args(...args: string[]): this;
   /**
    * Starts the conversion, this method is asynchronous so it must be `await`'ed.
-   * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
-   * @example ```ts
+   * @param ffmpegPath - Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+   * @example
+   * ```ts
    * const cmd = ffmpeg();
    * cmd.input('input.avi');
    * cmd.output('output.mp4');
    * const process = await cmd.spawn();
    * ```
+   * @public
    */
   spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
   /**
    * Returns all the arguments with which ffmpeg will be spawned.
+   * @public
    */
   getArgs(): string[];
 }
@@ -92,16 +101,19 @@ export interface FFmpegCommand {
 export interface FFmpegOptions {
   /**
    * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
+   * @alpha
    */
   logLevel?: LogLevel;
   /**
    * Enabled piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
    * will silently fail. Defaults to `true`.
+   * @alpha
    */
   progress?: boolean;
   /**
    * Whether to overwrite the output destinations if they already exist. Required
    * to be `true` for streaming outputs. Defaults to `true`.
+   * @alpha
    */
   overwrite?: boolean;
 }
@@ -124,7 +136,8 @@ export interface FFmpegInput {
    * will be read and passed to ffprobe; those bytes will be kept in memory
    * until the input is used in conversion.
    * @param options
-   * @example ```ts
+   * @example
+   * ```ts
    * const cmd = ffmpeg();
    * cmd.output('output.mp4');
    * const input = cmd.input(fs.createReadStream('input.mkv'));
@@ -133,67 +146,79 @@ export interface FFmpegInput {
    * const process = await cmd.spawn();
    * await process.complete();
    * ```
+   * @alpha
    */
   probe(options?: ProbeOptions): Promise<ProbeResult>;
   /**
    * Add input arguments, they will be placed before any additional arguments.
    * @param args
+   * @public
    */
   args(...args: string[]): this;
   /**
    * Select the input format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format
+   * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Limit the duration of the data read from the input.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param duration The limit for the duration in milliseconds.
+   * @param duration - The limit for the duration in milliseconds.
+   * @alpha
    */
   duration(duration: number): this;
   /**
    * Seeks in the input file to `start`.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param start The position to seek to in milliseconds.
+   * @param start - The position to seek to in milliseconds.
+   * @alpha
    */
   start(start: number): this;
   /**
    * Adds `offset` to the input timestamps.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param offset The offset in milliseconds. MAY be negative.
+   * @param offset - The offset in milliseconds. MAY be negative.
+   * @alpha
    */
   offset(offset: number): this;
   /**
    * Returns all the arguments for the input.
+   * @public
    */
   getArgs(): string[];
   /**
    * Whether the input is using streams.
+   * @public
    */
   readonly isStream: boolean;
 }
@@ -202,48 +227,56 @@ export interface FFmpegOutput {
   /**
    * Add output arguments, they will be placed before any additional arguments.
    * @param args
+   * @public
    */
   args(...args: string[]): this;
   /**
    * Select the output format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format
+   * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec
+   * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Limit the duration of the data written to the output.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param duration The limit for the duration in milliseconds.
+   * @param duration - The limit for the duration in milliseconds.
+   * @alpha
    */
   duration(duration: number): this;
   /**
    * Decodes but discards the input until `start` is reached.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param start The number of milliseconds to discard.
+   * @param start - The number of milliseconds to discard.
+   * @alpha
    */
   start(start: number): this;
   /**
@@ -251,7 +284,8 @@ export interface FFmpegOutput {
    * {@link http://ffmpeg.org/ffmpeg-all.html#Advanced-options}
    * {@link http://ffmpeg.org/ffmpeg-all.html#Stream-specifiers-1}
    * {@link http://ffmpeg.org/ffmpeg-all.html#Automatic-stream-selection}
-   * @param stream The stream specifier.
+   * @param stream - The stream specifier.
+   * @example
    * ```ts
    * const cmd = ffmpeg();
    * cmd.input('input0.mkv');
@@ -265,22 +299,26 @@ export interface FFmpegOutput {
    * // and its second stream will be input1's first stream.
    *   .map('0:1', '1:0');
    * ```
+   * @alpha
    */
   map(...streams: string[]): this;
   /**
    * Add metadata to a stream or an output.
    * {@link http://ffmpeg.org/ffmpeg.html#Main-options}
-   * @param metadata The metadata to add to the stream.
-   * @param specifier The stream to add metadata to, if not given `metadata`
+   * @param metadata - The metadata to add to the stream.
+   * @param specifier - The stream to add metadata to, if not given `metadata`
    * will be added to the output file.
+   * @alpha
    */
   metadata(metadata: Record<string, string>, specifier?: string): this;
   /**
    * Returns all the arguments for the output.
+   * @public
    */
   getArgs(): string[];
   /**
    * Whether the output is using streams.
+   * @public
    */
   readonly isStream: boolean;
 }
@@ -288,19 +326,23 @@ export interface FFmpegOutput {
 export interface FFmpegProcess {
   /**
    * Returns the process identifier (PID) of the process.
+   * @public
    */
   readonly pid: number;
   /**
    * The command line arguments used to spawn the process.
+   * @public
    */
   readonly args: readonly string[];
   /**
    * Path of the running ffmpeg executable.
+   * @public
    */
   readonly ffmpegPath: string;
   /**
    * Returns an AsyncGenerator representing the real-time progress of the conversion.
-   * @example ```ts
+   * @example
+   * ```ts
    * const process = await cmd.spawn();
    * for await (const progress of process.progress()) {
    *   console.log('Speed:', progress.speed);
@@ -314,12 +356,14 @@ export interface FFmpegProcess {
    *   console.log('Speed:', progress.speed);
    * });
    * ```
+   * @public
    */
   progress(): AsyncGenerator<Progress, void, void>;
   /**
    * Returns a Promise which resolves when the process exits, or rejects when the
    * process exits with a non-zero status code.
-   * @example ```ts
+   * @example
+   * ```ts
    * const process = cmd.spawn();
    * await process.complete();
    * console.log('Conversion complete!');
@@ -334,16 +378,18 @@ export interface FFmpegProcess {
    *   console.error('Conversion failed!', error);
    * }
    * ```
+   * @public
    */
   complete(): Promise<void>;
   /**
    * Returns the underlying NodeJS' ChildProcess instance.
+   * @public
    */
   unwrap(): ChildProcess;
   /**
    * Sends a signal to the running process.
    * See {@link https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal}
-   * @param signal The signal to send.
+   * @param signal - The signal to send.
    */
   kill(signal?: NodeJS.Signals | number): boolean;
   /**
@@ -358,14 +404,20 @@ export interface FFmpegProcess {
   resume(): boolean;
 }
 
+/**
+ * Create a new FFmpegCommand.
+ * @param options
+ * @public
+ */
 export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
   return new Command(options);
 }
 
 /**
  * Start an FFmpeg process with the given arguments.
- * @param args The arguments to spawn FFmpeg with.
- * @param ffmpegPath Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @param args - The arguments to spawn FFmpeg with.
+ * @param ffmpegPath - Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @public
  */
 export function spawn(args: string[], ffmpegPath: string = getFFmpegPath()): FFmpegProcess {
   return new Process(ffmpegPath, args, [], []);
