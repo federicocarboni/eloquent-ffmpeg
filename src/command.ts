@@ -17,9 +17,7 @@ import { getFFmpegPath } from './env';
 import { __asyncValues } from 'tslib';
 import { Server, Socket } from 'net';
 
-/**
- * @alpha
- */
+/** @alpha */
 export enum LogLevel {
   Quiet = 'quiet',
   Panic = 'panic',
@@ -32,22 +30,16 @@ export enum LogLevel {
   Trace = 'trace',
 }
 
-/**
- * @public
- */
+/** @public */
 export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array> | Iterable<Uint8Array> | NodeJS.ReadableStream;
-/**
- * @public
- */
+/** @public */
 export type OutputDestination = string | {
   [Symbol.asyncIterator](): AsyncIterator<any, any, Uint8Array>;
 } | {
   [Symbol.iterator](): Iterator<any, any, Uint8Array>;
 } | NodeJS.WritableStream;
 
-/**
- * @public
- */
+/** @public */
 export interface FFmpegCommand {
   /**
    * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
@@ -108,9 +100,7 @@ export interface FFmpegCommand {
   getArgs(): string[];
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FFmpegOptions {
   /**
    * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
@@ -129,9 +119,7 @@ export interface FFmpegOptions {
   overwrite?: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface Progress {
   frames: number;
   fps: number;
@@ -143,9 +131,7 @@ export interface Progress {
   speed: number;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FFmpegInput {
   /**
    * Get information about the input, this is especially helpful when working
@@ -229,9 +215,7 @@ export interface FFmpegInput {
   readonly isStream: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FFmpegOutput {
   /**
    * Add output arguments, they will be placed before any additional arguments.
@@ -320,9 +304,7 @@ export interface FFmpegOutput {
   readonly isStream: boolean;
 }
 
-/**
- * @public
- */
+/** @public */
 export interface FFmpegProcess {
   /**
    * Returns the process identifier (PID) of the process.
