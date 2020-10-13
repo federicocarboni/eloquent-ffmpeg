@@ -6,8 +6,9 @@ const { FFMPEG_PATH, FFPROBE_PATH } = process.env;
 let ffmpegPath: string | undefined = FFMPEG_PATH ? resolvePath(FFMPEG_PATH) : void 0;
 /**
  * Manually override the default ffmpeg path.
- * @param path Path to the ffmpeg executable. Relative paths CAN be used.
+ * @param path - Path to the ffmpeg executable. Relative paths CAN be used.
  * @throws `TypeError` if the given `path` is not a file.
+ * @public
  */
 export function setFFmpegPath(path: string): void {
   const newPath = resolvePath(path);
@@ -18,6 +19,7 @@ export function setFFmpegPath(path: string): void {
 /**
  * @returns The absolute path to the default ffmpeg path. Defaults to `process.env.FFMPEG_PATH`.
  * @throws `TypeError` if the default path is `undefined`.
+ * @public
  */
 export function getFFmpegPath(): string {
   if (ffmpegPath === void 0)
@@ -28,8 +30,9 @@ export function getFFmpegPath(): string {
 let ffprobePath: string | undefined = FFPROBE_PATH ? resolvePath(FFPROBE_PATH) : void 0;
 /**
  * Manually override the default ffprobe path.
- * @param path Path to the ffprobe executable. Relative paths CAN be used.
+ * @param path - Path to the ffprobe executable. Relative paths CAN be used.
  * @throws `TypeError` if the `path` is not a file.
+ * @public
  */
 export function setFFprobePath(path: string): void {
   const newPath = resolvePath(path);
@@ -38,8 +41,9 @@ export function setFFprobePath(path: string): void {
   ffprobePath = newPath;
 }
 /**
- * @returns The absolute path to the default ffprobe path. Defaults to `process.env.FFPROBE_PATH`.
+ * @returns - The absolute path to the default ffprobe path. Defaults to `process.env.FFPROBE_PATH`.
  * @throws `TypeError` if the default path is `undefined`.
+ * @public
  */
 export function getFFprobePath(): string {
   if (ffprobePath === void 0)

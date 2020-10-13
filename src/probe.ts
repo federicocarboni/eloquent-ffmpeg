@@ -9,6 +9,9 @@ import { Demuxer } from './_types';
 import { PassThrough } from 'stream';
 
 /* eslint-disable camelcase */
+/**
+ * @alpha
+ */
 export interface RawProbeResult {
   format: RawProbeFormat;
   streams: RawProbeStream[];
@@ -16,12 +19,18 @@ export interface RawProbeResult {
   error?: RawProbeError;
 }
 
+/**
+ * @alpha
+ */
 export interface RawProbeError {
   code: number;
   string: string;
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2807
+/**
+ * @alpha
+ */
 export interface RawProbeFormat {
   [key: string]: any;
 
@@ -44,6 +53,9 @@ export interface RawProbeFormat {
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2485
+/**
+ * @alpha
+ */
 export type RawProbeStream = {
   [key: string]: any;
 
@@ -185,6 +197,9 @@ export type RawProbeStream = {
   tags?: Record<string, string>;
 };
 
+/**
+ * @alpha
+ */
 export interface RawProbeDisposition {
   default: number;
   dub: number;
@@ -201,6 +216,9 @@ export interface RawProbeDisposition {
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2782
+/**
+ * @alpha
+ */
 export interface RawProbeChapter {
   id: number;
   time_base: string;
@@ -213,6 +231,9 @@ export interface RawProbeChapter {
 
 /* eslint-enable */
 
+/**
+ * @alpha
+ */
 export interface ProbeResult {
   format?: Demuxer;
   formatName?: string;
@@ -228,38 +249,48 @@ export interface ProbeResult {
   unwrap(): RawProbeResult;
 }
 
+/**
+ * @alpha
+ */
 export interface ProbeOptions {
   /**
    * Specify the number of bytes to probe, defaults to `5 * 1024 * 1024`, `5MiB`.
+   * @alpha
    */
   probeSize?: number;
   /**
    * Specify the number of milliseconds to analyze, defaults to `5000`.
+   * @alpha
    */
   analyzeDuration?: number;
   /**
    * Path to the `ffprobe` executable.
+   * @alpha
    */
   ffprobePath?: string;
   /**
    * Set the log level used by ffprobe.
+   * @alpha
    */
   logLevel?: LogLevel;
   /**
    * Add command line arguments to ffprobe, `args` is appended **after** other
    * arguments, but **before** source.
+   * @alpha
    */
   args?: string[];
 }
 
 /**
  * Probes the given `source` using ffprobe.
- * @param source The source to probe. Accepts the same types as `FFmpegCommand.input()`.
- * @param options Customize ffprobe options.
- * @example ```ts
+ * @param source - The source to probe. Accepts the same types as `FFmpegCommand.input()`.
+ * @param options - Customize ffprobe options.
+ * @example
+ * ```ts
  * const result = await probe('input.mp4');
  * console.log(result.format);
  * ```
+ * @alpha
  */
 export async function probe(source: InputSource, options: ProbeOptions = {}): Promise<ProbeResult> {
   const {

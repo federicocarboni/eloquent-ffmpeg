@@ -2,6 +2,9 @@ import { spawn } from 'child_process';
 import { getFFmpegPath } from './env';
 import { read } from './utils';
 
+/**
+ * @public
+ */
 export interface Version {
   copyright: string;
   version: string;
@@ -17,11 +20,13 @@ export interface Version {
 }
 /**
  * Runs `ffmpeg -version` and returns its output as {@link Version}.
- * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```ts
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @example
+ * ```ts
  * const versionInfo = await getVersion();
  * console.log(`Using ffmpeg version ${versionInfo.version}`);
  * ```
+ * @public
  */
 export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version> {
   const lines = await getLines(ffmpegPath, ['-version']);
@@ -61,7 +66,7 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
 /**
  * Returns a set of all demuxers supported by ffmpeg. This is mostly useful
  * to check if reading a certain format is supported.
- * @param ffmpegPath Path to the ffmpeg executable.
+ * @param ffmpegPath - Path to the ffmpeg executable.
  * @example
  * ```ts
  * const demuxers = await getDemuxers();
@@ -69,6 +74,7 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
  *   // mov can be used as an input format
  * }
  * ```
+ * @public
  */
 export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-demuxers']);
@@ -81,7 +87,7 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
 /**
  * Returns a set of all muxers supported by ffmpeg. This is mostly useful
  * to check if outputting a certain format is supported.
- * @param ffmpegPath Path to the ffmpeg executable.
+ * @param ffmpegPath - Path to the ffmpeg executable.
  * @example
  * ```ts
  * const muxers = await getMuxers();
@@ -89,6 +95,7 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
  *   // mov can be used as an output format
  * }
  * ```
+ * @public
  */
 export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-muxers']);
@@ -102,7 +109,8 @@ export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<strin
  * Returns a set of all formats supported by ffmpeg. This is generally not very
  * useful, to check the compatibility for a certain format use {@link getMuxers}
  * for reading or {@link getDemuxers} for writing.
- * @param ffmpegPath Path to the ffmpeg executable.
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @public
  */
 export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-formats']);
@@ -112,6 +120,9 @@ export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<stri
   }
   return formats;
 }
+/**
+ * @public
+ */
 export interface Codecs {
   video: Set<string>;
   audio: Set<string>;
@@ -121,13 +132,15 @@ export interface Codecs {
 /**
  * Returns all the encoders supported by ffmpeg as {@link Codecs}. This is mostly
  * useful to check if ffmpeg supports encoding a certain codec.
- * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```ts
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @example
+ * ```ts
  * const encoders = await getEncoders();
  * if (encoders.video.has('libx264')) {
  *   // libx264 can be used for encoding
  * }
  * ```
+ * @public
  */
 export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-encoders']);
@@ -136,13 +149,15 @@ export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
 /**
  * Returns all the decoders supported by ffmpeg as {@link Codecs}. This is mostly
  * useful to check if ffmpeg supports decoding a certain codec.
- * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```ts
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @example
+ * ```ts
  * const decoders = await getDecoders();
  * if (decoders.video.has('h264')) {
  *   // h264 can be used for decoding
  * }
  * ```
+ * @public
  */
 export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-decoders']);
@@ -152,8 +167,9 @@ export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
  * Runs `ffmpeg -codecs` and returns its output as {@link Codecs}. This is generally not
  * very useful, if you need to check the compatibility for a certain encoder or decoder use
  * {@link getEncoders} or {@link getDecoders}.
- * @param ffmpegPath Path to the ffmpeg executable.
+ * @param ffmpegPath - Path to the ffmpeg executable.
  * @returns All codecs supported by ffmpeg.
+ * @public
  */
 export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-codecs']);
@@ -162,13 +178,15 @@ export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
 /**
  * Runs `ffmpeg -pix_fmts` and returns its output as a set. This can be used to
  * check for compatibility or show a list of available formats to the user.
- * @param ffmpegPath Path to the ffmpeg executable.
- * @example ```ts
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @example
+ * ```ts
  * const pixelFormats = await getPixelFormats();
  * if (pixelFormats.has('yuv420p')) {
  *   // yuv420p is supported
  * }
  * ```
+ * @public
  */
 export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-pix_fmts']);
@@ -178,6 +196,9 @@ export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set
   }
   return pixelFormats;
 }
+/**
+ * @public
+ */
 export interface Filters {
   video: Set<string>;
   audio: Set<string>;
@@ -185,7 +206,8 @@ export interface Filters {
 /**
  * Runs `ffmpeg -filters` and returns its output as {@link Filters}. This can be
  * used to check for compatibility or show a list of available filters to the user.
- * @param ffmpegPath Path to the ffmpeg executable.
+ * @param ffmpegPath - Path to the ffmpeg executable.
+ * @public
  */
 export async function getFilters(ffmpegPath = getFFmpegPath()): Promise<Filters> {
   const lines = await getLines(ffmpegPath, ['-filters']);
