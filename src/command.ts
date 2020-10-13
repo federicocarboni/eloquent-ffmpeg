@@ -66,7 +66,6 @@ export interface FFmpegCommand {
    * const process = await cmd.spawn();
    * await process.complete();
    * ```
-   * @public
    */
   input(source: InputSource): FFmpegInput;
   /**
@@ -84,13 +83,11 @@ export interface FFmpegCommand {
    * const process = await cmd.spawn();
    * await process.complete();
    * ```
-   * @public
    */
   output(...destinations: OutputDestination[]): FFmpegOutput;
   /**
    * Add arguments, they will be placed before any input or output arguments.
    * @param args -
-   * @public
    */
   args(...args: string[]): this;
   /**
@@ -103,12 +100,10 @@ export interface FFmpegCommand {
    * cmd.output('output.mp4');
    * const process = await cmd.spawn();
    * ```
-   * @public
    */
   spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
   /**
    * Returns all the arguments with which ffmpeg will be spawned.
-   * @public
    */
   getArgs(): string[];
 }
@@ -125,13 +120,11 @@ export interface FFmpegOptions {
   /**
    * Enabled piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
    * will silently fail. Defaults to `true`.
-   * @alpha
    */
   progress?: boolean;
   /**
    * Whether to overwrite the output destinations if they already exist. Required
    * to be `true` for streaming outputs. Defaults to `true`.
-   * @alpha
    */
   overwrite?: boolean;
 }
@@ -176,73 +169,62 @@ export interface FFmpegInput {
   /**
    * Add input arguments, they will be placed before any additional arguments.
    * @param args -
-   * @public
    */
   args(...args: string[]): this;
   /**
    * Select the input format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format -
-   * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Limit the duration of the data read from the input.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param duration - The limit for the duration in milliseconds.
-   * @alpha
    */
   duration(duration: number): this;
   /**
    * Seeks in the input file to `start`.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param start - The position to seek to in milliseconds.
-   * @alpha
    */
   start(start: number): this;
   /**
    * Adds `offset` to the input timestamps.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param offset - The offset in milliseconds. MAY be negative.
-   * @alpha
    */
   offset(offset: number): this;
   /**
    * Returns all the arguments for the input.
-   * @public
    */
   getArgs(): string[];
   /**
    * Whether the input is using streams.
-   * @public
    */
   readonly isStream: boolean;
 }
@@ -254,56 +236,48 @@ export interface FFmpegOutput {
   /**
    * Add output arguments, they will be placed before any additional arguments.
    * @param args -
-   * @public
    */
   args(...args: string[]): this;
   /**
    * Select the output format.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format -
-   * @alpha
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Select the codec for video streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
-   * @alpha
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Limit the duration of the data written to the output.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param duration - The limit for the duration in milliseconds.
-   * @alpha
    */
   duration(duration: number): this;
   /**
    * Decodes but discards the input until `start` is reached.
    * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param start - The number of milliseconds to discard.
-   * @alpha
    */
   start(start: number): this;
   /**
@@ -326,7 +300,6 @@ export interface FFmpegOutput {
    * // and its second stream will be input1's first stream.
    *   .map('0:1', '1:0');
    * ```
-   * @alpha
    */
   map(...streams: string[]): this;
   /**
@@ -335,17 +308,14 @@ export interface FFmpegOutput {
    * @param metadata - The metadata to add to the stream.
    * @param specifier - The stream to add metadata to, if not given `metadata`
    * will be added to the output file.
-   * @alpha
    */
   metadata(metadata: Record<string, string>, specifier?: string): this;
   /**
    * Returns all the arguments for the output.
-   * @public
    */
   getArgs(): string[];
   /**
    * Whether the output is using streams.
-   * @public
    */
   readonly isStream: boolean;
 }
@@ -356,17 +326,14 @@ export interface FFmpegOutput {
 export interface FFmpegProcess {
   /**
    * Returns the process identifier (PID) of the process.
-   * @public
    */
   readonly pid: number;
   /**
    * The command line arguments used to spawn the process.
-   * @public
    */
   readonly args: readonly string[];
   /**
    * Path of the running ffmpeg executable.
-   * @public
    */
   readonly ffmpegPath: string;
   /**
@@ -386,7 +353,6 @@ export interface FFmpegProcess {
    *   console.log('Speed:', progress.speed);
    * });
    * ```
-   * @public
    */
   progress(): AsyncGenerator<Progress, void, void>;
   /**
@@ -408,30 +374,32 @@ export interface FFmpegProcess {
    *   console.error('Conversion failed!', error);
    * }
    * ```
-   * @public
    */
   complete(): Promise<void>;
   /**
    * Returns the underlying NodeJS' ChildProcess instance.
-   * @public
    */
   unwrap(): ChildProcess;
   /**
    * Sends a signal to the running process.
    * See {@link https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal}
+   *
+   * @deprecated To pause and resume the process use {@link FFmpegProcess.pause}
+   * or {@link FFmpegProcess.resume}. If you really have to send a signal to the
+   * process use {@link FFmpegProcess.unwrap} to get NodeJS' ChildProcess instance
+   * and use its `kill()` method.
+   *
    * @param signal - The signal to send.
    */
   kill(signal?: NodeJS.Signals | number): boolean;
   /**
    * Pauses the conversion, returns `true` if the operation succeeds, `false` otherwise.
    * This does NOT currently work on Windows, support is planned.
-   * @alpha
    */
   pause(): boolean;
   /**
    * Resumes the conversion, returns `true` if the operation succeeds, `false` otherwise.
    * This does NOT currently work on Windows, support is planned.
-   * @alpha
    */
   resume(): boolean;
 }
