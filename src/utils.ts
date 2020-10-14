@@ -19,13 +19,17 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
   };
   stream.on('data', onData);
   return new Promise((resolve, reject) => {
+    const onError = (reason?: any): void => {
+      stream.off('data', onData);
+      reject(reason);
+    };
     stream.once('end', () => {
       const buffer = Buffer.concat(chunks);
-      stream.off('error', reject);
+      stream.off('error', onError);
       stream.off('data', onData);
       resolve(buffer);
     });
-    stream.once('error', reject);
+    stream.once('error', onError);
   });
 }
 
