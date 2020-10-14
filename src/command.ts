@@ -517,8 +517,10 @@ class Process implements FFmpegProcess {
       const abruptComplete = async (exitCode: number): Promise<void> => {
         if (!this.#stderr) {
           const stderr: string[] = this.#stderr = [];
-          for await (const line of readlines(process.stderr)) {
-            stderr.push(line);
+          if (process.stderr.readable) {
+            for await (const line of readlines(process.stderr)) {
+              stderr.push(line);
+            }
           }
         }
         const message = extractMessage(this.#stderr) ??
