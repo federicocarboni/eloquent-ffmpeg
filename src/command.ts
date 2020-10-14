@@ -4,7 +4,7 @@ import {
   spawn as spawnProcess
 } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { end, IGNORED_ERRORS, isNullish, isWin32, write } from './utils';
+import { end, IGNORED_ERRORS, isNullish, pause, resume, write } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer,
   SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
@@ -499,16 +499,16 @@ class Process implements FFmpegProcess {
     return write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
   }
   pause(): boolean {
-    if (isWin32) throw new TypeError('pause() cannot be used on Windows (yet)');
     const process = this.#process;
-    if (!isNullish(process.exitCode)) return false;
-    return process.kill('SIGSTOP');
+    if (!isNullish(process.exitCode))
+      return false;
+    return pause(process);
   }
   resume(): boolean {
-    if (isWin32) throw new TypeError('resume() cannot be used on Windows (yet)');
     const process = this.#process;
-    if (!isNullish(process.exitCode)) return false;
-    return process.kill('SIGCONT');
+    if (!isNullish(process.exitCode))
+      return false;
+    return resume(process);
   }
   complete(): Promise<void> {
     const process = this.#process;
