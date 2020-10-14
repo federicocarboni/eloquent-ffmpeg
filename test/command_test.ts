@@ -373,6 +373,19 @@ describe('command', function () {
         process.unwrap().kill('SIGKILL');
       });
     });
+    describe('abort()', function () {
+      it('should abort a running ffmpeg process', async function () {
+        // TODO: this is a very naive implementation for a test case
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-f', 'matroska');
+        const process = await cmd.spawn();
+        await process.abort();
+        await process.complete();
+        expect(process.unwrap().exitCode).to.equal(0);
+      });
+    });
     describe('complete()', function () {
       it('should resolve on completion', async function () {
         const cmd = ffmpeg();
