@@ -330,13 +330,13 @@ describe('command', function () {
       });
     });
     describe('pause()', function () {
-      if (isWin32) it('should fail on Windows', async function () {
+      if (isWin32) it('should work on Windows', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(() => process.pause()).to.throw();
+        expect(() => process.pause()).to.not.throw();
         process.unwrap().kill();
       });
       else it('should send signal SIGSTOP', async function () {
@@ -352,13 +352,13 @@ describe('command', function () {
       });
     });
     describe('resume()', function () {
-      if (isWin32) it('should fail on Windows', async function () {
+      if (isWin32) it('should work on Windows', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(() => process.resume()).to.throw();
+        expect(() => process.resume()).to.not.throw();
         process.unwrap().kill();
       });
       else it('should send signal SIGCONT', async function () {
