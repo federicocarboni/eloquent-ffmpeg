@@ -359,6 +359,12 @@ export interface FFmpegProcess {
    */
   complete(): Promise<void>;
   /**
+   * Aborts the conversion but allows FFmpeg to end the generated files correctly.
+   * This method doesn't wait for the process to exit, you will still have to
+   * `await` {@link FFmpegProcess.complete} and catch possible errors.
+   */
+  abort(): Promise<void>;
+  /**
    * Returns the underlying NodeJS' ChildProcess instance.
    */
   unwrap(): ChildProcess;
@@ -485,6 +491,12 @@ class Process implements FFmpegProcess {
   }
   kill(signal?: NodeJS.Signals | number): boolean {
     return this.#process.kill(signal);
+  }
+  abort() {
+    const stdin = this.#process.stdin;
+    if (!stdin.writable)
+      throw new TypeError('Unable to abort the process, stdin not writable');
+    return write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
   }
   pause(): boolean {
     if (isWin32) throw new TypeError('pause() cannot be used on Windows (yet)');
