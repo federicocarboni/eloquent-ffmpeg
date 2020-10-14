@@ -49,8 +49,3 @@ export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
     stream.once('error', reject);
   });
 }
-
-/** @internal */
-export function isArrayBuffer(o: unknown): o is ArrayBuffer {
-  return o instanceof ArrayBuffer;
-}
