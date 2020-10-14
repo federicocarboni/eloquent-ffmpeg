@@ -1,3 +1,5 @@
+import { ChildProcess } from 'child_process';
+
 /** @internal */
 export const isWin32 = process.platform === 'win32';
 
@@ -55,4 +57,35 @@ export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
     });
     stream.once('error', reject);
   });
+}
+
+/** @internal */
+export let pause: (p: ChildProcess) => boolean;
+/** @internal */
+export let resume: (p: ChildProcess) => boolean;
+
+if (isWin32) {
+  // on Windows it is not possible to use `SIGSTOP` and `SIGCONT` to pause and
+  // resume processes because they are not supported; we call the native
+  // functions `NtSuspendProcess()` and `NtResumeProcess()` from NTDLL through
+  // a native Node.js addon packaged and released to NPM as `ntsuspend`
+  // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
+  try {
+    // dynamically require ntsuspend, require() will be created with
+    // createRequire() in the es module build
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const ntsuspend: typeof import('ntsuspend') = require('ntsuspend');
+    pause = (p) => ntsuspend.suspend(p.pid);
+    resume = (p) => ntsuspend.resume(p.pid);
+  } catch (e) {
+    // if require() fails to load ntsuspend we throw an error if/when `pause()`
+    // or `resume()` are called
+    pause = resume = (): never => {
+      throw new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
+    };
+  }
+} else {
+  // on POSIX operating systems `SIGSTOP` and `SIGCONT` are available
+  pause = (p) => p.kill('SIGSTOP');
+  resume = (p) => p.kill('SIGCONT');
 }
