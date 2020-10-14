@@ -16,7 +16,9 @@ const banner = `/**
  * @author ${pkg.author.name}
  */`;
 
-const external = ['child_process', 'crypto', 'readline', 'stream', 'net', 'path', 'fs'];
+const external = [
+  'child_process', 'crypto', 'readline', 'module', 'stream', 'net', 'path', 'fs'
+];
 const plugins = [
   typescript({
     tsconfig: './tsconfig.es6.json'
