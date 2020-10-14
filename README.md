@@ -148,9 +148,6 @@ The conversion can be paused and resumed using `FFmpegProcess.pause()`
 and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true`
 upon success, `false` otherwise.
 
-These methods are currently **NOT** supported on Windows, support is planned.
-See [#1](https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1).
-
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
@@ -161,5 +158,23 @@ process.pause();
 // Resume...
 process.resume();
 
+await process.complete();
+```
+
+#### Abort
+The conversion can be terminated early using `FFmpegProcess.abort()`, this
+gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
+The method is asynchronous so you have to `await` it.
+
+**Note:** `abort()` resolves after the quit signal has been sent, not when the
+process exits, if you want to wait for the process to exit use
+`FFmpegProcess.complete()`.
+
+```ts
+const cmd = ffmpeg();
+cmd.input('input.mkv');
+cmd.output('output.mp4');
+const process = await cmd.spawn();
+await process.abort();
 await process.complete();
 ```
