@@ -1,6 +1,6 @@
 {
   "name": "eloquent-ffmpeg",
-  "version": "0.6.2-alpha.0",
+  "version": "0.7.0-alpha.0",
   "description": "A high level API for FFmpeg",
   "module": "lib/lib.mjs",
   "main": "lib/lib.cjs",
