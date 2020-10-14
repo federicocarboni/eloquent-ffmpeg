@@ -103,6 +103,7 @@ cmd.output('output.mkv')
 ```
 
 ### Controlling your conversion
+Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.ffmpegprocess.html).
 #### Monitor progress
 To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
 See [Progress interface](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_command_.progress.html).
