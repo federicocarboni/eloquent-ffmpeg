@@ -148,6 +148,9 @@ The conversion can be paused and resumed using `FFmpegProcess.pause()`
 and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true`
 upon success, `false` otherwise.
 
+**Note:** On Windows this requires the optional dependency
+[ntsuspend](https://www.npmjs.com/package/ntsuspend) to be installed.
+
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
@@ -181,7 +184,7 @@ await process.complete();
 
 ## Errors
 ### Error ntsuspend
-This error is likely caused by a corrupt or missing installation of [`ntsuspend`](https://www.npmjs.com/package/ntsuspend),
+This error is likely caused by a corrupt or missing installation of [ntsuspend](https://www.npmjs.com/package/ntsuspend),
 required to pause and resume the process on Windows. Try to uninstall and
 reinstall ntsuspend, and if you experience further issues open a new issue to
 get help.
