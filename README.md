@@ -178,3 +178,10 @@ const process = await cmd.spawn();
 await process.abort();
 await process.complete();
 ```
+
+## Errors
+### Error ntsuspend
+This error is likely caused by a corrupt or missing installation of [`ntsuspend`](https://www.npmjs.com/package/ntsuspend),
+required to pause and resume the process on Windows. Try to uninstall and
+reinstall ntsuspend, and if you experience further issues open a new issue to
+get help.
