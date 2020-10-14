@@ -41,6 +41,7 @@
   "optionalDependencies": {},
   "devDependencies": {
     "@microsoft/api-extractor": "^7.10.4",
+    "@rollup/plugin-inject": "^4.0.2",
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/chai": "^4.2.12",
