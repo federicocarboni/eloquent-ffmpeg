@@ -336,12 +336,9 @@ describe('command', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        process.unwrap().on('exit', console.log);
         expect(process.pause()).to.equal(true);
         expect(process.resume()).to.equal(true);
         process.unwrap().kill();
-        setTimeout(() => console.log(process.unwrap().exitCode), 5000);
-        console.log(process.unwrap().exitCode);
         await process.complete()
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           .catch(() => {});
@@ -466,13 +463,13 @@ describe('command', function () {
         }
         expect(process.unwrap().exitCode).to.equal(null);
         expect(caught).to.equal(true);
-        // caught = false;
-        // try {
-        //   await process.complete();
-        // } catch {
-        //   caught = true;
-        // }
-        // expect(caught).to.equal(true);
+        caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
       });
       it('should reject on errored process', async function () {
         const cmd = ffmpeg();
