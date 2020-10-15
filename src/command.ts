@@ -527,9 +527,9 @@ class Process implements FFmpegProcess {
           `FFmpeg exited with code ${exitCode}`;
         reject(new FFmpegError(message, this.#stderr));
       };
-      if (!isNullish(exitCode)) {
+      if (!isNullish(exitCode) || this.#stderr) {
         if (exitCode === 0) resolve();
-        else abruptComplete(exitCode);
+        else abruptComplete(exitCode!);
       } else {
         const onExit = (exitCode: number): void => {
           if (exitCode === 0) resolve();
