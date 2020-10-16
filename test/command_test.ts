@@ -21,11 +21,6 @@ describe('command', function () {
         const input1 = cmd.input(invalidBuffer);
         expect(input1.isStream).to.equal(true);
       });
-      it('should add an iterable as source', async function () {
-        const cmd = ffmpeg();
-        const input = cmd.input([await promises.readFile('test/samples/invalid')]);
-        expect(input.isStream).to.equal(true);
-      });
       it('should add an async iterable as source', function () {
         async function* asyncIterable() { yield await promises.readFile('test/samples/invalid'); }
         const cmd = ffmpeg();
@@ -46,15 +41,13 @@ describe('command', function () {
         expect(input.getArgs().pop()).to.equal('protocol:location');
       });
       it('should add an async generator as destination', function () {
-        async function* asyncGenerator() { yield; }
         const cmd = ffmpeg();
-        const input = cmd.output(asyncGenerator());
+        const input = cmd.output(new PassThrough());
         expect(input.isStream).to.equal(true);
       });
       it('should add multiple mixed destinations', function () {
-        async function* asyncGenerator() { yield; }
         const cmd = ffmpeg();
-        const input = cmd.output('protocol:location', asyncGenerator());
+        const input = cmd.output('protocol:location', new PassThrough());
         const lastArg = input.getArgs().pop();
         expect(input.isStream).to.equal(true);
         expect(lastArg).to.be.a('string');
@@ -216,55 +209,43 @@ describe('command', function () {
         }
       });
       it('should handle a single streaming output destination', async function () {
-        async function* handleOutput() {
-          while (true) {
-            expect(yield).to.be.an.instanceOf(Uint8Array);
-          }
-        }
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
-        cmd.output(handleOutput())
+        cmd.output(new PassThrough())
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         await process.complete();
       });
       it('should handle multiple streaming output destinations', async function () {
-        async function* handleOutput1() {
-          while (true) {
-            expect(yield).to.be.an.instanceOf(Uint8Array);
-          }
-        }
-        async function* handleOutput2() {
-          while (true) {
-            expect(yield).to.be.an.instanceOf(Uint8Array);
-          }
-        }
+        const streams = [new PassThrough(), new PassThrough(), new PassThrough()];
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
-        cmd.output(handleOutput1(), handleOutput2(), new PassThrough())
+        cmd.output(...streams)
           .args('-c', 'copy', '-f', 'matroska');
+        streams.forEach((stream) => {
+          stream.on('data', (chunk) => {
+            expect(chunk).to.be.an.instanceOf(Uint8Array);
+          });
+        });
         const process = await cmd.spawn();
         await process.complete();
       });
       it('should handle multiple streaming outputs', async function () {
-        async function* handleOutput1() {
-          while (true) {
-            expect(yield).to.be.an.instanceOf(Uint8Array);
-          }
-        }
-        async function* handleOutput2() {
-          while (true) {
-            expect(yield).to.be.an.instanceOf(Uint8Array);
-          }
-        }
+        const streams = [new PassThrough(), new PassThrough(), new PassThrough()];
+        const [stream1, stream2, stream3] = streams;
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
-        cmd.output(handleOutput1())
+        cmd.output(stream1)
           .args('-c', 'copy', '-f', 'matroska');
-        cmd.output(handleOutput2())
+        cmd.output(stream2)
           .args('-c', 'copy', '-f', 'matroska');
-        cmd.output(new PassThrough())
+        cmd.output(stream3)
           .args('-c', 'copy', '-f', 'matroska');
+        streams.forEach((stream) => {
+          stream.on('data', (chunk) => {
+            expect(chunk).to.be.an.instanceOf(Uint8Array);
+          });
+        });
         const process = await cmd.spawn();
         await process.complete();
       });
