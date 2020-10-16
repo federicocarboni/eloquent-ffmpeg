@@ -159,12 +159,18 @@ describe('command', function () {
           cmd.input('test/samples/video.mp4');
           cmd.output(createWriteStream('test/samples/output.mkv'), createWriteStream('test/samples/[strange]output.mkv'))
             .args('-c', 'copy', '-f', 'matroska');
+            cmd.output(createWriteStream('test/samples/output1.mkv'))
+              .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/output1.mkv')).isFile()).to.equal(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
+            unlinkSync('test/samples/output.mkv');
+            unlinkSync('test/samples/output1.mkv');
           } catch {
             //
           }
@@ -179,11 +185,9 @@ describe('command', function () {
           const process = await cmd.spawn();
           await process.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
-          expect((await promises.lstat('test/samples/output.mkv')).isFile()).to.equal(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
-            unlinkSync('test/samples/output.mkv');
           } catch {
             //
           }
@@ -501,7 +505,6 @@ describe('command', function () {
           expect(progress.time).to.not.be.NaN;
         }
         await process.complete();
-        expect(process.unwrap().exitCode).to.be.a('number');
       });
     });
   });
