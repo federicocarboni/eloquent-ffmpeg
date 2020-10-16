@@ -5,7 +5,7 @@ import {
   spawn as spawnProcess
 } from 'child_process';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { end, IGNORED_ERRORS, isNullish, pause, resume, write } from './utils';
+import { IGNORED_ERRORS, isNullish, pause, resume, write } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer,
   SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
@@ -15,8 +15,8 @@ import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
 import { extractMessage, FFmpegError } from './errors';
 import { getFFmpegPath } from './env';
-import { __asyncValues } from 'tslib';
-import { Server, Socket } from 'net';
+import { Server } from 'net';
+import { Readable } from 'stream';
 
 /** @alpha */
 export enum LogLevel {
@@ -551,8 +551,7 @@ class Process implements FFmpegProcess {
   }
 }
 
-const inputStreamMap = new WeakMap<Input, [string, AsyncIterableIterator<Uint8Array>]>();
-const inputChunksMap = new WeakMap<Input, Uint8Array>();
+const inputStreamMap = new WeakMap<Input, [string, NodeJS.ReadableStream]>();
 class Input implements FFmpegInput {
   #resource: string;
   #format: Format | Demuxer | undefined;
@@ -572,7 +571,9 @@ class Input implements FFmpegInput {
       this.isStream = false;
     } else {
       const path = getSocketPath();
-      inputStreamMap.set(this, [path, __asyncValues(source instanceof Uint8Array ? [source] : source)]);
+      inputStreamMap.set(this, [path, Readable.from(source instanceof Uint8Array ? [source] : source, {
+        objectMode: false
+      })]);
       this.#resource = getSocketResource(path);
       this.isStream = true;
     }
@@ -612,12 +613,9 @@ class Input implements FFmpegInput {
   probe(options: ProbeOptions = {}): Promise<ProbeResult> {
     if (!this.isStream)
       return probe(this.#resource, options);
-    if (inputChunksMap.has(this))
-      return probe(inputChunksMap.get(this)!, options);
 
     return (async () => {
       const u8 = await readAtLeast(inputStreamMap.get(this)![1], options.probeSize ?? 5 * 1024 * 1024);
-      inputChunksMap.set(this, new Uint8Array(u8.buffer.slice(0)));
       return await probe(u8, options);
     })();
   }
@@ -818,27 +816,17 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
   }
 }
 
-async function handleInputStreamSocket(socket: Socket, stream: AsyncIterableIterator<Uint8Array>, input: Input) {
-  try {
-    try {
-      if (inputChunksMap.has(input)) {
-        await write(socket, inputChunksMap.get(input)!);
-        inputChunksMap.delete(input);
-      }
-      for await (const chunk of stream) {
-        await write(socket, chunk);
-      }
-    } finally {
-      if (socket.writable) await end(socket);
-    }
-  } catch {
-    // Avoid unhandled rejections.
-    // TODO: add logging?
-  }
-}
-function handleInputStream(server: Server, stream: AsyncIterableIterator<Uint8Array>, input: Input) {
+function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
   server.once('connection', (socket) => {
-    handleInputStreamSocket(socket, stream, input);
+    const onError = (): void => {
+      if (socket.writable) socket.end();
+      stream.off('error', onError);
+      socket.off('error', onError);
+    };
+    stream.once('error', onError);
+    socket.once('error', onError);
+    stream.pipe(socket);
+
     // Do NOT accept further connections, close() will close the server after
     // all existing connections are ended.
     server.close();
@@ -852,8 +840,6 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
         socket.end();
     };
     socket.on('error', onError);
-
-    // TODO: refactor to use for await of?
 
     const onData = (data: Uint8Array): void => {
       streams.forEach((stream) => stream.write(data));
@@ -869,13 +855,16 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
 
     // Do NOT accept further connections, close() will close the server after
     // all existing connections are ended.
-    // TODO: add logging?
     server.close();
   });
 }
 
+function getSocketServer([path]: [string, any]) {
+  return createSocketServer(path);
+}
 async function handleOutputs(outputs: Output[]) {
-  const streams = outputs.filter((output) => output.isStream).map(getOutputStream);
+  const streams = outputs.filter((output) => output.isStream)
+    .map((output) => outputStreamMap.get(output)!);
   const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, streams], i) => {
     handleOutputStream(servers[i], streams);
@@ -883,33 +872,31 @@ async function handleOutputs(outputs: Output[]) {
   return servers;
 }
 async function handleInputs(inputs: Input[]) {
-  const inputsOnly = inputs.filter((input) => input.isStream);
-  const streams = inputsOnly.map(getInputStream);
+  const streams = inputs.filter((input) => input.isStream)
+    .map((input) => inputStreamMap.get(input)!);
   const servers = await Promise.all(streams.map(getSocketServer));
   streams.forEach(([, stream], i) => {
-    handleInputStream(servers[i], stream, inputsOnly[i]);
+    handleInputStream(servers[i], stream);
   });
   return servers;
 }
 
-function getSocketServer([path]: [string, any]) {
-  return createSocketServer(path);
-}
-function getOutputStream(output: Output) {
-  return outputStreamMap.get(output)!;
-}
-function getInputStream(input: Input) {
-  return inputStreamMap.get(input)!;
-}
-async function readAtLeast(stream: AsyncIterableIterator<Uint8Array>, length: number) {
-  const chunks: Uint8Array[] = [];
-  let byteLength = 0;
-  for (let r: IteratorResult<Uint8Array, void>; !(r = await stream.next()).done; ) {
-    const u8 = r.value;
-    byteLength += u8.byteLength;
-    chunks.push(u8);
-    if (byteLength >= length)
-      break;
-  }
-  return Buffer.concat(chunks);
+function readAtLeast(stream: NodeJS.ReadableStream, size: number) {
+  return new Promise<Uint8Array>((resolve, reject) => {
+    const onReadable = (): void => {
+      const chunk = stream.read(size) as Uint8Array;
+      if (chunk !== null) {
+        stream.resume();
+        stream.unshift(chunk);
+        resolve(chunk);
+        stream.off('readable', onReadable);
+        stream.off('error', reject);
+        stream.off('end', reject);
+      }
+    };
+    stream.on('readable', onReadable);
+    stream.once('end', reject);
+    stream.once('error', reject);
+    stream.pause();
+  });
 }
