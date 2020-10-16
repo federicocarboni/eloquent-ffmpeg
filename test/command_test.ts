@@ -365,8 +365,8 @@ describe('command', function () {
       });
     });
     describe('abort()', function () {
+      this.timeout(500);
       it('should abort a running ffmpeg process', async function () {
-        // TODO: this is a very naive implementation for a test case
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
