@@ -92,6 +92,7 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegprocess.html#abort" class="tsd-kind-icon">abort</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegprocess.html#complete" class="tsd-kind-icon">complete</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegprocess.html#kill" class="tsd-kind-icon">kill</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_command_.ffmpegprocess.html#pause" class="tsd-kind-icon">pause</a></li>
@@ -111,7 +112,7 @@
 					<div class="tsd-signature tsd-kind-icon">args<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">readonly </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L362">src/command.ts:362</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L312">src/command.ts:312</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -126,7 +127,7 @@
 					<div class="tsd-signature tsd-kind-icon">ffmpeg<wbr>Path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L367">src/command.ts:367</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L316">src/command.ts:316</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -141,7 +142,7 @@
 					<div class="tsd-signature tsd-kind-icon">pid<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L357">src/command.ts:357</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L308">src/command.ts:308</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -154,6 +155,30 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="abort" class="tsd-anchor"></a>
+					<h3>abort</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">abort<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L362">src/command.ts:362</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Aborts the conversion but allows FFmpeg to end the generated files correctly.
+										This method doesn&#39;t wait for the process to exit, you will still have to
+									<code>await</code> <a href="_command_.ffmpegprocess.html#complete">FFmpegProcess.complete</a> and catch possible errors.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
 					<a name="complete" class="tsd-anchor"></a>
 					<h3>complete</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -163,7 +188,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L409">src/command.ts:409</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L356">src/command.ts:356</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -201,7 +226,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L420">src/command.ts:420</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L378">src/command.ts:378</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -209,6 +234,14 @@
 									<p>Sends a signal to the running process.
 									See <a href="https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal" class="external">https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal</a></p>
 								</div>
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><p>To pause and resume the process use <a href="_command_.ffmpegprocess.html#pause">FFmpegProcess.pause</a>
+											or <a href="_command_.ffmpegprocess.html#resume">FFmpegProcess.resume</a>. If you really have to send a signal to the
+											process use <a href="_command_.ffmpegprocess.html#unwrap">FFmpegProcess.unwrap</a> to get NodeJS&#39; ChildProcess instance
+										and use its <code>kill()</code> method.</p>
+									</dd>
+								</dl>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -233,18 +266,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L426">src/command.ts:426</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L382">src/command.ts:382</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Pauses the conversion, returns <code>true</code> if the operation succeeds, <code>false</code> otherwise.
-									This does NOT currently work on Windows, support is planned.</p>
+									<p>Pauses the conversion, returns <code>true</code> if the operation succeeds, <code>false</code> otherwise.</p>
 								</div>
-								<dl class="tsd-comment-tags">
-									<dt>alpha</dt>
-									<dd></dd>
-								</dl>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
@@ -260,7 +288,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L387">src/command.ts:387</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L335">src/command.ts:335</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -296,18 +324,13 @@ progressStream.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L432">src/command.ts:432</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L386">src/command.ts:386</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Resumes the conversion, returns <code>true</code> if the operation succeeds, <code>false</code> otherwise.
-									This does NOT currently work on Windows, support is planned.</p>
+									<p>Resumes the conversion, returns <code>true</code> if the operation succeeds, <code>false</code> otherwise.</p>
 								</div>
-								<dl class="tsd-comment-tags">
-									<dt>alpha</dt>
-									<dd></dd>
-								</dl>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
@@ -323,7 +346,7 @@ progressStream.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/bf9d320/src/command.ts#L414">src/command.ts:414</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/97833a7/src/command.ts#L366">src/command.ts:366</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -368,7 +391,13 @@ progressStream.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class
 						<a href="../modules/_probe_.html">&quot;probe&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/_require_.html">&quot;require&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/_sock_.html">&quot;sock&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/_utils_.html">&quot;utils&quot;</a>
 					</li>
 				</ul>
 			</nav>
@@ -402,6 +431,9 @@ progressStream.on(<span class="hljs-string">&#x27;data&#x27;</span>, <span class
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
 								<a href="_command_.ffmpegprocess.html#pid" class="tsd-kind-icon">pid</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_command_.ffmpegprocess.html#abort" class="tsd-kind-icon">abort</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_command_.ffmpegprocess.html#complete" class="tsd-kind-icon">complete</a>
