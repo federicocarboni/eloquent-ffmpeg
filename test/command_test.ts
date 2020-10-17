@@ -365,7 +365,7 @@ describe('command', function () {
       });
     });
     describe('abort()', function () {
-      this.timeout(500);
+      this.timeout(1000);
       it('should abort a running ffmpeg process', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
