@@ -10,6 +10,7 @@
 README.md
 
 rollup.config.js
+api-extractor.json
 tsconfig.es6.json
 tsconfig.json
 typedoc.json
