@@ -379,12 +379,10 @@ export interface FFmpegProcess {
   kill(signal?: NodeJS.Signals | number): boolean;
   /**
    * Pauses the conversion, returns `true` if the operation succeeds, `false` otherwise.
-   * This does NOT currently work on Windows, support is planned.
    */
   pause(): boolean;
   /**
    * Resumes the conversion, returns `true` if the operation succeeds, `false` otherwise.
-   * This does NOT currently work on Windows, support is planned.
    */
   resume(): boolean;
 }
