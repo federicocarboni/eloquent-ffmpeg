@@ -1,4 +1,3 @@
-/// <reference lib="dom"/>
 import {
   ChildProcess,
   ChildProcessWithoutNullStreams,
