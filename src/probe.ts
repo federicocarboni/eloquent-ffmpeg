@@ -9,9 +9,8 @@ import { Demuxer } from './_types';
 import { PassThrough } from 'stream';
 
 /* eslint-disable camelcase */
-/**
- * @alpha
- */
+
+/** @alpha */
 export interface RawProbeResult {
   format: RawProbeFormat;
   streams: RawProbeStream[];
@@ -19,18 +18,14 @@ export interface RawProbeResult {
   error?: RawProbeError;
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface RawProbeError {
   code: number;
   string: string;
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2807
-/**
- * @alpha
- */
+/** @alpha */
 export interface RawProbeFormat {
   [key: string]: any;
 
@@ -53,9 +48,7 @@ export interface RawProbeFormat {
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2485
-/**
- * @alpha
- */
+/** @alpha */
 export type RawProbeStream = {
   [key: string]: any;
 
@@ -197,9 +190,7 @@ export type RawProbeStream = {
   tags?: Record<string, string>;
 };
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface RawProbeDisposition {
   default: number;
   dub: number;
@@ -216,9 +207,7 @@ export interface RawProbeDisposition {
 }
 
 // https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2782
-/**
- * @alpha
- */
+/** @alpha */
 export interface RawProbeChapter {
   id: number;
   time_base: string;
@@ -229,13 +218,11 @@ export interface RawProbeChapter {
   tags?: Record<string, string>;
 }
 
-/* eslint-enable */
+/* eslint-enable camelcase */
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface ProbeResult {
-  format?: Demuxer;
+  format?: Demuxer | (string & {});
   formatName?: string;
 
   start: number;
@@ -249,9 +236,7 @@ export interface ProbeResult {
   unwrap(): RawProbeResult;
 }
 
-/**
- * @alpha
- */
+/** @alpha */
 export interface ProbeOptions {
   /**
    * Specify the number of bytes to probe, defaults to `5 * 1024 * 1024`, `5MiB`.
@@ -341,7 +326,7 @@ class Result implements ProbeResult {
   constructor(raw: RawProbeResult) {
     this.#raw = raw;
     if (raw.format.format_name)
-      this.format = raw.format.format_name as Demuxer;
+      this.format = raw.format.format_name;
     if (raw.format.format_long_name)
       this.formatName = raw.format.format_long_name;
     this.start = +raw.format.start_time * 1000 | 0;
@@ -351,13 +336,13 @@ class Result implements ProbeResult {
       this.tags = tags(raw.format.tags);
   }
 
-  format?: Demuxer | undefined;
-  formatName?: string | undefined;
+  format?: Demuxer | (string & {});
+  formatName?: string;
   start: number;
   duration: number;
-  bitrate?: number | undefined;
+  bitrate?: number;
   score: number;
-  tags?: Map<string, string> | undefined;
+  tags?: Map<string, string>;
 
   unwrap(): RawProbeResult {
     return this.#raw;
