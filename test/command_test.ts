@@ -72,9 +72,9 @@ describe('command', function () {
         const input = cmd.input(await promises.readFile('test/samples/video.mkv'));
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const result = await input.probe({ probeSize: 1024 * 1024 });
+        const result = await input.probe();
         expect(result.unwrap()).to.be.an('object');
-        const result1 = await input.probe();
+        const result1 = await input.probe({ probeSize: 1024 * 1024 });
         expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
