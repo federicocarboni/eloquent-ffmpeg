@@ -1,15 +1,14 @@
 {
-  "mode": "modules",
+  "mode": "library",
   "name": "Eloquent FFmpeg",
   "out": "./docs",
   "readme": "README.md",
   "exclude": [],
-  "inputFiles": [
-    "src"
-  ],
+  "entryPoint": "\"src/lib\"",
   "excludeExternals": true,
   "excludeNotExported": true,
   "excludePrivate": true,
   "hideGenerator": true,
+  "includeVersion": true,
   "includeDeclarations": true
 }
