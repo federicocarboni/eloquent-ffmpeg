@@ -548,7 +548,8 @@ class Process implements FFmpegProcess {
   }
 }
 
-const inputStreamMap = new WeakMap<Input, [string, NodeJS.ReadableStream]>();
+const inputResourceMap = new WeakMap<Input, string>();
+const inputStreamMap = new WeakMap<Input, NodeJS.ReadableStream>();
 class Input implements FFmpegInput {
   #resource: string;
   #format: Format | Demuxer | undefined;
@@ -568,9 +569,11 @@ class Input implements FFmpegInput {
       this.isStream = false;
     } else {
       const path = getSocketPath();
-      inputStreamMap.set(this, [path, Readable.from(source instanceof Uint8Array ? [source] : source, {
+      const stream = Readable.from(source instanceof Uint8Array ? [source] : source, {
         objectMode: false
-      })]);
+      });
+      inputResourceMap.set(this, path);
+      inputStreamMap.set(this, stream);
       this.#resource = getSocketResource(path);
       this.isStream = true;
     }
@@ -607,14 +610,35 @@ class Input implements FFmpegInput {
     this.#subtitleCodec = codec;
     return this;
   }
-  probe(options: ProbeOptions = {}): Promise<ProbeResult> {
-    if (!this.isStream)
-      return probe(this.#resource, options);
+  async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
+    const readChunk = (): Promise<Uint8Array> => {
+      const stream = inputStreamMap.get(this)!;
+      const size = options.probeSize ?? 5000000;
+      return new Promise<Uint8Array>((resolve, reject) => {
+        const unlisten = (): void => {
+          stream.off('readable', onReadable);
+          stream.off('error', onError);
+        };
+        const onError = (error: Error): void => {
+          unlisten();
+          reject(error);
+        };
+        const onReadable = (): void => {
+          const chunk = stream.read(size) as Uint8Array;
+          if (chunk !== null) {
+            unlisten();
+            stream.unshift(chunk);
+            resolve(chunk);
+          }
+        };
+        stream.on('readable', onReadable);
+        stream.on('error', onError);
+        stream.pause();
+      });
+    };
 
-    return (async () => {
-      const u8 = await readAtLeast(inputStreamMap.get(this)![1], options.probeSize ?? 5 * 1024 * 1024);
-      return await probe(u8, options);
-    })();
+    const source = this.isStream ? await readChunk() : this.#resource;
+    return await probe(source, options);
   }
   getArgs(): string[] {
     const duration = this.#duration;
@@ -644,7 +668,8 @@ class Input implements FFmpegInput {
   }
 }
 
-const outputStreamMap = new WeakMap<Output, [string, NodeJS.WritableStream[]]>();
+const outputPathMap = new WeakMap<Output, string>();
+const outputStreamMap = new WeakMap<Output, NodeJS.WritableStream[]>();
 class Output implements FFmpegOutput {
   #resource: string;
   #format: Format | Muxer | undefined;
@@ -662,7 +687,8 @@ class Output implements FFmpegOutput {
   constructor(destinations: OutputDestination[]) {
     if (destinations.length === 0) {
       const path = getSocketPath();
-      outputStreamMap.set(this, [path, []]);
+      outputPathMap.set(this, path);
+      outputStreamMap.set(this, []);
       this.#resource = getSocketResource(path);
       this.isStream = true;
     } else if (destinations.length === 1) {
@@ -672,7 +698,8 @@ class Output implements FFmpegOutput {
         this.isStream = false;
       } else {
         const path = getSocketPath();
-        outputStreamMap.set(this, [path, [dest]]);
+        outputPathMap.set(this, path);
+        outputStreamMap.set(this, [dest]);
         this.#resource = getSocketResource(path);
         this.isStream = true;
       }
@@ -686,7 +713,8 @@ class Output implements FFmpegOutput {
           resources.push(dest.replace(/[[|\]]/g, (char) => `\\${char}`));
         } else {
           if (!this.isStream) {
-            outputStreamMap.set(this, [path, streams]);
+            outputPathMap.set(this, path);
+            outputStreamMap.set(this, streams);
             resources.push(getSocketResource(path));
             this.isStream = true;
           }
@@ -856,44 +884,23 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
   });
 }
 
-function getSocketServer([path]: [string, any]) {
-  return createSocketServer(path);
-}
 async function handleOutputs(outputs: Output[]) {
-  const streams = outputs.filter((output) => output.isStream)
-    .map((output) => outputStreamMap.get(output)!);
-  const servers = await Promise.all(streams.map(getSocketServer));
-  streams.forEach(([, streams], i) => {
-    handleOutputStream(servers[i], streams);
-  });
+  const outputStreams = outputs.filter((output) => output.isStream);
+  const streams = outputStreams.map((output) => outputStreamMap.get(output)!);
+  const servers = await Promise.all(outputStreams.map((output) => {
+    const path = outputPathMap.get(output)!;
+    return createSocketServer(path);
+  }));
+  streams.forEach((streams, i) => handleOutputStream(servers[i], streams));
   return servers;
 }
 async function handleInputs(inputs: Input[]) {
-  const streams = inputs.filter((input) => input.isStream)
-    .map((input) => inputStreamMap.get(input)!);
-  const servers = await Promise.all(streams.map(getSocketServer));
-  streams.forEach(([, stream], i) => {
-    handleInputStream(servers[i], stream);
-  });
+  const inputStreams = inputs.filter((input) => input.isStream);
+  const streams = inputStreams.map((input) => inputStreamMap.get(input)!);
+  const servers = await Promise.all(inputStreams.map((input) => {
+    const path = inputResourceMap.get(input)!;
+    return createSocketServer(path);
+  }));
+  streams.forEach((stream, i) => handleInputStream(servers[i], stream));
   return servers;
-}
-
-function readAtLeast(stream: NodeJS.ReadableStream, size: number) {
-  return new Promise<Uint8Array>((resolve, reject) => {
-    const onReadable = (): void => {
-      const chunk = stream.read(size) as Uint8Array;
-      if (chunk !== null) {
-        stream.resume();
-        stream.unshift(chunk);
-        resolve(chunk);
-        stream.off('readable', onReadable);
-        stream.off('error', reject);
-        stream.off('end', reject);
-      }
-    };
-    stream.on('readable', onReadable);
-    stream.once('end', reject);
-    stream.once('error', reject);
-    stream.pause();
-  });
 }
