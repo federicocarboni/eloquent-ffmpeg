@@ -1,12 +1,11 @@
-import { end, IGNORED_ERRORS, isNullish, read, write } from './utils';
+import { IGNORED_ERRORS, isNullish, read } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
 import { getFFprobePath } from './env';
-import { __asyncValues } from 'tslib';
 import { spawn } from 'child_process';
 import { Demuxer } from './_types';
-import { PassThrough } from 'stream';
+import { Readable } from 'stream';
 
 /* eslint-disable camelcase */
 
@@ -220,7 +219,12 @@ export interface RawProbeChapter {
 
 /* eslint-enable camelcase */
 
-/** @alpha */
+/**
+ * **UNSTABLE**: `ProbeResult` is intended to have a simple API but it is still very unfinished, for
+ * the time being using `.unwrap()` is necessary to retrieve any useful information from `probe()`.
+ *
+ * @alpha
+ */
 export interface ProbeResult {
   format?: Demuxer | (string & {});
   formatName?: string;
@@ -239,21 +243,21 @@ export interface ProbeResult {
 /** @alpha */
 export interface ProbeOptions {
   /**
-   * Specify the number of bytes to probe, defaults to `5 * 1024 * 1024`, `5MiB`.
-   * @alpha
+   * Specify the number of bytes to probe, if not given it will not be specified in the command-line
+   * arguments.
    */
   probeSize?: number;
   /**
    * Specify the number of milliseconds to analyze, defaults to `5000`.
-   * @alpha
    */
   analyzeDuration?: number;
   /**
    * Path to the `ffprobe` executable.
-   * @alpha
    */
   ffprobePath?: string;
   /**
+   * **UNSTABLE**: Support for logging is under consideration.
+   *
    * Set the log level used by ffprobe.
    * @alpha
    */
@@ -266,6 +270,8 @@ export interface ProbeOptions {
 }
 
 /**
+ * **UNSTABLE**: Breaking changes are under consideration.
+ *
  * Probes the given `source` using ffprobe.
  * @param source - The source to probe. Accepts the same types as `FFmpegCommand.input()`.
  * @param options - Customize ffprobe options.
@@ -297,7 +303,6 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
-  const stdoutStream = stdout.pipe(new PassThrough());
   const error = async (error: RawProbeError): Promise<FFprobeError> => {
     const logs: string[] = [];
     if (stderr.readable) for await (const line of readlines(stderr)) {
@@ -309,8 +314,8 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     if (source instanceof Uint8Array)
       await writeStdin(stdin, source);
     else if (typeof source !== 'string')
-      await pipeStdin(stdin, __asyncValues(source));
-    const output = await read(stdoutStream);
+      await pipeStdin(stdin, 'readable' in source ? source : Readable.from(source, { objectMode: false }));
+    const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
       throw await error(raw.error);
@@ -369,23 +374,34 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   });
 }
 
-async function pipeStdin(stdin: NodeJS.WritableStream, stream: AsyncIterableIterator<Uint8Array>) {
-  let error: Error | undefined;
-  const onError = (err: Error & { code: string }): void => {
-    if (!IGNORED_ERRORS.has(err.code))
-      error = err;
-  };
-  stdin.on('error', onError);
-  try {
-    for await (const chunk of stream) {
-      await write(stdin, chunk);
-    }
-  } finally {
-    stdin.off('error', onError);
-
-    if (stdin.writable) await end(stdin);
-    if (error) throw error;
-  }
+async function pipeStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
+  return new Promise((resolve, reject) => {
+    const onError = (error: Error & { code: string }): void => {
+      if (!IGNORED_ERRORS.has(error.code)) {
+        stream.off('error', onStreamError);
+        stdin.off('error', onError);
+        stdin.off('close', onClose);
+        reject(error);
+      }
+    };
+    const onStreamError = (error: Error): void => {
+      stream.off('error', onStreamError);
+      stdin.off('error', onError);
+      stdin.off('close', onClose);
+      if (stdin.writable) stdin.end();
+      reject(error);
+    };
+    const onClose = (): void => {
+      stream.off('error', onStreamError);
+      stdin.off('error', onError);
+      stdin.off('close', onClose);
+      resolve();
+    };
+    stream.on('error', onStreamError);
+    stdin.on('close', onClose);
+    stdin.on('error', onError);
+    stream.pipe(stdin);
+  });
 }
 
 function tags(o: any): Map<string, string> {
