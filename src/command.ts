@@ -167,49 +167,49 @@ export interface FFmpegInput {
   args(...args: string[]): this;
   /**
    * Select the input format.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format -
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Select the codec for video streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
   /**
    * Limit the duration of the data read from the input.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param duration - The limit for the duration in milliseconds.
    */
   duration(duration: number): this;
   /**
    * Seeks in the input file to `start`.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param start - The position to seek to in milliseconds.
    */
   start(start: number): this;
   /**
    * Adds `offset` to the input timestamps.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param offset - The offset in milliseconds. MAY be negative.
    */
   offset(offset: number): this;
@@ -232,51 +232,51 @@ export interface FFmpegOutput {
   args(...args: string[]): this;
   /**
    * Select the output format.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format -
    */
   format(format: Format | Demuxer | (string & {})): this;
   /**
    * Select the codec for all streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Select the codec for video streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
   /**
    * Select the codec for audio streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
   /**
    * Select the codec for subtitle streams.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param codec -
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
   /**
    * Limit the duration of the data written to the output.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param duration - The limit for the duration in milliseconds.
    */
   duration(duration: number): this;
   /**
    * Decodes but discards the input until `start` is reached.
-   * See {@link http://ffmpeg.org/ffmpeg-all.html#Main-options}
+   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param start - The number of milliseconds to discard.
    */
   start(start: number): this;
   /**
    * Maps inputs' streams to output streams. This is an advanced option.
-   * {@link http://ffmpeg.org/ffmpeg-all.html#Advanced-options}
-   * {@link http://ffmpeg.org/ffmpeg-all.html#Stream-specifiers-1}
-   * {@link http://ffmpeg.org/ffmpeg-all.html#Automatic-stream-selection}
+   * {@link https://ffmpeg.org/ffmpeg-all.html#Advanced-options}
+   * {@link https://ffmpeg.org/ffmpeg-all.html#Stream-specifiers-1}
+   * {@link https://ffmpeg.org/ffmpeg-all.html#Automatic-stream-selection}
    * @param stream - The stream specifier.
    * @example
    * ```ts
@@ -296,7 +296,7 @@ export interface FFmpegOutput {
   map(...streams: string[]): this;
   /**
    * Add metadata to a stream or an output.
-   * {@link http://ffmpeg.org/ffmpeg.html#Main-options}
+   * {@link https://ffmpeg.org/ffmpeg.html#Main-options}
    * @param metadata - The metadata to add to the stream.
    * @param specifier - The stream to add metadata to, if not given `metadata`
    * will be added to the output file.
