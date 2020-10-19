@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>FFmpegProcess | Eloquent FFmpeg - v0.7.1-alpha.0</title>
+	<title>FFmpegProcess | Eloquent FFmpeg - v0.9.0-alpha.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">Eloquent FFmpeg - v0.7.1-alpha.0</a>
+					<a href="../index.html" class="title">Eloquent FFmpeg - v0.9.0-alpha.0</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -109,7 +109,7 @@
 					<div class="tsd-signature tsd-kind-icon">args<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L312">src/command.ts:312</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L324">src/command.ts:324</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -124,7 +124,7 @@
 					<div class="tsd-signature tsd-kind-icon">ffmpeg<wbr>Path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L316">src/command.ts:316</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L328">src/command.ts:328</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -139,7 +139,7 @@
 					<div class="tsd-signature tsd-kind-icon">pid<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L308">src/command.ts:308</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L320">src/command.ts:320</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -161,7 +161,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L362">src/command.ts:362</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L374">src/command.ts:374</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -185,7 +185,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L356">src/command.ts:356</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L368">src/command.ts:368</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -223,20 +223,20 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L378">src/command.ts:378</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L391">src/command.ts:391</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Sends a signal to the running process.
-									See <a href="https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal" class="external">https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal</a></p>
+									<p><strong>UNSTABLE</strong>: Deprecated, not for use in new projects.</p>
 								</div>
+								<p>Sends a signal to the running process.
+								See <a href="https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal" class="external">https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal</a></p>
 								<dl class="tsd-comment-tags">
 									<dt>deprecated</dt>
-									<dd><p>To pause and resume the process use <a href="_src_lib_.ffmpegprocess.html#pause">FFmpegProcess.pause</a>
-											or <a href="_src_lib_.ffmpegprocess.html#resume">FFmpegProcess.resume</a>. If you really have to send a signal to the
-											process use <a href="_src_lib_.ffmpegprocess.html#unwrap">FFmpegProcess.unwrap</a> to get NodeJS&#39; ChildProcess instance
-										and use its <code>kill()</code> method.</p>
+									<dd><p>To terminate the conversion use <a href="_src_lib_.ffmpegprocess.html#abort">FFmpegProcess.abort</a>, to pause and resume
+											the process use <a href="_src_lib_.ffmpegprocess.html#pause">FFmpegProcess.pause</a> or <a href="_src_lib_.ffmpegprocess.html#resume">FFmpegProcess.resume</a>. If you really
+										have to send a signal to the process use <code>process.unwrap().kill(signal)</code>.</p>
 									</dd>
 								</dl>
 							</div>
@@ -263,7 +263,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L382">src/command.ts:382</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L395">src/command.ts:395</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -285,7 +285,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L335">src/command.ts:335</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L347">src/command.ts:347</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -321,7 +321,7 @@ progressStream.on(<span class="hljs-string">'data'</span>, <span class="hljs-fun
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L386">src/command.ts:386</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L399">src/command.ts:399</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -343,7 +343,7 @@ progressStream.on(<span class="hljs-string">'data'</span>, <span class="hljs-fun
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2046335/src/command.ts#L366">src/command.ts:366</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/cd61893/src/command.ts#L378">src/command.ts:378</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
