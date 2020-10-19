@@ -170,9 +170,8 @@ The conversion can be terminated early using `FFmpegProcess.abort()`, this
 gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
 The method is asynchronous so you have to `await` it.
 
-**Note:** `abort()` resolves after the quit signal has been sent, not when the
-process exits, if you want to wait for the process to exit use
-`FFmpegProcess.complete()`.
+**Note:** `abort()` resolves when FFmpeg exits, but it doesn't guarantee that it
+will exit successfully, you should handle any possible errors.
 
 ```ts
 const cmd = ffmpeg();
@@ -180,7 +179,6 @@ cmd.input('input.mkv');
 cmd.output('output.mp4');
 const process = await cmd.spawn();
 await process.abort();
-await process.complete();
 ```
 
 ## Errors
