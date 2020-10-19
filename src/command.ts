@@ -17,7 +17,12 @@ import { getFFmpegPath } from './env';
 import { Server } from 'net';
 import { Readable } from 'stream';
 
-/** @alpha */
+/**
+ * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
+ * its usage.
+ *
+ * @alpha
+ */
 export enum LogLevel {
   Quiet = 'quiet',
   Panic = 'panic',
@@ -38,6 +43,8 @@ export type OutputDestination = string | NodeJS.WritableStream;
 /** @public */
 export interface FFmpegCommand {
   /**
+   * **UNSTABLE**: Under consideration for removal.
+   *
    * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
    * @alpha
    */
@@ -99,6 +106,8 @@ export interface FFmpegCommand {
 /** @public */
 export interface FFmpegOptions {
   /**
+   * **UNSTABLE**: Support for logging is under consideration.
+   *
    * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
    * @alpha
    */
@@ -130,6 +139,9 @@ export interface Progress {
 /** @public */
 export interface FFmpegInput {
   /**
+   * **UNSTABLE**: Breaking changes are being considered, implementation details can change without
+   * notice.
+   *
    * Get information about the input, this is especially helpful when working
    * with streams. If the source is a stream `options.probeSize` number of bytes
    * will be read and passed to ffprobe; those bytes will be kept in memory
@@ -365,13 +377,14 @@ export interface FFmpegProcess {
    */
   unwrap(): ChildProcess;
   /**
+   * **UNSTABLE**: Deprecated, not for use in new projects.
+   *
    * Sends a signal to the running process.
    * See {@link https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal}
    *
-   * @deprecated To pause and resume the process use {@link FFmpegProcess.pause}
-   * or {@link FFmpegProcess.resume}. If you really have to send a signal to the
-   * process use {@link FFmpegProcess.unwrap} to get NodeJS' ChildProcess instance
-   * and use its `kill()` method.
+   * @deprecated To terminate the conversion use {@link FFmpegProcess.abort}, to pause and resume
+   * the process use {@link FFmpegProcess.pause} or {@link FFmpegProcess.resume}. If you really
+   * have to send a signal to the process use `process.unwrap().kill(signal)`.
    *
    * @param signal - The signal to send.
    */
@@ -548,7 +561,7 @@ class Process implements FFmpegProcess {
   }
 }
 
-const inputResourceMap = new WeakMap<Input, string>();
+const inputPathMap = new WeakMap<Input, string>();
 const inputStreamMap = new WeakMap<Input, NodeJS.ReadableStream>();
 class Input implements FFmpegInput {
   #resource: string;
@@ -569,10 +582,10 @@ class Input implements FFmpegInput {
       this.isStream = false;
     } else {
       const path = getSocketPath();
-      const stream = Readable.from(source instanceof Uint8Array ? [source] : source, {
+      const stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
         objectMode: false
       });
-      inputResourceMap.set(this, path);
+      inputPathMap.set(this, path);
       inputStreamMap.set(this, stream);
       this.#resource = getSocketResource(path);
       this.isStream = true;
@@ -843,6 +856,7 @@ async function* createProgressGenerator(stream: NodeJS.ReadableStream) {
 
 function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
   server.once('connection', (socket) => {
+    // TODO: improve error handling
     const onError = (): void => {
       if (socket.writable) socket.end();
       stream.off('error', onError);
@@ -898,7 +912,7 @@ async function handleInputs(inputs: Input[]) {
   const inputStreams = inputs.filter((input) => input.isStream);
   const streams = inputStreams.map((input) => inputStreamMap.get(input)!);
   const servers = await Promise.all(inputStreams.map((input) => {
-    const path = inputResourceMap.get(input)!;
+    const path = inputPathMap.get(input)!;
     return createSocketServer(path);
   }));
   streams.forEach((stream, i) => handleInputStream(servers[i], stream));
