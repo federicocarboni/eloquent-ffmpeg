@@ -6,7 +6,8 @@ import {
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { IGNORED_ERRORS, isNullish, pause, resume, write } from './utils';
 import {
-  AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format, Muxer,
+  AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format,
+  Muxer,
   SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
   VideoDecoder, VideoEncoder
 } from './_types';
@@ -235,7 +236,7 @@ export interface FFmpegOutput {
    * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
    * @param format -
    */
-  format(format: Format | Demuxer | (string & {})): this;
+  format(format: Format | Muxer | (string & {})): this;
   /**
    * Select the codec for all streams.
    * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
@@ -565,14 +566,6 @@ const inputPathMap = new WeakMap<Input, string>();
 const inputStreamMap = new WeakMap<Input, NodeJS.ReadableStream>();
 class Input implements FFmpegInput {
   #resource: string;
-  #format: Format | Demuxer | undefined;
-  #codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | undefined;
-  #videoCodec: VideoCodec | VideoDecoder | undefined;
-  #audioCodec: AudioCodec | AudioDecoder | undefined;
-  #subtitleCodec: SubtitleCodec | SubtitleDecoder | undefined;
-  #duration: number | undefined;
-  #start: number | undefined;
-  #offset: number | undefined;
   #args: string[] = [];
 
   isStream: boolean;
@@ -592,35 +585,35 @@ class Input implements FFmpegInput {
     }
   }
   offset(offset: number): this {
-    this.#offset = offset;
+    this.#args.push('-itsoffset', `${offset}ms`);
     return this;
   }
   duration(duration: number): this {
-    this.#duration = duration;
+    this.#args.push('-t', `${duration}ms`);
     return this;
   }
   start(start: number): this {
-    this.#start = start;
+    this.#args.push('-ss', `${start}ms`);
     return this;
   }
   format(format: Format | Demuxer): this {
-    this.#format = format;
+    this.#args.push('-f', format);
     return this;
   }
-  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder): this {
-    this.#codec = codec;
+  codec(codec: string): this {
+    this.#args.push('-c', codec);
     return this;
   }
-  videoCodec(codec: VideoCodec | VideoDecoder): this {
-    this.#videoCodec = codec;
+  videoCodec(codec: string): this {
+    this.#args.push('-c:V', codec);
     return this;
   }
-  audioCodec(codec: AudioCodec | AudioDecoder): this {
-    this.#audioCodec = codec;
+  audioCodec(codec: string): this {
+    this.#args.push('-c:a', codec);
     return this;
   }
-  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder): this {
-    this.#subtitleCodec = codec;
+  subtitleCodec(codec: string): this {
+    this.#args.push('-c:s', codec);
     return this;
   }
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
@@ -654,24 +647,8 @@ class Input implements FFmpegInput {
     return await probe(source, options);
   }
   getArgs(): string[] {
-    const duration = this.#duration;
-    const start = this.#start;
-    const offset = this.#offset;
-    const format = this.#format;
-    const codec = this.#codec;
-    const videoCodec = this.#videoCodec;
-    const audioCodec = this.#audioCodec;
-    const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
-      ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
-      ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
-      ...(offset !== void 0 ? ['-itsoffset', `${offset}ms`] : []),
-      ...(codec !== void 0 ? ['-c', codec] : []),
-      ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
-      ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
-      ...(subtitleCodec !== void 0 ? ['-c:s', subtitleCodec] : []),
-      ...(format !== void 0 ? ['-f', format] : []),
       '-i', this.#resource,
     ];
   }
@@ -685,15 +662,6 @@ const outputPathMap = new WeakMap<Output, string>();
 const outputStreamMap = new WeakMap<Output, NodeJS.WritableStream[]>();
 class Output implements FFmpegOutput {
   #resource: string;
-  #format: Format | Muxer | undefined;
-  #codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | undefined;
-  #videoCodec: VideoCodec | VideoEncoder | undefined;
-  #audioCodec: AudioCodec | AudioEncoder | undefined;
-  #subtitleCodec: SubtitleCodec | SubtitleEncoder | undefined;
-  #metadata: [Record<string, string>, string?] | undefined;
-  #duration: number | undefined;
-  #start: number | undefined;
-  #streams: string[] | undefined;
   #args: string[] = [];
   isStream: boolean;
 
@@ -738,39 +706,43 @@ class Output implements FFmpegOutput {
     }
   }
   metadata(metadata: Record<string, string>, specifier?: string): this {
-    this.#metadata = [metadata, specifier];
+    this.#args.push(...([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
+      return [`-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`];
+    })));
     return this;
   }
   map(...streams: string[]): this {
-    this.#streams = streams;
+    this.#args.push(...([] as string[]).concat(...streams.map(
+      (stream) => ['-map', stream]
+    )));
     return this;
   }
-  format(format: Format | Muxer): this {
-    this.#format = format;
+  format(format: string): this {
+    this.#args.push('-f', format);
     return this;
   }
-  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder): this {
-    this.#codec = codec;
+  codec(codec: string): this {
+    this.#args.push('-c', codec);
     return this;
   }
-  videoCodec(codec: VideoCodec | VideoEncoder): this {
-    this.#videoCodec = codec;
+  videoCodec(codec: string): this {
+    this.#args.push('-c:V', codec);
     return this;
   }
-  audioCodec(codec: AudioCodec | AudioEncoder): this {
-    this.#audioCodec = codec;
+  audioCodec(codec: string): this {
+    this.#args.push('-c:a', codec);
     return this;
   }
-  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder): this {
-    this.#subtitleCodec = codec;
+  subtitleCodec(codec: string): this {
+    this.#args.push('-c:s', codec);
     return this;
   }
   duration(duration: number): this {
-    this.#duration = duration;
+    this.#args.push('-t', `${duration}ms`);
     return this;
   }
   start(start: number): this {
-    this.#start = start;
+    this.#args.push('-ss', `${start}ms`);
     return this;
   }
   args(...args: string[]): this {
@@ -778,33 +750,8 @@ class Output implements FFmpegOutput {
     return this;
   }
   getArgs(): string[] {
-    const toMetadataArgs = ([metadata, specifier]: [Record<string, string>, string?]) => {
-      return ([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
-        return [`-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`];
-      }));
-    };
-    const duration = this.#duration;
-    const start = this.#start;
-    const metadata = this.#metadata;
-    const streams = this.#streams;
-    const format = this.#format;
-    const codec = this.#codec;
-    const videoCodec = this.#videoCodec;
-    const audioCodec = this.#audioCodec;
-    const subtitleCodec = this.#subtitleCodec;
     return [
       ...this.#args,
-      ...(start !== void 0 ? ['-ss', `${start}ms`] : []),
-      ...(duration !== void 0 ? ['-t', `${duration}ms`] : []),
-      ...(metadata !== void 0 ? toMetadataArgs(metadata) : []),
-      ...(streams !== void 0 ? ([] as string[]).concat(...streams.map(
-        (stream) => ['-map', stream]
-      )) : []),
-      ...(codec !== void 0 ? ['-c', codec] : []),
-      ...(videoCodec !== void 0 ? ['-c:V', videoCodec] : []),
-      ...(audioCodec !== void 0 ? ['-c:a', audioCodec] : []),
-      ...(subtitleCodec !== void 0 ? ['-c:s', subtitleCodec] : []),
-      ...(format !== void 0 ? ['-f', format] : []),
       this.#resource,
     ];
   }
