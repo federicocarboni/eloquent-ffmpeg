@@ -263,6 +263,10 @@ export interface ProbeOptions {
    */
   logLevel?: LogLevel;
   /**
+   * Specify the input format of the media to probe.
+   */
+  format?: Demuxer | (string & {});
+  /**
    * Add command line arguments to ffprobe, `args` is appended **after** other
    * arguments, but **before** source.
    */
@@ -288,6 +292,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     analyzeDuration = 5000,
     ffprobePath = getFFprobePath(),
     logLevel = LogLevel.Error,
+    format,
     args = []
   } = options;
   const ffprobe = spawn(ffprobePath, [
@@ -300,6 +305,8 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     '-show_chapters',
     '-show_error',
     ...args,
+    ...(format !== void 0 ? ['-f', format] : []),
+    '-i',
     typeof source === 'string' ? source : 'pipe:0'
   ], { stdio: 'pipe' });
   const { stdin, stdout, stderr } = ffprobe;
