@@ -369,7 +369,7 @@ export interface FFmpegProcess {
   complete(): Promise<void>;
   /**
    * Aborts the conversion but allows FFmpeg to end the generated files correctly.
-   * This waits for FFmpeg to exit but doesn't wait guarantee that FFmpeg will succeceed,
+   * This waits for FFmpeg to exit but doesn't wait guarantee that FFmpeg will succeed,
    * you should handle any possible errors.
    */
   abort(): Promise<void>;
