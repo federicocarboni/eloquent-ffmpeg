@@ -71,18 +71,17 @@ if (isWin32) {
   // a native Node.js addon packaged and released to NPM as `ntsuspend`
   // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
   try {
-    // dynamically require ntsuspend, require() will be created with
+    // dynamically require `ntsuspend`, require() will be created with
     // createRequire() in the es module build
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const ntsuspend = require('ntsuspend');
     pause = (p) => ntsuspend.suspend(p.pid);
     resume = (p) => ntsuspend.resume(p.pid);
-  } catch (e) {
-    // if require() fails to load ntsuspend we throw an error if/when `pause()`
-    // or `resume()` are called
-    pause = resume = (): never => {
-      throw new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
-    };
+  } catch {
+    const error = new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
+    // `ntsuspend` is not supposed to be a hard dependency so we throw only when pause/resume
+    // are requested.
+    pause = resume = (): never => { throw error; };
   }
 } else {
   // on POSIX operating systems `SIGSTOP` and `SIGCONT` are available
