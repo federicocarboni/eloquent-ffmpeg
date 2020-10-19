@@ -208,15 +208,13 @@ process.resume();
 				<p>The conversion can be terminated early using <code>FFmpegProcess.abort()</code>, this
 					gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
 				The method is asynchronous so you have to <code>await</code> it.</p>
-				<p><strong>Note:</strong> <code>abort()</code> resolves after the quit signal has been sent, not when the
-					process exits, if you want to wait for the process to exit use
-				<code>FFmpegProcess.complete()</code>.</p>
+				<p><strong>Note:</strong> <code>abort()</code> resolves when FFmpeg exits, but it doesn&#39;t guarantee that it
+				will exit successfully, you should handle any possible errors.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">await</span> process.abort();
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
+<span class="hljs-keyword">await</span> process.abort();</code></pre>
 				<a href="#errors" id="errors" style="color: inherit; text-decoration: none;">
 					<h2>Errors</h2>
 				</a>
