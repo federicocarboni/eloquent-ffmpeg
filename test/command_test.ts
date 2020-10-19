@@ -349,8 +349,14 @@ describe('command', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(() => process.resume()).to.not.throw();
+        expect(process.pause()).to.equal(true);
+        expect(process.resume()).to.equal(true);
         process.unwrap().kill();
+        await process.complete()
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          .catch(() => {});
+        expect(process.pause()).to.equal(false);
+        expect(process.resume()).to.equal(false);
       });
       else it('should send signal SIGCONT', async function () {
         const cmd = ffmpeg();
