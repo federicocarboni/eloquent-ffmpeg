@@ -1,9 +1,7 @@
-.nyc_output/
-coverage/
+/node_modules
+/lib
 
-node_modules/
-build/Release/
+/.nyc_output
+/coverage
 
-lib/
-
-.env
+/.env
