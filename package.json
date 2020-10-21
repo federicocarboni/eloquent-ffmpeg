@@ -38,6 +38,7 @@
     "url": "https://github.com/FedericoCarboni/eloquent-ffmpeg/issues"
   },
   "homepage": "https://github.com/FedericoCarboni/eloquent-ffmpeg#readme",
+  "files": ["/lib"],
   "optionalDependencies": {
     "ntsuspend": "*"
   },
