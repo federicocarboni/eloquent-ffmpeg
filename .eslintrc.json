@@ -7,6 +7,10 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended"
   ],
+  "ignorePatterns": [
+    "examples/**/*",
+    "lib/**/*"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 12,
@@ -16,22 +20,32 @@
     "@typescript-eslint"
   ],
   "rules": {
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/semi": "error",
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "never"
-    }],
-    "no-unsafe-finally": "off",
-    "no-new-func": "error",
-    "no-eval": "error",
-    "eol-last": "error",
     "camelcase": "error",
-    "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
-    "eqeqeq": "error"
+    "eol-last": "error",
+    "eqeqeq": "error",
+    "no-eval": "error",
+    "no-new-func": "error",
+    "no-unsafe-finally": "off",
+    "quotes": [
+      "warn",
+      "single",
+      {
+        "allowTemplateLiterals": true,
+        "avoidEscape": true
+      }
+    ],
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "never"
+      }
+    ]
   }
 }
