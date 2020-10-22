@@ -1,9 +1,17 @@
+/**
+ * Thrown when FFmpeg exits with a non-zero status code.
+ * @public
+ */
 export class FFmpegError extends Error {
   constructor(message: string, public stderr: readonly string[]) {
     super(message);
   }
 }
 
+/**
+ * Thrown when FFprobe exits with a non-zero status code.
+ * @public
+ */
 export class FFprobeError extends Error {
   constructor(message: string, public stderr: readonly string[], public code?: number) {
     super(message);
