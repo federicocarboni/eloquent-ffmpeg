@@ -1,0 +1,14 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "2d_animation": "node --unhandled-rejections=strict 2d_animation.js"
+  },
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "cli-progress": "^3.8.2",
+    "eloquent-ffmpeg": "^0.8.0-alpha.0",
+    "which": "^2.0.2"
+  }
+}
