@@ -54,6 +54,7 @@ export default [{
     entryFileNames: 'lib.cjs',
     format: 'cjs',
     dir: 'lib',
+    interop: (id) => id === 'crypto' ? 'default' : 'auto',
     banner,
   }],
   plugins,
