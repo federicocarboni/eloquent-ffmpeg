@@ -3,9 +3,9 @@ import { isWin32 } from './utils';
 import { v4 } from 'uuid';
 
 export const getSocketPath = isWin32 ? (): string => {
-  return `//./pipe/${v4()}.sock`;
+  return `//./pipe/ffmpeg-ipc-${v4()}.sock`;
 } : (): string => {
-  return `/tmp/${v4()}.sock`;
+  return `/tmp/ffmpeg-ipc-${v4()}.sock`;
 };
 
 export const getSocketResource = isWin32 ? (path: string): string => {
