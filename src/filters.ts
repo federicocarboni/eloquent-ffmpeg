@@ -10,6 +10,7 @@ export function escapeFilterComponent(value: string) {
  * Stringifies a given filter with its options to ffmpeg's filter graph syntax.
  * @param filterName The filter's name, {@link VideoFilter} {@link AudioFilter}
  * @param options The filter's options.
+ * @see https://ffmpeg.org/ffmpeg-filters.html#Filtergraph-syntax-1
  * @example ```ts
  * const filter = stringifySimpleFilter('scale', [1280, 720]);
  * filter === 'scale=1280:720';
@@ -19,7 +20,7 @@ export function escapeFilterComponent(value: string) {
  * filter === 'negate';
  * ```
  */
-export function stringifySimpleFilter(filterName: string, options?: Record<string, any> | any[]) {
+export function stringifySimpleFilterGraph(filterName: string, options?: Record<string, any> | any[]) {
   if (!options) return filterName;
   if (Array.isArray(options)) {
     if (!options.length) return filterName;

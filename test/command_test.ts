@@ -608,6 +608,22 @@ describe('command', function () {
       const args = output.getArgs();
       expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
     });
+    it('videoFilter()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output('test/samples/video.mp4');
+      expect(output.videoFilter('my_filter1', { opt1: true })).to.equal(output);
+      expect(output.videoFilter('my_filter2', [42, 56])).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-filter:V') + 1]).to.equal('my_filter1=opt1=true,my_filter2=42:56');
+    });
+    it('audioFilter()', function () {
+      const cmd = ffmpeg();
+      const output = cmd.output('test/samples/video.mp4');
+      expect(output.audioFilter('my_filter1', { opt1: true })).to.equal(output);
+      expect(output.audioFilter('my_filter2', [42, 56])).to.equal(output);
+      const args = output.getArgs();
+      expect(args[args.indexOf('-filter:a') + 1]).to.equal('my_filter1=opt1=true,my_filter2=42:56');
+    });
     it('duration()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
