@@ -115,7 +115,7 @@ export interface FFmpegOptions {
    */
   logLevel?: LogLevel;
   /**
-   * Enabled piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
+   * Enable piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
    * will silently fail. Defaults to `true`.
    */
   progress?: boolean;
