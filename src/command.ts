@@ -6,10 +6,10 @@ import {
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { IGNORED_ERRORS, isNullish, pause, resume, write } from './utils';
 import {
-  AudioCodec, AudioDecoder, AudioEncoder, Demuxer, Format,
+  AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
   SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
-  VideoDecoder, VideoEncoder
+  VideoDecoder, VideoEncoder, VideoFilter
 } from './_types';
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { createInterface as readlines } from 'readline';
@@ -17,6 +17,7 @@ import { extractMessage, FFmpegError } from './errors';
 import { getFFmpegPath } from './env';
 import { Server } from 'net';
 import { Readable } from 'stream';
+import { stringifySimpleFilterGraph } from './filters';
 
 /**
  * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
@@ -261,6 +262,22 @@ export interface FFmpegOutput {
    * @param codec -
    */
   subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
+  /**
+   * **UNSTABLE**
+   *
+   * Applies a filter to the video streams.
+   * @param filter - The filter to apply.
+   * @param options - Additional configuration for the filter.
+   */
+  videoFilter(filter: VideoFilter | (string & {}), options?: Record<string, any> | any[]): this;
+  /**
+   * **UNSTABLE**
+   *
+   * Applies a filter to the video streams.
+   * @param filter - The filter to apply.
+   * @param options - Additional configuration for the filter.
+   */
+  audioFilter(filter: AudioFilter | (string & {}), options?: Record<string, any> | any[]): this;
   /**
    * Limit the duration of the data written to the output.
    * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
@@ -664,6 +681,8 @@ const outputStreamMap = new WeakMap<Output, NodeJS.WritableStream[]>();
 class Output implements FFmpegOutput {
   #resource: string;
   #args: string[] = [];
+  #videoFilters: string[] = [];
+  #audioFilters: string[] = [];
   isStream: boolean;
 
   constructor(destinations: OutputDestination[]) {
@@ -705,6 +724,14 @@ class Output implements FFmpegOutput {
       }
       this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
     }
+  }
+  videoFilter(filter: string, options?: Record<string, any> | any[]) {
+    this.#videoFilters.push(stringifySimpleFilterGraph(filter, options));
+    return this;
+  }
+  audioFilter(filter: string, options?: Record<string, any> | any[]) {
+    this.#audioFilters.push(stringifySimpleFilterGraph(filter, options));
+    return this;
   }
   metadata(metadata: Record<string, string>, specifier?: string): this {
     this.#args.push(...([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
