@@ -19,7 +19,7 @@ export function escapeFilterComponent(value: string) {
  * filter === 'negate';
  * ```
  */
-export function stringifySimpleFilter(filterName: string, options?: Record<string, any> | any[]) {
+export function stringifySimpleFilterGraph(filterName: string, options?: Record<string, any> | any[]) {
   if (!options) return filterName;
   if (Array.isArray(options)) {
     if (!options.length) return filterName;
