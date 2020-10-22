@@ -63,7 +63,8 @@
 				<p>Eloquent FFmpeg simplifies interactions with
 					<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.
 					This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
-				You may also want to <a href="https://federicocarboni.github.io/eloquent-ffmpeg/globals.html">view the API documentation</a>.</p>
+					You may also want to <a href="https://federicocarboni.github.io/eloquent-ffmpeg/globals.html">view the API documentation</a>
+				or <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/tree/master/examples"><code>examples/</code></a>.</p>
 				<p>If something is missing or doesn&#39;t feel right, feel free to open an issue or a
 					pull request to change it. This library is still in a very early stage, but
 				there shouldn&#39;t be any major breaking changes.</p>
@@ -151,7 +152,7 @@ cmd.output(<span class="hljs-string">'output.mkv'</span>)
 					<h4>Monitor progress</h4>
 				</a>
 				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.
-				See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html">Progress interface</a>.</p>
+				It returns an async generator of <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html">Progress</a>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
@@ -184,6 +185,20 @@ progress.on(<span class="hljs-string">'end'</span>, <span class="hljs-function">
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hooray! Conversion complete!'</span>);</code></pre>
+				<p><strong>Tracking progress as a percentage:</strong> To get a percentage from the progress you must know the total
+				duration of the media, this is very easy if the duration is not modified.</p>
+				<p>Probe the input file and calculate the percentage by dividing the current <code>time</code> by the <code>duration</code>
+				and multiplying by 100.</p>
+				<pre><code class="language-ts">const cmd = ffmpeg();
+const input = cmd.input(&#39;input.mkv&#39;);
+const info = await input.probe();
+cmd.output(&#39;video.mp4&#39;);
+const process = await cmd.spawn();
+for await (const { speed, time } of process.progress()) {
+  console.log(`Converting @ ${speed}x – ${time / info.duration * 100}%`);
+}
+await process.complete();
+console.log(&#39;Hooray! Conversion complete!&#39;);</code></pre>
 				<a href="#pause-amp-resume" id="pause-amp-resume" style="color: inherit; text-decoration: none;">
 					<h4>Pause &amp; Resume</h4>
 				</a>
@@ -209,7 +224,7 @@ process.resume();
 					gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
 				The method is asynchronous so you have to <code>await</code> it.</p>
 				<p><strong>Note:</strong> <code>abort()</code> resolves when FFmpeg exits, but it doesn&#39;t guarantee that it
-				will exit successfully, you should handle any possible errors.</p>
+				will exit successfully, any possible errors should be handled explicitly.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
