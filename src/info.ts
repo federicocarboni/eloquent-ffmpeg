@@ -2,9 +2,7 @@ import { spawn } from 'child_process';
 import { getFFmpegPath } from './env';
 import { read } from './utils';
 
-/**
- * @public
- */
+/** @public */
 export interface Version {
   copyright: string;
   version: string;
@@ -120,9 +118,7 @@ export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<stri
   }
   return formats;
 }
-/**
- * @public
- */
+/** @public */
 export interface Codecs {
   video: Set<string>;
   audio: Set<string>;
@@ -196,9 +192,7 @@ export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set
   }
   return pixelFormats;
 }
-/**
- * @public
- */
+/** @public */
 export interface Filters {
   video: Set<string>;
   audio: Set<string>;
