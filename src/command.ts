@@ -780,6 +780,8 @@ class Output implements FFmpegOutput {
   getArgs(): string[] {
     return [
       ...this.#args,
+      ...(this.#videoFilters.length > 0 ? ['-filter:V', this.#videoFilters.join(',')] : []),
+      ...(this.#audioFilters.length > 0 ? ['-filter:a', this.#audioFilters.join(',')] : []),
       this.#resource,
     ];
   }
