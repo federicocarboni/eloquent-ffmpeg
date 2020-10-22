@@ -106,7 +106,7 @@ cmd.output('output.mkv')
 Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpegprocess.html).
 #### Monitor progress
 To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
-See [Progress interface](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html).
+It returns an async generator of [Progress](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html).
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
@@ -143,6 +143,24 @@ progress.on('end', () => {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
+**Tracking progress as a percentage:** To get a percentage from the progress you must know the total
+duration of the media, this is very easy if the duration is not modified.
+
+Probe the input file and calculate the percentage by dividing the current `time` by the `duration`
+and multiplying by 100.
+
+```ts
+const cmd = ffmpeg();
+const input = cmd.input('input.mkv');
+const info = await input.probe();
+cmd.output('video.mp4');
+const process = await cmd.spawn();
+for await (const { speed, time } of process.progress()) {
+  console.log(`Converting @ ${speed}x – ${time / info.duration * 100}%`);
+}
+await process.complete();
+console.log('Hooray! Conversion complete!');
+```
 
 #### Pause & Resume
 The conversion can be paused and resumed using `FFmpegProcess.pause()`
@@ -171,7 +189,7 @@ gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
 The method is asynchronous so you have to `await` it.
 
 **Note:** `abort()` resolves when FFmpeg exits, but it doesn't guarantee that it
-will exit successfully, you should handle any possible errors.
+will exit successfully, any possible errors should be handled explicitly.
 
 ```ts
 const cmd = ffmpeg();
