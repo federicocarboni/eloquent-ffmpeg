@@ -2,7 +2,8 @@
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
 This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
-You may also want to [view the API documentation](https://federicocarboni.github.io/eloquent-ffmpeg/globals.html).
+You may also want to [view the API documentation](https://federicocarboni.github.io/eloquent-ffmpeg/globals.html)
+or [`examples/`](https://github.com/FedericoCarboni/eloquent-ffmpeg/tree/master/examples).
 
 If something is missing or doesn't feel right, feel free to open an issue or a
 pull request to change it. This library is still in a very early stage, but
