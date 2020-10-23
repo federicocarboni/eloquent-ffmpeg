@@ -289,7 +289,7 @@ export interface ProbeOptions {
 export async function probe(source: InputSource, options: ProbeOptions = {}): Promise<ProbeResult> {
   const {
     probeSize,
-    analyzeDuration = 5000,
+    analyzeDuration,
     ffprobePath = getFFprobePath(),
     logLevel = LogLevel.Error,
     format,
@@ -298,7 +298,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   const ffprobe = spawn(ffprobePath, [
     '-v', logLevel.toString(),
     ...(probeSize !== void 0 ? ['-probesize', probeSize.toString()] : []),
-    '-analyzeduration', (analyzeDuration * 1000).toString(),
+    ...(analyzeDuration !== void 0 ? ['-analyzeduration', (analyzeDuration * 1000).toString()] : []),
     '-of', 'json=c=1',
     '-show_format',
     '-show_streams',
