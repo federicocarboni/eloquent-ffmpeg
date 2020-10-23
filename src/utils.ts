@@ -16,21 +16,23 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
   if (!stream.readable)
     throw new TypeError('Cannot read stream');
   const chunks: Buffer[] = [];
-  const onData = (chunk: Buffer): void => {
-    chunks.push(chunk);
-  };
-  stream.on('data', onData);
   return new Promise((resolve, reject) => {
-    const onError = (reason?: any): void => {
-      stream.off('data', onData);
-      reject(reason);
+    const onData = (chunk: Buffer): void => {
+      chunks.push(chunk);
     };
-    stream.once('end', () => {
+    const onEnd = (): void => {
       const buffer = Buffer.concat(chunks);
       stream.off('error', onError);
       stream.off('data', onData);
       resolve(buffer);
-    });
+    };
+    const onError = (reason?: any): void => {
+      stream.off('data', onData);
+      stream.off('end', onEnd);
+      reject(reason);
+    };
+    stream.on('data', onData);
+    stream.once('end', onEnd);
     stream.once('error', onError);
   });
 }
