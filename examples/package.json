@@ -8,7 +8,7 @@
   "dependencies": {
     "canvas": "^2.6.1",
     "cli-progress": "^3.8.2",
-    "eloquent-ffmpeg": "^0.8.0-alpha.0",
+    "eloquent-ffmpeg": "next",
     "which": "^2.0.2"
   }
 }
