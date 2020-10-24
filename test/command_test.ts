@@ -33,6 +33,27 @@ describe('command', function () {
         expect(input.isStream).to.equal(true);
       });
     });
+    describe('concat()', function () {
+      it('should add strings as files', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['test/samples/video.mkv', 'test/samples/video.mkv']);
+        input.file('test/samples/video.mkv');
+        expect(input.isStream).to.equal(true);
+      });
+      it('should add streams as files', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat([new PassThrough(), new PassThrough()]);
+        input.file(new PassThrough());
+        expect(input.isStream).to.equal(true);
+      });
+      it('should add multiple mized sources as files', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['test/samples/video.mkv', new PassThrough()]);
+        input.file(new PassThrough())
+          .file('test/samples/video.mkv');
+        expect(input.isStream).to.equal(true);
+      });
+    });
     describe('output()', function () {
       it('should add a string as destination', function () {
         const cmd = ffmpeg();
@@ -276,6 +297,23 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         await process.complete();
+      });
+      it('should handle concat inputs', async function () {
+        try {
+          const cmd = ffmpeg();
+          cmd.concat(['file:test/samples/video.mkv', createReadStream('test/samples/video.mkv')]);
+          cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          await process.complete();
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+        } finally {
+          try {
+            unlinkSync('test/samples/[strange]output.mkv');
+          } catch {
+            //
+          }
+        }
       });
     });
     describe('getArgs()', function () {
