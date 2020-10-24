@@ -288,7 +288,7 @@ export interface ProbeOptions {
  */
 export async function probe(source: InputSource, options: ProbeOptions = {}): Promise<ProbeResult> {
   const {
-    probeSize,
+    probeSize = 5 * 1000 * 1000,
     analyzeDuration,
     ffprobePath = getFFprobePath(),
     logLevel = LogLevel.Error,
@@ -297,7 +297,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   } = options;
   const ffprobe = spawn(ffprobePath, [
     '-v', logLevel.toString(),
-    ...(probeSize !== void 0 ? ['-probesize', probeSize.toString()] : []),
+    ...(['-probesize', probeSize.toString()]),
     ...(analyzeDuration !== void 0 ? ['-analyzeduration', (analyzeDuration * 1000).toString()] : []),
     '-of', 'json=c=1',
     '-show_format',
@@ -319,9 +319,9 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   };
   try {
     if (source instanceof Uint8Array)
-      await writeStdin(stdin, source);
+      writeStdin(stdin, source);
     else if (typeof source !== 'string')
-      await pipeStdin(stdin, 'readable' in source ? source : Readable.from(source, { objectMode: false }));
+      pipeStdin(stdin, 'readable' in source ? source : Readable.from(source, { objectMode: false }));
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
