@@ -13,6 +13,8 @@ export function isNullish(o: unknown): o is undefined | null {
 
 /** @internal */
 export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  if (!stream.readable)
+    throw new TypeError('Cannot read stream');
   const chunks: Buffer[] = [];
   return new Promise((resolve, reject) => {
     const onData = (chunk: Buffer): void => {
@@ -37,6 +39,8 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
 
 /** @internal */
 export function write(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
+  // if (!stream.writable)
+  //   throw new TypeError('Cannot write to stream');
   return new Promise((resolve, reject) => {
     stream.write(chunk, () => {
       stream.off('error', reject);
