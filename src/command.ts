@@ -540,7 +540,7 @@ class Process implements FFmpegProcess {
     const process = this.#process;
     const { exitCode } = process;
     return new Promise((resolve, reject) => {
-      const abruptComplete = async (exitCode: number): Promise<void> => {
+      const abruptComplete = async (exitCode: number | null): Promise<void> => {
         if (!this.#stderr) {
           const stderr: string[] = this.#stderr = [];
           if (process.stderr.readable) {
@@ -555,7 +555,7 @@ class Process implements FFmpegProcess {
       };
       if (!isNullish(exitCode) || this.#stderr) {
         if (exitCode === 0) resolve();
-        else abruptComplete(exitCode!);
+        else abruptComplete(exitCode);
       } else {
         const onExit = (exitCode: number): void => {
           if (exitCode === 0) resolve();
