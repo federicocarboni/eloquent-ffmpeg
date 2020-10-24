@@ -95,8 +95,6 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe();
         expect(result.unwrap()).to.be.an('object');
-        const result1 = await input.probe({ probeSize: 1024 * 1024 });
-        expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -107,8 +105,6 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(result.unwrap()).to.be.an('object');
-        const result1 = await input.probe();
-        expect(result1.unwrap()).to.be.an('object');
         const process = await cmd.spawn();
         await process.complete();
       });
