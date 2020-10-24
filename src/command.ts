@@ -333,6 +333,10 @@ export interface FFmpegOutput {
 /** @public */
 export interface FFmpegProcess {
   /**
+   * **UNSTABLE:** Deprecated, not for use in new projects.
+   *
+   * @deprecated Use `FFmpegProcess.unwrap().pid` instead.
+   *
    * Returns the process identifier (PID) of the process.
    */
   readonly pid: number;
