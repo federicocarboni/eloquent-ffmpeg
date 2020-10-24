@@ -1,5 +1,5 @@
 import { spawn as spawnProcess } from 'child_process';
-import { Readable } from 'stream';
+import { PassThrough, Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
 import { IGNORED_ERRORS, isNullish } from './utils';
@@ -60,6 +60,26 @@ export interface FFmpegCommand {
    * ```
    */
   input(source: InputSource): FFmpegInput;
+  /**
+  * **UNSTABLE:** New API, see https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/2
+  *
+  * Concatenate media files using the `concat` demuxer.
+  *
+  * @param sources - The input sources to be concatenated, they can be in different formats but
+  * they must have the same streams, codecs, timebases, etc...
+  * @see https://ffmpeg.org/ffmpeg-formats.html#concat-1
+  * @see https://trac.ffmpeg.org/wiki/Concatenate
+  * @example
+  * ```ts
+  * const cmd = ffmpeg();
+  * cmd.concat(['chunk1.webm', 'chunk2.webm']);
+  * cmd.output('complete_video.webm');
+  * const process = await cmd.spawn();
+  * await process.complete();
+  * ```
+  * @alpha
+  */
+  concat(sources: InputSource[]): FFmpegConcatInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
    * the `tee` protocol. You can use mixed destinations and multiple streams.
@@ -220,6 +240,11 @@ export interface FFmpegInput {
   readonly isStream: boolean;
 }
 
+/** @alpha */
+export interface FFmpegConcatInput extends FFmpegInput {
+  file(source: InputSource): this;
+}
+
 /** @public */
 export interface FFmpegOutput {
   /**
@@ -365,6 +390,18 @@ class Command implements FFmpegCommand {
       isStream = true;
     }
     const input = new Input(resource, isStream, stream);
+    this.#inputs.push(input);
+    return input;
+  }
+  concat(sources: InputSource[]) {
+    const stream = new PassThrough();
+    const path = getSocketPath();
+    const resource = getSocketResource(path);
+    this.#inputStreams.push([path, stream]);
+    const input = new ConcatInput(resource, stream, this.#inputStreams);
+    for (const source of sources) {
+      input.file(source);
+    }
     this.#inputs.push(input);
     return input;
   }
@@ -528,6 +565,30 @@ class Input implements FFmpegInput {
   }
   args(...args: string[]): this {
     this.#args.push(...args);
+    return this;
+  }
+}
+class ConcatInput extends Input implements FFmpegConcatInput {
+  #stream: PassThrough;
+  #streams: [string, NodeJS.ReadableStream][];
+  constructor(resource: string, stream: PassThrough, streams: [string, NodeJS.ReadableStream][]) {
+    super(resource, true, void 0);
+    this.#stream = stream;
+    this.#streams = streams;
+  }
+  file(source: InputSource) {
+    let resource: string;
+    if (typeof source === 'string') {
+      resource = source;
+    } else {
+      const path = getSocketPath();
+      const stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
+        objectMode: false
+      });
+      this.#streams.push([path, stream]);
+      resource = getSocketResource(path);
+    }
+    this.#stream.write(`file '${resource}'`, 'utf-8');
     return this;
   }
 }
