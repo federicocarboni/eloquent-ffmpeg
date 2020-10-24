@@ -591,7 +591,7 @@ class ConcatInput extends Input implements FFmpegConcatInput {
       this.#streams.push([path, stream]);
       resource = getSocketResource(path);
     }
-    concatStream.get(this)!.write(`file '${resource}'\n`, 'utf-8');
+    concatStream.get(this)!.write(`file '${resource}'\r\n`, 'utf-8');
     return this;
   }
 }
