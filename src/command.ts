@@ -338,6 +338,8 @@ class Command implements FFmpegCommand {
   #args: string[] = [];
   #inputs: Input[] = [];
   #outputs: Output[] = [];
+  #inputStreams: [string, NodeJS.ReadableStream][] = [];
+  #outputStreams: [string, NodeJS.WritableStream[]][] = [];
 
   logLevel: LogLevel;
   constructor(options: FFmpegOptions = {}) {
@@ -347,12 +349,55 @@ class Command implements FFmpegCommand {
       this.#args.push('-progress', 'pipe:1', '-nostats');
   }
   input(source: InputSource): FFmpegInput {
-    const input = new Input(source);
+    let resource: string;
+    let isStream: boolean;
+    let stream: NodeJS.ReadableStream | undefined;
+    if (typeof source === 'string') {
+      resource = source;
+      isStream = false;
+    } else {
+      const path = getSocketPath();
+      stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
+        objectMode: false
+      });
+      this.#inputStreams.push([path, stream]);
+      resource = getSocketResource(path);
+      isStream = true;
+    }
+    const input = new Input(resource, isStream, stream);
     this.#inputs.push(input);
     return input;
   }
   output(...destinations: OutputDestination[]): FFmpegOutput {
-    const output = new Output(destinations);
+    let resource: string;
+    let isStream: boolean;
+    if (destinations.length === 0) {
+      const path = getSocketPath();
+      this.#outputStreams.push([path, []]);
+      resource = getSocketResource(path);
+      isStream = true;
+    } else {
+      const resources: string[] = [];
+      const streams = [];
+      const path = getSocketPath();
+      isStream = false;
+      for (const dest of destinations) {
+        if (typeof dest === 'string') {
+          resources.push(dest);
+        } else {
+          if (!isStream) {
+            this.#outputStreams.push([path, streams]);
+            resources.push(getSocketResource(path));
+            isStream = true;
+          }
+          streams.push(dest);
+        }
+      }
+      resource = resources.length > 1 ? `tee:${resources.map(resource =>
+        resource.replace(/[[|\]]/g, (char) => `\\${char}`)
+      ).join('|')}` : resources[0];
+    }
+    const output = new Output(resource, isStream);
     this.#outputs.push(output);
     return output;
   }
@@ -363,8 +408,8 @@ class Command implements FFmpegCommand {
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
     const args = this.getArgs();
     const [inputSocketServers, outputSocketServers] = await Promise.all([
-      handleInputs(this.#inputs),
-      handleOutputs(this.#outputs)
+      handleInputs(this.#inputStreams),
+      handleOutputs(this.#outputStreams)
     ]);
     const process = spawnProcess(ffmpegPath, args, { stdio: 'pipe' });
     const onExit = (): void => {
@@ -402,27 +447,16 @@ class Command implements FFmpegCommand {
   }
 }
 
-const inputPathMap = new WeakMap<Input, string>();
-const inputStreamMap = new WeakMap<Input, NodeJS.ReadableStream>();
 class Input implements FFmpegInput {
   #resource: string;
   #args: string[] = [];
+  #stream: NodeJS.ReadableStream | undefined;
 
   isStream: boolean;
-  constructor(source: InputSource) {
-    if (typeof source === 'string') {
-      this.#resource = source;
-      this.isStream = false;
-    } else {
-      const path = getSocketPath();
-      const stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
-        objectMode: false
-      });
-      inputPathMap.set(this, path);
-      inputStreamMap.set(this, stream);
-      this.#resource = getSocketResource(path);
-      this.isStream = true;
-    }
+  constructor(resource: string, isStream: boolean, stream: NodeJS.ReadableStream | undefined) {
+    this.#resource = resource;
+    this.#stream = stream;
+    this.isStream = isStream;
   }
   offset(offset: number): this {
     this.#args.push('-itsoffset', `${offset}ms`);
@@ -458,7 +492,7 @@ class Input implements FFmpegInput {
   }
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
     const readChunk = (): Promise<Uint8Array> => {
-      const stream = inputStreamMap.get(this)!;
+      const stream = this.#stream!;
       const size = options.probeSize ?? 5000000;
       return new Promise<Uint8Array>((resolve, reject) => {
         const unlisten = (): void => {
@@ -498,8 +532,6 @@ class Input implements FFmpegInput {
   }
 }
 
-const outputPathMap = new WeakMap<Output, string>();
-const outputStreamMap = new WeakMap<Output, NodeJS.WritableStream[]>();
 class Output implements FFmpegOutput {
   #resource: string;
   #args: string[] = [];
@@ -507,45 +539,9 @@ class Output implements FFmpegOutput {
   #audioFilters: string[] = [];
   isStream: boolean;
 
-  constructor(destinations: OutputDestination[]) {
-    if (destinations.length === 0) {
-      const path = getSocketPath();
-      outputPathMap.set(this, path);
-      outputStreamMap.set(this, []);
-      this.#resource = getSocketResource(path);
-      this.isStream = true;
-    } else if (destinations.length === 1) {
-      const dest = destinations[0];
-      if (typeof dest === 'string') {
-        this.#resource = dest;
-        this.isStream = false;
-      } else {
-        const path = getSocketPath();
-        outputPathMap.set(this, path);
-        outputStreamMap.set(this, [dest]);
-        this.#resource = getSocketResource(path);
-        this.isStream = true;
-      }
-    } else {
-      const resources: string[] = [];
-      const streams = [];
-      const path = getSocketPath();
-      this.isStream = false;
-      for (const dest of destinations) {
-        if (typeof dest === 'string') {
-          resources.push(dest.replace(/[[|\]]/g, (char) => `\\${char}`));
-        } else {
-          if (!this.isStream) {
-            outputPathMap.set(this, path);
-            outputStreamMap.set(this, streams);
-            resources.push(getSocketResource(path));
-            this.isStream = true;
-          }
-          streams.push(dest);
-        }
-      }
-      this.#resource = resources.length > 1 ? `tee:${resources.join('|')}` : resources[0];
-    }
+  constructor(resource: string, isStream: boolean) {
+    this.#resource = resource;
+    this.isStream = isStream;
   }
   videoFilter(filter: string, options?: Record<string, any> | any[]) {
     this.#videoFilters.push(stringifySimpleFilterGraph(filter, options));
@@ -653,23 +649,17 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
   });
 }
 
-async function handleOutputs(outputs: Output[]) {
-  const outputStreams = outputs.filter((output) => output.isStream);
-  const streams = outputStreams.map((output) => outputStreamMap.get(output)!);
-  const servers = await Promise.all(outputStreams.map((output) => {
-    const path = outputPathMap.get(output)!;
+async function handleOutputs(outputStreams: [string, NodeJS.WritableStream[]][]) {
+  const servers = await Promise.all(outputStreams.map(([path]) => {
     return createSocketServer(path);
   }));
-  streams.forEach((streams, i) => handleOutputStream(servers[i], streams));
+  outputStreams.forEach(([,streams], i) => handleOutputStream(servers[i], streams));
   return servers;
 }
-async function handleInputs(inputs: Input[]) {
-  const inputStreams = inputs.filter((input) => input.isStream);
-  const streams = inputStreams.map((input) => inputStreamMap.get(input)!);
-  const servers = await Promise.all(inputStreams.map((input) => {
-    const path = inputPathMap.get(input)!;
+async function handleInputs(inputStreams: [string, NodeJS.ReadableStream][]) {
+  const servers = await Promise.all(inputStreams.map(([path]) => {
     return createSocketServer(path);
   }));
-  streams.forEach((stream, i) => handleInputStream(servers[i], stream));
+  inputStreams.forEach(([,stream], i) => handleInputStream(servers[i], stream));
   return servers;
 }
