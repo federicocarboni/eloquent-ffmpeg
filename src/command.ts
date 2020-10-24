@@ -576,6 +576,7 @@ class ConcatInput extends Input implements FFmpegConcatInput {
     super(resource, true, void 0);
     stream.write('ffconcat version 1.0\r\n', 'utf-8');
     concatStream.set(this, stream);
+    this.args('-safe', '0'); // TODO: expose this as an option
     this.#streams = streams;
   }
   file(source: InputSource) {
