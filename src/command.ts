@@ -67,8 +67,8 @@ export interface FFmpegCommand {
   *
   * @param sources - The input sources to be concatenated, they can be in different formats but
   * they must have the same streams, codecs, timebases, etc...
-  * @see https://ffmpeg.org/ffmpeg-formats.html#concat-1
-  * @see https://trac.ffmpeg.org/wiki/Concatenate
+  * {@link https://ffmpeg.org/ffmpeg-formats.html#concat-1}
+  * {@link https://trac.ffmpeg.org/wiki/Concatenate}
   * @example
   * ```ts
   * const cmd = ffmpeg();
