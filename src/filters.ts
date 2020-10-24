@@ -1,6 +1,7 @@
 /**
  * Escapes special characters in ffmpeg's filter graph syntax.
- * @param value The value to be escaped.
+ * @param value - The value to be escaped.
+ * @internal
  */
 export function escapeFilterComponent(value: string) {
   return ('' + value).replace(/[:'[\],;]/g, (char) => `\\${char}`);
@@ -19,6 +20,7 @@ export function escapeFilterComponent(value: string) {
  * const filter = stringifySimpleFilter('negate');
  * filter === 'negate';
  * ```
+ * @internal
  */
 export function stringifySimpleFilterGraph(filterName: string, options?: Record<string, any> | any[]) {
   if (!options) return filterName;
