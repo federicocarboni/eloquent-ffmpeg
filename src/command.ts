@@ -444,6 +444,7 @@ class Command implements FFmpegCommand {
   }
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
     const args = this.getArgs();
+    this.#inputs.forEach((input) => concatStream.get(input as any)?.end());
     const [inputSocketServers, outputSocketServers] = await Promise.all([
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams)
@@ -568,12 +569,13 @@ class Input implements FFmpegInput {
     return this;
   }
 }
+const concatStream = new WeakMap<ConcatInput, PassThrough>();
 class ConcatInput extends Input implements FFmpegConcatInput {
-  #stream: PassThrough;
   #streams: [string, NodeJS.ReadableStream][];
   constructor(resource: string, stream: PassThrough, streams: [string, NodeJS.ReadableStream][]) {
     super(resource, true, void 0);
-    this.#stream = stream;
+    stream.write('ffconcat version 1.0\r\n', 'utf-8');
+    concatStream.set(this, stream);
     this.#streams = streams;
   }
   file(source: InputSource) {
@@ -588,7 +590,7 @@ class ConcatInput extends Input implements FFmpegConcatInput {
       this.#streams.push([path, stream]);
       resource = getSocketResource(path);
     }
-    this.#stream.write(`file '${resource}'`, 'utf-8');
+    concatStream.get(this)!.write(`file '${resource}'\n`, 'utf-8');
     return this;
   }
 }
