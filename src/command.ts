@@ -79,7 +79,7 @@ export interface FFmpegCommand {
   * ```
   * @alpha
   */
-  concat(sources: InputSource[]): FFmpegConcatInput;
+  concat(sources?: InputSource[]): FFmpegConcatInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
    * the `tee` protocol. You can use mixed destinations and multiple streams.
@@ -242,6 +242,18 @@ export interface FFmpegInput {
 
 /** @alpha */
 export interface FFmpegConcatInput extends FFmpegInput {
+  /**
+   * Append a new file to concatenation. Requires the FFmpeg protocol to be explicitly specified.
+   * For example to add `video.mp4` you should use `file:video.mp4`.
+   * @param source - The source to be concatenated.
+   * @example
+   * ```ts
+   * const cmd = ffmpeg();
+   * const input = cmd.concat(['file:video1.mkv', 'video2.mkv']);
+   * input.file('file:video4.mkv');
+   * // ...
+   * ```
+   */
   file(source: InputSource): this;
 }
 
@@ -393,7 +405,7 @@ class Command implements FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: InputSource[]) {
+  concat(sources: InputSource[] = []) {
     const stream = new PassThrough();
     const path = getSocketPath();
     const resource = getSocketResource(path);
