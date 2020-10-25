@@ -1,4 +1,5 @@
 import { ChildProcess } from 'child_process';
+import { Readable } from 'stream';
 
 /** @internal */
 export const isWin32 = process.platform === 'win32';
@@ -59,6 +60,13 @@ export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
     });
     stream.once('error', reject);
   });
+}
+
+/** @internal */
+export function toReadable(source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream {
+  return 'readable' in source ? source : Readable.from(
+    source instanceof Uint8Array ? [source] : source, { objectMode: false }
+  );
 }
 
 /** @internal */

@@ -1,8 +1,8 @@
 import { spawn as spawnProcess } from 'child_process';
-import { PassThrough, Readable } from 'stream';
+import { PassThrough } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { IGNORED_ERRORS, isNullish, quote } from './utils';
+import { IGNORED_ERRORS, isNullish, quote, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -10,9 +10,9 @@ import {
   VideoDecoder, VideoEncoder, VideoFilter
 } from './_types';
 import { probe, ProbeOptions, ProbeResult } from './probe';
-import { getFFmpegPath } from './env';
 import { stringifySimpleFilterGraph } from './filters';
 import { FFmpegProcess, Process } from './process';
+import { getFFmpegPath } from './env';
 
 /**
  * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
@@ -420,9 +420,7 @@ class Command implements FFmpegCommand {
       isStream = false;
     } else {
       const path = getSocketPath();
-      stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
-        objectMode: false
-      });
+      stream = toReadable(source);
       this.#inputStreams.push([path, stream]);
       resource = getSocketResource(path);
       isStream = true;
@@ -642,9 +640,7 @@ class ConcatInput extends Input implements FFmpegConcatInput {
       resource = source;
     } else {
       const path = getSocketPath();
-      const stream = 'readable' in source ? source : Readable.from(source instanceof Uint8Array ? [source] : source, {
-        objectMode: false
-      });
+      const stream = toReadable(source);
       this.#streams.push([path, stream]);
       resource = getSocketResource(path);
     }
