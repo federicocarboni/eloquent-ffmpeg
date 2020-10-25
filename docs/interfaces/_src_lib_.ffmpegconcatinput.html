@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>FFmpegConcatInput | Eloquent FFmpeg - v0.11.0-alpha.0</title>
+	<title>FFmpegConcatInput | Eloquent FFmpeg - v0.11.1-alpha.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">Eloquent FFmpeg - v0.11.0-alpha.0</a>
+					<a href="../index.html" class="title">Eloquent FFmpeg - v0.11.1-alpha.0</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -101,6 +101,10 @@
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="_src_lib_.ffmpegconcatinput.html#codec" class="tsd-kind-icon">codec</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="_src_lib_.ffmpegconcatinput.html#duration" class="tsd-kind-icon">duration</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_src_lib_.ffmpegconcatinput.html#file" class="tsd-kind-icon">file</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_src_lib_.ffmpegconcatinput.html#fileduration" class="tsd-kind-icon">file<wbr>Duration</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_src_lib_.ffmpegconcatinput.html#fileinpoint" class="tsd-kind-icon">file<wbr>Inpoint</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_src_lib_.ffmpegconcatinput.html#fileoutpoint" class="tsd-kind-icon">file<wbr>Outpoint</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_src_lib_.ffmpegconcatinput.html#filestream" class="tsd-kind-icon">file<wbr>Stream</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="_src_lib_.ffmpegconcatinput.html#format" class="tsd-kind-icon">format</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="_src_lib_.ffmpegconcatinput.html#getargs" class="tsd-kind-icon">get<wbr>Args</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a href="_src_lib_.ffmpegconcatinput.html#offset" class="tsd-kind-icon">offset</a></li>
@@ -122,7 +126,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from FFmpegInput.isStream</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L240">src/command.ts:240</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L240">src/command.ts:240</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -145,7 +149,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.args</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L184">src/command.ts:184</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L184">src/command.ts:184</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -177,7 +181,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.audioCodec</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L208">src/command.ts:208</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L208">src/command.ts:208</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -210,7 +214,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.codec</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L196">src/command.ts:196</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L196">src/command.ts:196</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -243,7 +247,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.duration</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L220">src/command.ts:220</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L220">src/command.ts:220</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -275,15 +279,154 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L245">src/command.ts:245</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L259">src/command.ts:259</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Append a new file to concatenation. Requires the FFmpeg protocol to be explicitly specified.
+										For example to add <code>video.mp4</code> you should use <code>file:video.mp4</code>.
+										This adds the <code>file</code> directive to the ffconcat file.
+									<a href="https://ffmpeg.org/ffmpeg-all.html#concat-1" class="external">https://ffmpeg.org/ffmpeg-all.html#concat-1</a></p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+<span class="hljs-keyword">const</span> input = cmd.concat([<span class="hljs-string">'file:video1.mkv'</span>, <span class="hljs-string">'video2.mkv'</span>]);
+input.file(<span class="hljs-string">'file:video4.mkv'</span>);
+<span class="hljs-comment">// ...</span></code></pre>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>source: <a href="../globals.html#inputsource" class="tsd-signature-type">InputSource</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The source to be concatenated.</p>
+									</div>
 								</li>
 							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="fileduration" class="tsd-anchor"></a>
+					<h3>file<wbr>Duration</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">file<wbr>Duration<span class="tsd-signature-symbol">(</span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L266">src/command.ts:266</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Set duration for the previous file added to concatenation.
+										This adds the <code>duration</code> directive to the ffconcat file.
+									<a href="https://ffmpeg.org/ffmpeg-all.html#concat-1" class="external">https://ffmpeg.org/ffmpeg-all.html#concat-1</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>duration: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The duration in milliseconds.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="fileinpoint" class="tsd-anchor"></a>
+					<h3>file<wbr>Inpoint</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">file<wbr>Inpoint<span class="tsd-signature-symbol">(</span>ms<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L272">src/command.ts:272</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds the <code>inpoint</code> directive to the ffconcat file.
+									<a href="https://ffmpeg.org/ffmpeg-all.html#concat-1" class="external">https://ffmpeg.org/ffmpeg-all.html#concat-1</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ms: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The inpoint in milliseconds.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="fileoutpoint" class="tsd-anchor"></a>
+					<h3>file<wbr>Outpoint</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">file<wbr>Outpoint<span class="tsd-signature-symbol">(</span>ms<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L278">src/command.ts:278</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds the <code>outpoint</code> directive to the ffconcat file.
+									<a href="https://ffmpeg.org/ffmpeg-all.html#concat-1" class="external">https://ffmpeg.org/ffmpeg-all.html#concat-1</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ms: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The outpoint in milliseconds.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="filestream" class="tsd-anchor"></a>
+					<h3>file<wbr>Stream</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">file<wbr>Stream<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L283">src/command.ts:283</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds the <code>stream</code> directive to the ffconcat file.
+									<a href="https://ffmpeg.org/ffmpeg-all.html#concat-1" class="external">https://ffmpeg.org/ffmpeg-all.html#concat-1</a></p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
 						</li>
 					</ul>
@@ -299,7 +442,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.format</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L190">src/command.ts:190</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L190">src/command.ts:190</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -332,7 +475,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.getArgs</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L236">src/command.ts:236</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L236">src/command.ts:236</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -355,7 +498,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.offset</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L232">src/command.ts:232</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L232">src/command.ts:232</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -388,7 +531,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.probe</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L179">src/command.ts:179</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L179">src/command.ts:179</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -438,7 +581,7 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.start</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L226">src/command.ts:226</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L226">src/command.ts:226</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -471,7 +614,7 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.subtitleCodec</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L214">src/command.ts:214</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L214">src/command.ts:214</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -504,7 +647,7 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 							<aside class="tsd-sources">
 								<p>Inherited from FFmpegInput.videoCodec</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/2723003/src/command.ts#L202">src/command.ts:202</a></li>
+									<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/fd352e1/src/command.ts#L202">src/command.ts:202</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -560,6 +703,18 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface">
 								<a href="_src_lib_.ffmpegconcatinput.html#file" class="tsd-kind-icon">file</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_src_lib_.ffmpegconcatinput.html#fileduration" class="tsd-kind-icon">file<wbr>Duration</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_src_lib_.ffmpegconcatinput.html#fileinpoint" class="tsd-kind-icon">file<wbr>Inpoint</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_src_lib_.ffmpegconcatinput.html#fileoutpoint" class="tsd-kind-icon">file<wbr>Outpoint</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="_src_lib_.ffmpegconcatinput.html#filestream" class="tsd-kind-icon">file<wbr>Stream</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
 								<a href="_src_lib_.ffmpegconcatinput.html#format" class="tsd-kind-icon">format</a>
