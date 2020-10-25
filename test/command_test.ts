@@ -297,8 +297,12 @@ describe('command', function () {
       it('should handle concat inputs', async function () {
         try {
           const cmd = ffmpeg();
-          cmd.concat(['file:test/samples/video.mkv', createReadStream('test/samples/video.mkv')]);
+          const input = cmd.concat(['file:test/samples/video.mkv', createReadStream('test/samples/video.mkv')]);
+          input.file('test/samples/video.mkv')
+            .file(createReadStream('test/samples/video.mkv'))
+            .fileDuration(60000);
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
+            .duration(60000 * 4)
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
