@@ -2,7 +2,7 @@ import { spawn as spawnProcess } from 'child_process';
 import { PassThrough, Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { IGNORED_ERRORS, isNullish } from './utils';
+import { IGNORED_ERRORS, isNullish, quote } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -245,7 +245,7 @@ export interface FFmpegConcatInput extends FFmpegInput {
   /**
    * Append a new file to concatenation. Requires the FFmpeg protocol to be explicitly specified.
    * For example to add `video.mp4` you should use `file:video.mp4`.
-   * This adds the `file` directive in the ffconcat file.
+   * This adds the `file` directive to the ffconcat file.
    * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
    * @param source - The source to be concatenated.
    * @example
@@ -257,6 +257,30 @@ export interface FFmpegConcatInput extends FFmpegInput {
    * ```
    */
   file(source: InputSource): this;
+   /**
+   * Set duration for the previous file added to concatenation.
+   * This adds the `duration` directive to the ffconcat file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
+   * @param duration - The duration in milliseconds.
+   */
+  fileDuration(duration: number): this;
+  /**
+   * Adds the `inpoint` directive to the ffconcat file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
+   * @param ms - The inpoint in milliseconds.
+   */
+  fileInpoint(ms: number): this;
+  /**
+   * Adds the `outpoint` directive to the ffconcat file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
+   * @param ms - The outpoint in milliseconds.
+   */
+  fileOutpoint(ms: number): this;
+  /**
+   * Adds the `stream` directive to the ffconcat file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
+   */
+  fileStream(): this;
 }
 
 /** @public */
@@ -583,15 +607,34 @@ class Input implements FFmpegInput {
     return this;
   }
 }
+const _writeToConcatStream = (input: ConcatInput, s: string) => {
+  concatStream.get(input)!.write(s, 'utf8');
+};
 const concatStream = new WeakMap<ConcatInput, PassThrough>();
 class ConcatInput extends Input implements FFmpegConcatInput {
   #streams: [string, NodeJS.ReadableStream][];
   constructor(resource: string, stream: PassThrough, streams: [string, NodeJS.ReadableStream][]) {
     super(resource, true, void 0);
-    stream.write('ffconcat version 1.0\r\n', 'utf-8');
+    stream.write('ffconcat version 1.0\r\n', 'utf8');
     concatStream.set(this, stream);
     this.args('-safe', '0'); // TODO: expose this as an option
     this.#streams = streams;
+  }
+  fileDuration(duration: number): this {
+    _writeToConcatStream(this, `duration ${duration}ms\r\n`);
+    return this;
+  }
+  fileInpoint(ms: number): this {
+    _writeToConcatStream(this, `inpoint ${ms}ms\r\n`);
+    return this;
+  }
+  fileOutpoint(ms: number): this {
+    _writeToConcatStream(this, `outpoint ${ms}ms\r\n`);
+    return this;
+  }
+  fileStream(): this {
+    _writeToConcatStream(this, 'stream\r\n');
+    return this;
   }
   file(source: InputSource) {
     let resource: string;
@@ -605,7 +648,7 @@ class ConcatInput extends Input implements FFmpegConcatInput {
       this.#streams.push([path, stream]);
       resource = getSocketResource(path);
     }
-    concatStream.get(this)!.write(`file '${resource}'\r\n`, 'utf-8');
+    _writeToConcatStream(this, `file ${quote(resource)}\r\n`);
     return this;
   }
 }

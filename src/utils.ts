@@ -62,6 +62,11 @@ export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
 }
 
 /** @internal */
+export function quote(s: string): string {
+  return `'${s.replace(/'/g, (char) => `'\\${char}'`)}'`;
+}
+
+/** @internal */
 export let pause: (p: ChildProcess) => boolean;
 /** @internal */
 export let resume: (p: ChildProcess) => boolean;
