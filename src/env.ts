@@ -41,7 +41,7 @@ export function setFFprobePath(path: string): void {
   ffprobePath = newPath;
 }
 /**
- * @returns - The absolute path to the default ffprobe path. Defaults to `process.env.FFPROBE_PATH`.
+ * @returns The absolute path to the default ffprobe path. Defaults to `process.env.FFPROBE_PATH`.
  * @throws `TypeError` if the default path is `undefined`.
  * @public
  */
