@@ -245,6 +245,8 @@ export interface FFmpegConcatInput extends FFmpegInput {
   /**
    * Append a new file to concatenation. Requires the FFmpeg protocol to be explicitly specified.
    * For example to add `video.mp4` you should use `file:video.mp4`.
+   * This adds the `file` directive in the ffconcat file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
    * @param source - The source to be concatenated.
    * @example
    * ```ts
