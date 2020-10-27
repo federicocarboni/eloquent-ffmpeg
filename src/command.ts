@@ -13,7 +13,7 @@ import { probe, ProbeOptions, ProbeResult } from './probe';
 import { stringifySimpleFilterGraph } from './filters';
 import { FFmpegProcess, Process } from './process';
 import { getFFmpegPath } from './env';
-import { escapeConcatFile } from './string';
+import { escapeConcatFile, escapeTeeComponent } from './string';
 
 /**
  * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
@@ -446,9 +446,9 @@ class Command implements FFmpegCommand {
           streams.push(dest);
         }
       }
-      resource = resources.length > 1 ? `tee:${resources.map(resource =>
-        resource.replace(/[[|\]]/g, (char) => `\\${char}`)
-      ).join('|')}` : resources[0];
+      resource = resources.length > 1 ?
+        `tee:${resources.map(escapeTeeComponent).join('|')}` :
+        resources[0];
     }
     const output = new Output(resource, isStream);
     this.#outputs.push(output);
