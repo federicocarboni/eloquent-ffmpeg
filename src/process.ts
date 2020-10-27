@@ -164,12 +164,12 @@ export class Process implements FFmpegProcess {
       }
     }
   }
-  abort() {
+  async abort() {
     const stdin = this.#process.stdin;
     if (!stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
-    write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
-    return this.complete();
+    await write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
+    return await this.complete();
   }
   pause(): boolean {
     const process = this.#process;
