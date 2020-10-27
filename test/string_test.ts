@@ -10,7 +10,7 @@ describe('escape', function () {
     });
     it('should escape special characters (non-string)', function () {
       // @ts-expect-error
-      expect(escapeConcatFile({})).equals('\\[object Object\\]');
+      expect(escapeConcatFile({})).equals('[object\\ Object]');
     });
   });
   describe('escapeFilterComponent()', function () {

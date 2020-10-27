@@ -37,20 +37,16 @@ describe('command', function () {
       it('should add strings as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['test/samples/video.mkv', 'test/samples/video.mkv']);
-        input.file('test/samples/video.mkv');
         expect(input.isStream).to.equal(true);
       });
       it('should add streams as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat([new PassThrough(), new PassThrough()]);
-        input.file(new PassThrough());
         expect(input.isStream).to.equal(true);
       });
       it('should add multiple mized sources as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['test/samples/video.mkv', new PassThrough()]);
-        input.file(new PassThrough())
-          .file('test/samples/video.mkv');
         expect(input.isStream).to.equal(true);
       });
     });
@@ -297,10 +293,13 @@ describe('command', function () {
       it('should handle concat inputs', async function () {
         try {
           const cmd = ffmpeg();
-          const input = cmd.concat(['file:test/samples/video.mkv', createReadStream('test/samples/video.mkv')]);
-          input.file('test/samples/video.mkv')
-            .file(createReadStream('test/samples/video.mkv'))
-            .fileDuration(60000);
+          cmd.concat([
+            'file:test/samples/video.mkv',
+            {
+              file: createReadStream('test/samples/video.mkv'),
+              duration: 60000
+            }
+          ]);
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
             .duration(60000 * 4)
             .args('-c', 'copy', '-f', 'matroska');
