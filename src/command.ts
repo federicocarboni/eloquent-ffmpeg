@@ -401,7 +401,7 @@ class Command implements FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: ConcatSource[] = []) {
+  concat(sources: ConcatSource[], options: ConcatOptions = {}) {
     const stream = new PassThrough();
     const path = getSocketPath();
     const resource = getSocketResource(path);
@@ -429,6 +429,9 @@ class Command implements FFmpegCommand {
     stream.write('ffconcat version 1.0\n', 'utf8');
     sources.forEach(addSource);
     stream.end();
+    input.args('-safe', options.safe ? '1' : '0');
+    if (options.protocols)
+      input.args('-protocol_whitelist', options.protocols.join(','));
     this.#inputs.push(input);
     return input;
   }
