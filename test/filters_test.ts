@@ -1,19 +1,8 @@
-import { escapeFilterComponent, stringifySimpleFilterGraph } from '../src/filters';
+import { stringifySimpleFilterGraph } from '../src/filters';
 import { expect } from 'chai';
 
 describe('filters', function () {
-  describe('escapeFilterComponent()', function () {
-    it('should escape special characters', function () {
-      const unescaped = "I'm a string;, with many[special]: characters";
-      const escaped = "I\\'m a string\\;\\, with many\\[special\\]\\: characters";
-      expect(escapeFilterComponent(unescaped)).equals(escaped);
-    });
-    it('should escape special characters (non-string)', function () {
-      // @ts-expect-error
-      expect(escapeFilterComponent({})).equals('\\[object Object\\]');
-    });
-  });
-  describe('stringifySimpleFilter()', function () {
+  describe('stringifySimpleFilterGraph()', function () {
     it('should stringify options array', function () {
       expect(stringifySimpleFilterGraph('my_filter', ['opt1', 'opt2'])).equals('my_filter=opt1:opt2');
       expect(stringifySimpleFilterGraph('my_filter', ['opt1:', 'opt2'])).equals('my_filter=opt1\\::opt2');
