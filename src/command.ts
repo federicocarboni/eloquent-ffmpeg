@@ -70,24 +70,24 @@ export interface FFmpegCommand {
    */
   input(source: InputSource): FFmpegInput;
   /**
-  * **UNSTABLE:** New API, see https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/2
-  *
-  * Concatenate media files using the `concat` demuxer.
-  *
-  * @param sources - The input sources to be concatenated, they can be in different formats but
-  * they must have the same streams, codecs, timebases, etc...
-  * {@link https://ffmpeg.org/ffmpeg-formats.html#concat-1}
-  * {@link https://trac.ffmpeg.org/wiki/Concatenate}
-  * @example
-  * ```ts
-  * const cmd = ffmpeg();
-  * cmd.concat(['chunk1.webm', 'chunk2.webm']);
-  * cmd.output('complete_video.webm');
-  * const process = await cmd.spawn();
-  * await process.complete();
-  * ```
-  * @alpha
-  */
+   * **UNSTABLE:** New API, see https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/2
+   *
+   * Concatenate media files using the `concat` demuxer.
+   *
+   * @param sources - The input sources to be concatenated, they can be in different formats but
+   * they must have the same streams, codecs, timebases, etc...
+   * {@link https://ffmpeg.org/ffmpeg-formats.html#concat-1}
+   * {@link https://trac.ffmpeg.org/wiki/Concatenate}
+   * @example
+   * ```ts
+   * const cmd = ffmpeg();
+   * cmd.concat(['chunk1.webm', 'chunk2.webm']);
+   * cmd.output('complete_video.webm');
+   * const process = await cmd.spawn();
+   * await process.complete();
+   * ```
+   * @alpha
+   */
   concat(sources: ConcatSource[], options?: ConcatOptions): FFmpegInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
