@@ -88,7 +88,7 @@ export interface FFmpegCommand {
   * ```
   * @alpha
   */
-  concat(sources?: ConcatSource[]): FFmpegInput;
+  concat(sources: ConcatSource[], options?: ConcatOptions): FFmpegInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
    * the `tee` protocol. You can use mixed destinations and multiple streams.
@@ -127,6 +127,12 @@ export interface FFmpegCommand {
    * Returns all the arguments with which ffmpeg will be spawned.
    */
   getArgs(): string[];
+}
+
+/** @alpha */
+export interface ConcatOptions {
+  safe?: boolean;
+  protocols?: string[];
 }
 
 /** @public */
