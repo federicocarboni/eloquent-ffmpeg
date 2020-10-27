@@ -3,22 +3,21 @@ import resolve from '@rollup/plugin-node-resolve';
 import cleanup from 'rollup-plugin-cleanup';
 import inject from '@rollup/plugin-inject';
 import { execSync } from 'child_process';
+import { builtinModules } from 'module';
 import * as path from 'path';
 import pkg from './package.json';
 
-const commit = execSync('git rev-parse HEAD').toString('utf-8').slice(0, -1);
+const commit = execSync('git rev-parse HEAD').toString('utf-8').slice(0, 12);
 
 const banner = `/**
- * ${pkg.name} v${pkg.version}
- * ${new Date().toUTCString()} — git ${commit}
+ * ${pkg.name} v${pkg.version} — git ${commit}
+ * ${new Date().toUTCString()}
  * ${pkg.homepage}
  * @license ${pkg.license}
  * @author ${pkg.author.name}
  */`;
 
-const external = [
-  'child_process', 'crypto', 'readline', 'module', 'stream', 'net', 'path', 'fs'
-];
+const external = [...builtinModules, 'ntsuspend'];
 const plugins = [
   typescript({
     tsconfig: './tsconfig.es6.json'
@@ -34,9 +33,8 @@ const plugins = [
 export default [{
   input: 'src/lib.ts',
   output: [{
-    entryFileNames: 'lib.mjs',
+    file: 'lib/lib.mjs',
     format: 'es',
-    dir: 'lib',
     banner,
   }],
   plugins: [
@@ -45,16 +43,15 @@ export default [{
       modules: {
         require: [path.resolve('src/require.ts'), 'require']
       }
-    })
+    }),
   ],
   external,
 }, {
   input: 'src/lib.ts',
   output: [{
-    entryFileNames: 'lib.cjs',
+    file: 'lib/lib.cjs',
     format: 'cjs',
-    dir: 'lib',
-    interop: (id) => id === 'crypto' ? 'default' : 'auto',
+    interop: (id) => builtinModules.includes(id) ? 'default' : 'auto',
     banner,
   }],
   plugins,
