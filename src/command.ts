@@ -2,7 +2,7 @@ import { spawn as spawnProcess } from 'child_process';
 import { PassThrough } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { IGNORED_ERRORS, isNullish, quote, toReadable } from './utils';
+import { IGNORED_ERRORS, isNullish, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -13,6 +13,7 @@ import { probe, ProbeOptions, ProbeResult } from './probe';
 import { stringifySimpleFilterGraph } from './filters';
 import { FFmpegProcess, Process } from './process';
 import { getFFmpegPath } from './env';
+import { escapeConcatFile } from './string';
 
 /**
  * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
@@ -36,6 +37,14 @@ export enum LogLevel {
 export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array>;
 /** @public */
 export type OutputDestination = string | NodeJS.WritableStream;
+/** @alpha */
+export type ConcatSource = InputSource
+  | {
+    file?: InputSource;
+    duration?: number;
+    inpoint?: number;
+    outpoint?: number;
+  };
 
 /** @public */
 export interface FFmpegCommand {
@@ -79,7 +88,7 @@ export interface FFmpegCommand {
   * ```
   * @alpha
   */
-  concat(sources?: InputSource[]): FFmpegConcatInput;
+  concat(sources?: ConcatSource[]): FFmpegInput;
   /**
    * Adds an output to the conversion, multiple destinations are supported using
    * the `tee` protocol. You can use mixed destinations and multiple streams.
@@ -240,49 +249,6 @@ export interface FFmpegInput {
   readonly isStream: boolean;
 }
 
-/** @alpha */
-export interface FFmpegConcatInput extends FFmpegInput {
-  /**
-   * Append a new file to concatenation. Requires the FFmpeg protocol to be explicitly specified.
-   * For example to add `video.mp4` you should use `file:video.mp4`.
-   * This adds the `file` directive to the ffconcat file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
-   * @param source - The source to be concatenated.
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * const input = cmd.concat(['file:video1.mkv', 'video2.mkv']);
-   * input.file('file:video4.mkv');
-   * // ...
-   * ```
-   */
-  file(source: InputSource): this;
-   /**
-   * Set duration for the previous file added to concatenation.
-   * This adds the `duration` directive to the ffconcat file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
-   * @param duration - The duration in milliseconds.
-   */
-  fileDuration(duration: number): this;
-  /**
-   * Adds the `inpoint` directive to the ffconcat file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
-   * @param ms - The inpoint in milliseconds.
-   */
-  fileInpoint(ms: number): this;
-  /**
-   * Adds the `outpoint` directive to the ffconcat file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
-   * @param ms - The outpoint in milliseconds.
-   */
-  fileOutpoint(ms: number): this;
-  /**
-   * Adds the `stream` directive to the ffconcat file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#concat-1}
-   */
-  fileStream(): this;
-}
-
 /** @public */
 export interface FFmpegOutput {
   /**
@@ -429,15 +395,34 @@ class Command implements FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: InputSource[] = []) {
+  concat(sources: ConcatSource[] = []) {
     const stream = new PassThrough();
     const path = getSocketPath();
     const resource = getSocketResource(path);
     this.#inputStreams.push([path, stream]);
-    const input = new ConcatInput(resource, stream, this.#inputStreams);
-    for (const source of sources) {
-      input.file(source);
-    }
+    const input = new Input(resource, true, stream);
+    const isStreaming = (o: unknown): o is Uint8Array | AsyncIterable<Uint8Array> => {
+      return o instanceof Uint8Array || Symbol.asyncIterator in (o as any);
+    };
+    const addSource = (file: ConcatSource) => {
+      if (typeof file === 'string') {
+        stream.write(`file ${escapeConcatFile(file)}\n`, 'utf8');
+        return;
+      } else if (isStreaming(file)) {
+        const path = getSocketPath();
+        this.#inputStreams.push([path, toReadable(file as any)]);
+        const resource = getSocketResource(path);
+        stream.write(`file ${escapeConcatFile(resource)}\n`, 'utf8');
+      } else {
+        if (file.file) addSource(file.file);
+        if (file.duration !== void 0) stream.write(`duration ${file.duration}ms\n`, 'utf8');
+        if (file.inpoint !== void 0) stream.write(`inpoint ${file.inpoint}ms\n`, 'utf8');
+        if (file.outpoint !== void 0) stream.write(`outpoint ${file.outpoint}ms\n`, 'utf8');
+      }
+    };
+    stream.write('ffconcat version 1.0\n', 'utf8');
+    sources.forEach(addSource);
+    stream.end();
     this.#inputs.push(input);
     return input;
   }
@@ -480,7 +465,6 @@ class Command implements FFmpegCommand {
   }
   async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
     const args = this.getArgs();
-    this.#inputs.forEach((input) => concatStream.get(input as any)?.end());
     const [inputSocketServers, outputSocketServers] = await Promise.all([
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams)
@@ -602,49 +586,6 @@ class Input implements FFmpegInput {
   }
   args(...args: string[]): this {
     this.#args.push(...args);
-    return this;
-  }
-}
-const _writeToConcatStream = (input: ConcatInput, s: string) => {
-  concatStream.get(input)!.write(s, 'utf8');
-};
-const concatStream = new WeakMap<ConcatInput, PassThrough>();
-class ConcatInput extends Input implements FFmpegConcatInput {
-  #streams: [string, NodeJS.ReadableStream][];
-  constructor(resource: string, stream: PassThrough, streams: [string, NodeJS.ReadableStream][]) {
-    super(resource, true, void 0);
-    stream.write('ffconcat version 1.0\r\n', 'utf8');
-    concatStream.set(this, stream);
-    this.args('-safe', '0'); // TODO: expose this as an option
-    this.#streams = streams;
-  }
-  fileDuration(duration: number): this {
-    _writeToConcatStream(this, `duration ${duration}ms\r\n`);
-    return this;
-  }
-  fileInpoint(ms: number): this {
-    _writeToConcatStream(this, `inpoint ${ms}ms\r\n`);
-    return this;
-  }
-  fileOutpoint(ms: number): this {
-    _writeToConcatStream(this, `outpoint ${ms}ms\r\n`);
-    return this;
-  }
-  fileStream(): this {
-    _writeToConcatStream(this, 'stream\r\n');
-    return this;
-  }
-  file(source: InputSource) {
-    let resource: string;
-    if (typeof source === 'string') {
-      resource = source;
-    } else {
-      const path = getSocketPath();
-      const stream = toReadable(source);
-      this.#streams.push([path, stream]);
-      resource = getSocketResource(path);
-    }
-    _writeToConcatStream(this, `file ${quote(resource)}\r\n`);
     return this;
   }
 }
