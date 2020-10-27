@@ -384,53 +384,39 @@ class Command implements FFmpegCommand {
       this.#args.push('-progress', 'pipe:1', '-nostats');
   }
   input(source: InputSource): FFmpegInput {
-    let resource: string;
-    let isStream: boolean;
-    let stream: NodeJS.ReadableStream | undefined;
-    if (typeof source === 'string') {
-      resource = source;
-      isStream = false;
-    } else {
-      const path = getSocketPath();
-      stream = toReadable(source);
-      this.#inputStreams.push([path, stream]);
-      resource = getSocketResource(path);
-      isStream = true;
-    }
-    const input = new Input(resource, isStream, stream);
+    const input = new Input(...getInputResource(source, this.#inputStreams));
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: ConcatSource[], options: ConcatOptions = {}) {
+  concat(sources: ConcatSource[], options?: ConcatOptions) {
     const stream = new PassThrough();
     const path = getSocketPath();
     const resource = getSocketResource(path);
     this.#inputStreams.push([path, stream]);
     const input = new Input(resource, true, stream);
-    const isStreaming = (o: unknown): o is Uint8Array | AsyncIterable<Uint8Array> => {
-      return o instanceof Uint8Array || Symbol.asyncIterator in (o as any);
+    const isInputSource = (o: unknown): o is InputSource => {
+      return typeof o === 'string' || o instanceof Uint8Array || Symbol.asyncIterator in (o as any);
     };
     const addSource = (file: ConcatSource) => {
-      if (typeof file === 'string') {
-        stream.write(`file ${escapeConcatFile(file)}\n`, 'utf8');
-        return;
-      } else if (isStreaming(file)) {
-        const path = getSocketPath();
-        this.#inputStreams.push([path, toReadable(file as any)]);
-        const resource = getSocketResource(path);
+      if (isInputSource(file)) {
+        const [resource] = getInputResource(file, this.#inputStreams);
         stream.write(`file ${escapeConcatFile(resource)}\n`, 'utf8');
       } else {
-        if (file.file) addSource(file.file);
-        if (file.duration !== void 0) stream.write(`duration ${file.duration}ms\n`, 'utf8');
-        if (file.inpoint !== void 0) stream.write(`inpoint ${file.inpoint}ms\n`, 'utf8');
-        if (file.outpoint !== void 0) stream.write(`outpoint ${file.outpoint}ms\n`, 'utf8');
+        if (file.file)
+          addSource(file.file);
+        if (file.duration !== void 0)
+          stream.write(`duration ${file.duration}ms\n`, 'utf8');
+        if (file.inpoint !== void 0)
+          stream.write(`inpoint ${file.inpoint}ms\n`, 'utf8');
+        if (file.outpoint !== void 0)
+          stream.write(`outpoint ${file.outpoint}ms\n`, 'utf8');
       }
     };
     stream.write('ffconcat version 1.0\n', 'utf8');
     sources.forEach(addSource);
     stream.end();
-    input.args('-safe', options.safe ? '1' : '0');
-    if (options.protocols)
+    input.args('-safe', options?.safe ? '1' : '0');
+    if (options?.protocols)
       input.args('-protocol_whitelist', options.protocols.join(','));
     this.#inputs.push(input);
     return input;
@@ -669,6 +655,17 @@ class Output implements FFmpegOutput {
       ...(this.#audioFilters.length > 0 ? ['-filter:a', this.#audioFilters.join(',')] : []),
       this.#resource,
     ];
+  }
+}
+
+function getInputResource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
+  if (typeof source === 'string') {
+    return [source, false];
+  } else {
+    const path = getSocketPath();
+    const stream = toReadable(source);
+    streams.push([path, stream]);
+    return [getSocketResource(path), true, stream];
   }
 }
 
