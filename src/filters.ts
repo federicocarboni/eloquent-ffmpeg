@@ -1,15 +1,8 @@
-/**
- * Escapes special characters in ffmpeg's filter graph syntax.
- * @param value - The value to be escaped.
- * @internal
- */
-export function escapeFilterComponent(value: string) {
-  return ('' + value).replace(/[:'[\],;]/g, (char) => `\\${char}`);
-}
+import { escapeFilterComponent } from './string';
 
 /**
  * Stringifies a given filter with its options to ffmpeg's filter graph syntax.
- * @param filterName The filter's name, {@link VideoFilter} {@link AudioFilter}
+ * @param filter The filter's name, {@link VideoFilter} {@link AudioFilter}
  * @param options The filter's options.
  * @see https://ffmpeg.org/ffmpeg-filters.html#Filtergraph-syntax-1
  * @example ```ts
@@ -22,15 +15,18 @@ export function escapeFilterComponent(value: string) {
  * ```
  * @internal
  */
-export function stringifySimpleFilterGraph(filterName: string, options?: Record<string, any> | any[]) {
-  if (!options) return filterName;
+export function stringifySimpleFilterGraph(filter: string, options?: Record<string, any> | any[]) {
+  if (options === void 0)
+    return filter;
   if (Array.isArray(options)) {
-    if (!options.length) return filterName;
-    return `${filterName}=${options.map(escapeFilterComponent).join(':')}`;
+    if (options.length === 0)
+      return filter;
+    return `${filter}=${options.map(escapeFilterComponent).join(':')}`;
   } else {
     const entries = Object.entries(options);
-    if (!entries.length) return filterName;
-    return `${filterName}=${entries.map(([key, value]) =>
+    if (entries.length === 0)
+      return filter;
+    return `${filter}=${entries.map(([key, value]) =>
       `${key}=${escapeFilterComponent(value)}`
     ).join(':')}`;
   }
