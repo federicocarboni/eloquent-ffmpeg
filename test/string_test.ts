@@ -16,12 +16,12 @@ describe('escape', function () {
   describe('escapeFilterComponent()', function () {
     it('should escape special characters', function () {
       const unescaped = "I'm a string;, with many[special]: characters";
-      const escaped = "I\\'m a string\\;\\, with many\\[special\\]\\: characters";
+      const escaped = "I\\'m\\ a\\ string\\;\\,\\ with\\ many\\[special\\]\\:\\ characters";
       expect(escapeFilterComponent(unescaped)).equals(escaped);
     });
     it('should escape special characters (non-string)', function () {
       // @ts-expect-error
-      expect(escapeFilterComponent({})).equals('\\[object Object\\]');
+      expect(escapeFilterComponent({})).equals('\\[object\\ Object\\]');
     });
   });
 });
