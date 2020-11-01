@@ -178,6 +178,11 @@ export interface FFmpegInput {
    * with streams. If the source is a stream `options.probeSize` number of bytes
    * will be read and passed to ffprobe; those bytes will be kept in memory
    * until the input is used in conversion.
+   *
+   * **Note:** This is not recommended for `concat()` inputs, because it may not
+   * have effect you may expect. When using `concat()` inputs with streams, the
+   * streams will be consumed.
+   *
    * @param options -
    * @example
    * ```ts
