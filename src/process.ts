@@ -121,7 +121,7 @@ export class Process implements FFmpegProcess {
   }
   args: readonly string[];
   ffmpegPath: string;
-  async* progress(): AsyncGenerator<Progress, void, void> {
+  async *progress(): AsyncGenerator<Progress, void, void> {
     let progress: Partial<Progress> = {};
     for await (const line of readlines(this.#process.stdout)) {
       try {

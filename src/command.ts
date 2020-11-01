@@ -1,4 +1,4 @@
-import { spawn as spawnProcess } from 'child_process';
+import { spawn as spawnChildProcess } from 'child_process';
 import { PassThrough } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
@@ -464,7 +464,7 @@ class Command implements FFmpegCommand {
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams)
     ]);
-    const process = spawnProcess(ffmpegPath, args, { stdio: 'pipe' });
+    const process = spawnChildProcess(ffmpegPath, args, { stdio: 'pipe' });
     const onExit = (): void => {
       const closeSocketServer = (server: Server): void => {
         if (server.listening) server.close();
