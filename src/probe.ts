@@ -343,9 +343,11 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
       throw await extractError(raw.error);
+    await new Promise((resolve) => ffprobe.once('exit', resolve));
     return new Result(raw);
   } finally {
-    if (isNullish(process.exitCode)) ffprobe.kill();
+    if (isNullish(ffprobe.exitCode))
+      ffprobe.kill();
   }
 }
 
