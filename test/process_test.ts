@@ -35,7 +35,7 @@ describe('process', function () {
       });
     });
     describe('pause()', function () {
-      if (isWin32) it('should work on Windows', async function () {
+      (isWin32 ? it : it.skip)('should pause a process (Windows)', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
@@ -50,7 +50,7 @@ describe('process', function () {
         expect(process.pause()).to.equal(false);
         expect(process.resume()).to.equal(false);
       });
-      else it('should send signal SIGSTOP', async function () {
+      (!isWin32 ? it : it.skip)('should pause a process (SIGSTOP)', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
@@ -67,7 +67,7 @@ describe('process', function () {
       });
     });
     describe('resume()', function () {
-      if (isWin32) it('should work on Windows', async function () {
+      (isWin32 ? it : it.skip)('should resume a process (Windows)', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
@@ -82,7 +82,7 @@ describe('process', function () {
         expect(process.pause()).to.equal(false);
         expect(process.resume()).to.equal(false);
       });
-      else it('should send signal SIGCONT', async function () {
+      (!isWin32 ? it : it.skip)('should resume a process (SIGCONT)', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
@@ -197,7 +197,6 @@ describe('process', function () {
         } catch {
           caught = true;
         }
-        expect(process.unwrap().exitCode).to.equal(null);
         expect(caught).to.equal(true);
         caught = false;
         try {
