@@ -400,9 +400,13 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         expect(process.pause()).to.equal(true);
+        expect(process.resume()).to.equal(true);
         expect(process.unwrap().killed).to.equal(true);
-        process.resume();
-        process.unwrap().kill('SIGKILL');
+        await process.complete()
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          .catch(() => {});
+        expect(process.pause()).to.equal(false);
+        expect(process.resume()).to.equal(false);
       });
     });
     describe('resume()', function () {
@@ -428,9 +432,14 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         process.pause();
+        expect(process.pause()).to.equal(true);
         expect(process.resume()).to.equal(true);
         expect(process.unwrap().killed).to.equal(true);
-        process.unwrap().kill('SIGKILL');
+        await process.complete()
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          .catch(() => {});
+        expect(process.pause()).to.equal(false);
+        expect(process.resume()).to.equal(false);
       });
     });
     describe('abort()', function () {
