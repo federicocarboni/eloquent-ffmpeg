@@ -40,21 +40,8 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
 
 /** @internal */
 export function write(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
-  // if (!stream.writable)
-  //   throw new TypeError('Cannot write to stream');
   return new Promise((resolve, reject) => {
     stream.write(chunk, () => {
-      stream.off('error', reject);
-      resolve();
-    });
-    stream.once('error', reject);
-  });
-}
-
-/** @internal */
-export function end(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
-  return new Promise((resolve, reject) => {
-    stream.end(chunk, () => {
       stream.off('error', reject);
       resolve();
     });
