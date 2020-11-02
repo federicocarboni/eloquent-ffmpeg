@@ -44,7 +44,7 @@ describe('command', function () {
         const input = cmd.concat([new PassThrough(), new PassThrough()]);
         expect(input.isStream).to.equal(true);
       });
-      it('should add multiple mized sources as files', function () {
+      it('should add multiple mixed sources as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['test/samples/video.mkv', new PassThrough()]);
         expect(input.isStream).to.equal(true);
