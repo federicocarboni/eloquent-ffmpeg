@@ -211,7 +211,9 @@ describe('process', function () {
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'my_invalid_muxer');
-        const process = await cmd.spawn('./my_invalid_ffmpeg');
+        const process = await cmd.spawn({
+          ffmpegPath: './my_invalid_ffmpeg'
+        });
         let caught = false;
         try {
           await process.complete();
