@@ -11,8 +11,6 @@ there shouldn't be any major breaking changes.
 
 **Only NodeJS 10.x or higher is supported**
 
-**Note:** The preview version of the library can be installed with `npm i eloquent-ffmpeg@next`.
-
 ## Prerequisites
 Eloquent FFmpeg must know where to find your `ffmpeg` or `ffprobe` executables,
 you can use the environment variables `FFMPEG_PATH` and `FFPROBE_PATH`, pointing
