@@ -314,6 +314,32 @@ describe('command', function () {
           }
         }
       });
+      it('should handle concat inputs with extra options', async function () {
+        try {
+          const cmd = ffmpeg();
+          cmd.concat([
+            'file:test/samples/video.mkv',
+            {
+              file: createReadStream('test/samples/video.mkv'),
+              duration: 60000
+            }
+          ], {
+            protocols: ['file', 'unix'],
+          });
+          cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
+            .duration(60000 * 4)
+            .args('-c', 'copy', '-f', 'matroska');
+          const process = await cmd.spawn();
+          await process.complete();
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+        } finally {
+          try {
+            unlinkSync('test/samples/[strange]output.mkv');
+          } catch {
+            //
+          }
+        }
+      });
     });
     describe('getArgs()', function () {
       it('should throw when no inputs are specified', async function () {
