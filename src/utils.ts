@@ -14,25 +14,32 @@ export function isNullish(o: unknown): o is undefined | null {
 
 /** @internal */
 export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
-  const chunks: Buffer[] = [];
   return new Promise((resolve, reject) => {
-    const onData = (chunk: Buffer): void => {
-      chunks.push(chunk);
+    const chunks: Uint8Array[] = [];
+    const unlisten = (): void => {
+      stream.off('readable', onReadable);
+      stream.off('error', onError);
+      stream.off('end', onEnd);
+    };
+    const onReadable = (): void => {
+      let chunk: Uint8Array | null;
+      while ((chunk = stream.read() as Uint8Array) !== null) {
+        chunks.push(chunk);
+      }
     };
     const onEnd = (): void => {
       const buffer = Buffer.concat(chunks);
-      stream.off('error', onError);
-      stream.off('data', onData);
+      unlisten();
       resolve(buffer);
     };
     const onError = (reason?: any): void => {
-      stream.off('data', onData);
-      stream.off('end', onEnd);
+      unlisten();
       reject(reason);
     };
-    stream.on('data', onData);
-    stream.once('end', onEnd);
-    stream.once('error', onError);
+    stream.on('readable', onReadable);
+    stream.on('end', onEnd);
+    stream.on('error', onError);
+    stream.resume();
   });
 }
 
@@ -59,6 +66,7 @@ export let pause: (p: ChildProcess) => boolean;
 /** @internal */
 export let resume: (p: ChildProcess) => boolean;
 
+/* istanbul ignore next */
 if (isWin32) {
   (() => {
     // on Windows it is not possible to use `SIGSTOP` and `SIGCONT` to pause and
