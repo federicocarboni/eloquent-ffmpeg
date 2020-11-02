@@ -2,12 +2,14 @@ import { createServer, Server } from 'net';
 import { isWin32 } from './utils';
 import { v4 } from 'uuid';
 
+/* istanbul ignore next */
 export const getSocketPath = isWin32 ? (): string => {
   return `//./pipe/ffmpeg-ipc-${v4()}.sock`;
 } : (): string => {
   return `/tmp/ffmpeg-ipc-${v4()}.sock`;
 };
 
+/* istanbul ignore next */
 export const getSocketResource = isWin32 ? (path: string): string => {
   return `file:${path}`;
 } : (path: string): string => {
