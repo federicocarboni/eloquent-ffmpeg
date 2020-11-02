@@ -14,8 +14,6 @@ export function isNullish(o: unknown): o is undefined | null {
 
 /** @internal */
 export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
-  if (!stream.readable)
-    throw new TypeError('Cannot read stream');
   const chunks: Buffer[] = [];
   return new Promise((resolve, reject) => {
     const onData = (chunk: Buffer): void => {
