@@ -454,6 +454,22 @@ describe('command', function () {
         await process.complete();
         expect(process.unwrap().exitCode).to.equal(0);
       });
+      it('should reject on a non-running ffmpeg process', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .codec('copy')
+          .format('matroska');
+        const process = await cmd.spawn();
+        await process.complete();
+        let caught = false;
+        try {
+          await process.abort();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
     });
     describe('complete()', function () {
       it('should resolve on completion', async function () {
