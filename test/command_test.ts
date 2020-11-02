@@ -2,9 +2,45 @@ import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
 import { PassThrough, Readable } from 'stream';
 import { expect } from 'chai';
 
-import { ffmpeg } from '../src/command';
+import { ffmpeg, LogLevel } from '../src/command';
 
 describe('command', function () {
+  describe('ffmpeg()', function () {
+    it('should set a custom log level', function () {
+      const cmd = ffmpeg({ logLevel: LogLevel.Info });
+      expect(cmd.logLevel).to.equal(LogLevel.Info);
+    });
+    it('should set log level to Error by default', function () {
+      const cmd = ffmpeg();
+      expect(cmd.logLevel).to.equal(LogLevel.Error);
+    });
+    it('should set overwrite to true by default', function () {
+      const cmd = ffmpeg();
+      cmd.input('test/samples/invalid');
+      cmd.output();
+      expect(cmd.getArgs()).to.include('-y');
+    });
+    it('should set overwrite to false', function () {
+      const cmd = ffmpeg({ overwrite: false });
+      cmd.input('test/samples/invalid');
+      cmd.output();
+      expect(cmd.getArgs()).to.include('-n');
+    });
+    it('should set progress to true by default', function () {
+      const cmd = ffmpeg({ progress: true });
+      cmd.input('test/samples/invalid');
+      cmd.output();
+      expect(cmd.getArgs()).to.include('-progress');
+      expect(cmd.getArgs()).to.include('-nostats');
+    });
+    it('should set progress to false', function () {
+      const cmd = ffmpeg({ progress: false });
+      cmd.input('test/samples/invalid');
+      cmd.output();
+      expect(cmd.getArgs()).to.not.include('-progress');
+      expect(cmd.getArgs()).to.not.include('-nostats');
+    });
+  });
   describe('FFmpegCommand', function () {
     this.timeout(10000);
     describe('input()', function () {
