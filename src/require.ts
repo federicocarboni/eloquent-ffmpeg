@@ -6,4 +6,4 @@ import { createRequire } from 'module';
 // not *currently* supported in LTS releases of Node.js. Modules imported by require are OPTIONAL,
 // not intended to be loaded on-demand but conditionally, and allow recovery on errors.
 // https://nodejs.org/api/esm.html
-export const require = createRequire(import.meta.url);
+export const _require = createRequire(import.meta.url);

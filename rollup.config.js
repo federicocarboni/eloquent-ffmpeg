@@ -41,7 +41,7 @@ export default [{
     ...plugins,
     inject({
       modules: {
-        require: [path.resolve('src/require.ts'), 'require']
+        require: [path.resolve('src/require.ts'), '_require']
       }
     }),
   ],
