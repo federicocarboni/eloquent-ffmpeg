@@ -317,10 +317,11 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     return new FFprobeError(error.string, logs, error.code);
   };
   try {
-    if (source instanceof Uint8Array)
+    if (source instanceof Uint8Array) {
       writeStdin(stdin, source);
-    else if (typeof source !== 'string')
+    } else if (typeof source !== 'string') {
       pipeStdin(stdin, toReadable(source));
+    }
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
@@ -362,16 +363,18 @@ class Result implements ProbeResult {
 
 function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   return new Promise((resolve, reject) => {
+    const unlisten = (): void => {
+      stdin.off('error', onError);
+      stdin.off('close', onClose);
+    };
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code)) {
-        stdin.off('error', onError);
-        stdin.off('close', onClose);
+        unlisten();
         reject(error);
       }
     };
     const onClose = (): void => {
-      stdin.off('error', onError);
-      stdin.off('close', onClose);
+      unlisten();
       resolve();
     };
     stdin.on('close', onClose);
@@ -380,27 +383,27 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   });
 }
 
-async function pipeStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
+function pipeStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
   return new Promise((resolve, reject) => {
+    const unlisten = (): void => {
+      stream.off('error', onStreamError);
+      stdin.off('error', onError);
+      stdin.off('close', onClose);
+    };
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code)) {
-        stream.off('error', onStreamError);
-        stdin.off('error', onError);
-        stdin.off('close', onClose);
+        unlisten();
         reject(error);
       }
     };
     const onStreamError = (error: Error): void => {
-      stream.off('error', onStreamError);
-      stdin.off('error', onError);
-      stdin.off('close', onClose);
-      if (stdin.writable) stdin.end();
+      if (stdin.writable)
+        stdin.end();
+      unlisten();
       reject(error);
     };
     const onClose = (): void => {
-      stream.off('error', onStreamError);
-      stdin.off('error', onError);
-      stdin.off('close', onClose);
+      unlisten();
       resolve();
     };
     stream.on('error', onStreamError);
