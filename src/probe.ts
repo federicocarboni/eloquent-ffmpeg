@@ -4,7 +4,7 @@ import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
 import { getFFprobePath } from './env';
 import { spawn } from 'child_process';
-import { Demuxer } from './_types';
+import { Demuxer, Format } from './_types';
 
 /* eslint-disable camelcase */
 
@@ -225,7 +225,7 @@ export interface RawProbeChapter {
  * @alpha
  */
 export interface ProbeResult {
-  format?: Demuxer | (string & {});
+  format?: Demuxer | Format | (string & {});
   formatName?: string;
 
   start: number;
@@ -264,7 +264,7 @@ export interface ProbeOptions {
   /**
    * Specify the input format of the media to probe.
    */
-  format?: Demuxer | (string & {});
+  format?: Demuxer | Format | (string & {});
   /**
    * Add command line arguments to ffprobe, `args` is appended **after** other
    * arguments, but **before** source.
@@ -347,7 +347,7 @@ class Result implements ProbeResult {
       this.tags = tags(raw.format.tags);
   }
 
-  format?: Demuxer | (string & {});
+  format?: Demuxer | Format | (string & {});
   formatName?: string;
   start: number;
   duration: number;
