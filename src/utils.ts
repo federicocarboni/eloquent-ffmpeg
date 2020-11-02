@@ -79,7 +79,7 @@ if (isWin32) {
       const error = new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
       // `ntsuspend` is not supposed to be a hard dependency so we throw only when pause/resume
       // are requested.
-      pause = resume = (): never => { throw error; };
+      pause = resume = () => { throw error; };
     }
   })();
 } else {
