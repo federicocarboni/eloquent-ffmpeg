@@ -1,4 +1,8 @@
-import { spawn as spawnChildProcess } from 'child_process';
+import {
+  ChildProcessWithoutNullStreams,
+  spawn as spawnChildProcess,
+  SpawnOptions as ChildProcessOptions
+} from 'child_process';
 import { PassThrough } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
@@ -122,7 +126,7 @@ export interface FFmpegCommand {
    * const process = await cmd.spawn();
    * ```
    */
-  spawn(ffmpegPath?: string): Promise<FFmpegProcess>;
+  spawn(options?: SpawnOptions): Promise<FFmpegProcess>;
   /**
    * Returns all the arguments with which ffmpeg will be spawned.
    */
@@ -133,6 +137,19 @@ export interface FFmpegCommand {
 export interface ConcatOptions {
   safe?: boolean;
   protocols?: string[];
+}
+
+/** @public */
+export interface SpawnOptions {
+  /**
+   * Path to the FFmpeg executable.
+   */
+  ffmpegPath?: string;
+  /**
+   * Add custom options that will be used to spawn the process.
+   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
+   */
+  spawnOptions?: ChildProcessOptions;
 }
 
 /** @public */
@@ -463,13 +480,20 @@ class Command implements FFmpegCommand {
     this.#args.push(...args);
     return this;
   }
-  async spawn(ffmpegPath: string = getFFmpegPath()): Promise<FFmpegProcess> {
+  async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
+    const {
+      ffmpegPath = getFFmpegPath(),
+      spawnOptions = {},
+    } = options;
     const args = this.getArgs();
     const [inputSocketServers, outputSocketServers] = await Promise.all([
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams)
     ]);
-    const process = spawnChildProcess(ffmpegPath, args, { stdio: 'pipe' });
+    const process = spawnChildProcess(ffmpegPath, args, {
+      stdio: 'pipe',
+      ...spawnOptions,
+    }) as ChildProcessWithoutNullStreams;
     const onExit = (): void => {
       const closeSocketServer = (server: Server): void => {
         if (server.listening) server.close();
