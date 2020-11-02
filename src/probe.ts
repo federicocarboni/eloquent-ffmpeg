@@ -1,11 +1,10 @@
-import { IGNORED_ERRORS, isNullish, read } from './utils';
+import { IGNORED_ERRORS, isNullish, read, toReadable } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
 import { getFFprobePath } from './env';
 import { spawn } from 'child_process';
 import { Demuxer } from './_types';
-import { Readable } from 'stream';
 
 /* eslint-disable camelcase */
 
@@ -321,7 +320,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     if (source instanceof Uint8Array)
       writeStdin(stdin, source);
     else if (typeof source !== 'string')
-      pipeStdin(stdin, 'readable' in source ? source : Readable.from(source, { objectMode: false }));
+      pipeStdin(stdin, toReadable(source));
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
