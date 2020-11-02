@@ -1,9 +1,9 @@
+import { ChildProcessWithoutNullStreams, spawn, SpawnOptions } from 'child_process';
 import { IGNORED_ERRORS, isNullish, read, toReadable } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { FFprobeError } from './errors';
 import { getFFprobePath } from './env';
-import { spawn } from 'child_process';
 import { Demuxer, Format } from './_types';
 
 /* eslint-disable camelcase */
@@ -270,10 +270,23 @@ export interface ProbeOptions {
    * arguments, but **before** source.
    */
   args?: string[];
+  /**
+   * Add custom options that will be used to spawn the process.
+   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
+   * @example
+   * ```ts
+   * const info = await probe('video.mkv', {
+   *   spawnOptions: {
+   *     timeout: 5000
+   *   }
+   * });
+   * ```
+   */
+  spawnOptions?: SpawnOptions;
 }
 
 /**
- * **UNSTABLE**: Breaking changes are under consideration.
+ * **UNSTABLE**
  *
  * Probes the given `source` using ffprobe.
  * @param source - The source to probe. Accepts the same types as `FFmpegCommand.input()`.
@@ -292,7 +305,8 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     ffprobePath = getFFprobePath(),
     logLevel = LogLevel.Error,
     format,
-    args = []
+    args = [],
+    spawnOptions = {},
   } = options;
   const ffprobe = spawn(ffprobePath, [
     '-v', logLevel.toString(),
@@ -307,7 +321,10 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     ...(format !== void 0 ? ['-f', format] : []),
     '-i',
     typeof source === 'string' ? source : 'pipe:0'
-  ], { stdio: 'pipe' });
+  ], {
+    stdio: 'pipe',
+    ...spawnOptions,
+  }) as ChildProcessWithoutNullStreams;
   const { stdin, stdout, stderr } = ffprobe;
   const extractError = async (error: RawProbeError): Promise<FFprobeError> => {
     const logs: string[] = [];
