@@ -1,9 +1,16 @@
 import { expect } from 'chai';
 
 import { ffmpeg } from '../src/command';
+import { spawn } from '../src/process';
 import { isWin32 } from '../src/utils';
 
 describe('process', function () {
+  describe('spawn()', function () {
+    it('should spawn ffmpeg as a child process', async function () {
+      const process = spawn(['-y', '-i', 'test/samples/video.mkv', '-c', 'copy', '-f', 'null', '-']);
+      await process.complete();
+    });
+  });
   describe('FFmpegProcess', function () {
     describe('get pid()', function () {
       it('should return the process\' pid', async function () {
@@ -23,7 +30,7 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.kill()).to.be.a('boolean');
+        expect(process.kill()).to.equal(true);
         expect(process.unwrap().killed).to.equal(true);
       });
     });
