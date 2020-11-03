@@ -523,15 +523,21 @@ describe('command', function () {
     });
     it('metadata()', async function () {
       const cmd = ffmpeg();
+      cmd.input('test/samples/video.mkv');
       let output = cmd.output();
-      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
+      expect(output.metadata({
+        title: '\'somethin\\ =g',
+        artist: 'someone'
+      }, 's:0')).to.equal(output);
       let args = output.getArgs();
-      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=something');
+      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=\'somethin\\ =g');
       expect(args[args.lastIndexOf('-metadata:s:0') + 1]).to.equal('artist=someone');
-      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
       output = cmd.output();
+      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
       expect(output.metadata({ title: 'something', artist: 'someone' })).to.equal(output);
       args = output.getArgs();
+      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=something');
+      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).to.equal('artist=someone');
       expect(args[args.indexOf('-metadata') + 1]).to.equal('title=something');
       expect(args[args.lastIndexOf('-metadata') + 1]).to.equal('artist=someone');
     });
