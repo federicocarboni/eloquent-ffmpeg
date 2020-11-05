@@ -392,6 +392,12 @@ export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
 }
 
 class Command implements FFmpegCommand {
+  constructor(options: FFmpegOptions = {}) {
+    this.logLevel = options.logLevel ?? LogLevel.Error;
+    this.#args.push(options.overwrite !== false ? '-y' : '-n');
+    if (options.progress !== false)
+      this.#args.push('-progress', 'pipe:1', '-nostats');
+  }
   #args: string[] = [];
   #inputs: Input[] = [];
   #outputs: Output[] = [];
@@ -399,12 +405,6 @@ class Command implements FFmpegCommand {
   #outputStreams: [string, NodeJS.WritableStream[]][] = [];
 
   logLevel: LogLevel;
-  constructor(options: FFmpegOptions = {}) {
-    this.logLevel = options.logLevel ?? LogLevel.Error;
-    this.#args.push(options.overwrite !== false ? '-y' : '-n');
-    if (options.progress !== false)
-      this.#args.push('-progress', 'pipe:1', '-nostats');
-  }
   input(source: InputSource): FFmpegInput {
     const input = new Input(...getInputResource(source, this.#inputStreams));
     this.#inputs.push(input);
@@ -530,16 +530,16 @@ class Command implements FFmpegCommand {
 }
 
 class Input implements FFmpegInput {
-  #resource: string;
-  #args: string[] = [];
-  #stream: NodeJS.ReadableStream | undefined;
-
-  isStream: boolean;
   constructor(resource: string, isStream: boolean, stream: NodeJS.ReadableStream | undefined) {
     this.#resource = resource;
     this.#stream = stream;
     this.isStream = isStream;
   }
+  #resource: string;
+  #args: string[] = [];
+  #stream: NodeJS.ReadableStream | undefined;
+
+  isStream: boolean;
   offset(offset: number): this {
     return this.args('-itsoffset', `${offset}ms`);
   }
@@ -607,16 +607,15 @@ class Input implements FFmpegInput {
 }
 
 class Output implements FFmpegOutput {
+  constructor(resource: string, isStream: boolean) {
+    this.#resource = resource;
+    this.isStream = isStream;
+  }
   #resource: string;
   #args: string[] = [];
   #videoFilters: string[] = [];
   #audioFilters: string[] = [];
   isStream: boolean;
-
-  constructor(resource: string, isStream: boolean) {
-    this.#resource = resource;
-    this.isStream = isStream;
-  }
   videoFilter(filter: string, options?: Record<string, any> | any[]) {
     this.#videoFilters.push(stringifySimpleFilterGraph(filter, options));
     return this;
