@@ -112,13 +112,13 @@ export function spawn(args: string[], ffmpegPath: string = getFFmpegPath()): FFm
 
 /** @internal */
 export class Process implements FFmpegProcess {
-  #process: ChildProcessWithoutNullStreams;
-  #stderr: string[] | undefined;
   constructor(process: ChildProcessWithoutNullStreams, args: string[], ffmpegPath: string) {
     this.#process = process;
     this.args = args;
     this.ffmpegPath = ffmpegPath;
   }
+  #process: ChildProcessWithoutNullStreams;
+  #stderr: string[] | undefined;
   args: readonly string[];
   ffmpegPath: string;
   async *progress(): AsyncGenerator<Progress, void, void> {
