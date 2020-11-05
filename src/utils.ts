@@ -61,6 +61,11 @@ export function toReadable(source: Uint8Array | AsyncIterable<Uint8Array>): Node
   );
 }
 
+// @ts-ignore
+export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap ?
+  (array, callback) => array.flatMap(callback) :
+  (array, callback) => ([] as any[]).concat(...array.map(callback));
+
 /** @internal */
 export let pause: (p: ChildProcess) => boolean;
 /** @internal */
