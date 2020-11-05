@@ -82,7 +82,6 @@ if (isWin32) {
     try {
       // dynamically require `ntsuspend`, require() will be created with
       // createRequire() in the es module build
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const ntsuspend = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
