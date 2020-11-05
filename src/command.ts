@@ -541,36 +541,28 @@ class Input implements FFmpegInput {
     this.isStream = isStream;
   }
   offset(offset: number): this {
-    this.#args.push('-itsoffset', `${offset}ms`);
-    return this;
+    return this.args('-itsoffset', `${offset}ms`);
   }
   duration(duration: number): this {
-    this.#args.push('-t', `${duration}ms`);
-    return this;
+    return this.args('-t', `${duration}ms`);
   }
   start(start: number): this {
-    this.#args.push('-ss', `${start}ms`);
-    return this;
+    return this.args('-ss', `${start}ms`);
   }
   format(format: Format | Demuxer): this {
-    this.#args.push('-f', format);
-    return this;
+    return this.args('-f', format);
   }
   codec(codec: string): this {
-    this.#args.push('-c', codec);
-    return this;
+    return this.args('-c', codec);
   }
   videoCodec(codec: string): this {
-    this.#args.push('-c:V', codec);
-    return this;
+    return this.args('-c:V', codec);
   }
   audioCodec(codec: string): this {
-    this.#args.push('-c:a', codec);
-    return this;
+    return this.args('-c:a', codec);
   }
   subtitleCodec(codec: string): this {
-    this.#args.push('-c:s', codec);
-    return this;
+    return this.args('-c:s', codec);
   }
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
     const readChunk = (): Promise<Uint8Array> => {
@@ -634,44 +626,35 @@ class Output implements FFmpegOutput {
     return this;
   }
   metadata(metadata: Record<string, string>, specifier?: string): this {
-    this.#args.push(...([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
+    return this.args(...([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
       return [`-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`];
     })));
-    return this;
   }
   map(...streams: string[]): this {
-    this.#args.push(...([] as string[]).concat(...streams.map(
+    return this.args(...([] as string[]).concat(...streams.map(
       (stream) => ['-map', stream]
     )));
-    return this;
   }
   format(format: string): this {
-    this.#args.push('-f', format);
-    return this;
+    return this.args('-f', format);
   }
   codec(codec: string): this {
-    this.#args.push('-c', codec);
-    return this;
+    return this.args('-c', codec);
   }
   videoCodec(codec: string): this {
-    this.#args.push('-c:V', codec);
-    return this;
+    return this.args('-c:V', codec);
   }
   audioCodec(codec: string): this {
-    this.#args.push('-c:a', codec);
-    return this;
+    return this.args('-c:a', codec);
   }
   subtitleCodec(codec: string): this {
-    this.#args.push('-c:s', codec);
-    return this;
+    return this.args('-c:s', codec);
   }
   duration(duration: number): this {
-    this.#args.push('-t', `${duration}ms`);
-    return this;
+    return this.args('-t', `${duration}ms`);
   }
   start(start: number): this {
-    this.#args.push('-ss', `${start}ms`);
-    return this;
+    return this.args('-ss', `${start}ms`);
   }
   args(...args: string[]): this {
     this.#args.push(...args);
@@ -706,8 +689,8 @@ function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
       stream.off('error', onError);
       socket.off('error', onError);
     };
-    stream.once('error', onError);
-    socket.once('error', onError);
+    stream.on('error', onError);
+    socket.on('error', onError);
     stream.pipe(socket);
 
     // Do NOT accept further connections, close() will close the server after
