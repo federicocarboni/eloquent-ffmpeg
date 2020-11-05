@@ -6,7 +6,7 @@ import {
 import { PassThrough } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { IGNORED_ERRORS, isNullish, toReadable } from './utils';
+import { flatMap, IGNORED_ERRORS, isNullish, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -523,8 +523,8 @@ class Command implements FFmpegCommand {
     return [
       ...this.#args,
       '-v', this.logLevel.toString(),
-      ...([] as string[]).concat(...this.#inputs.map(o => o.getArgs())),
-      ...([] as string[]).concat(...this.#outputs.map(o => o.getArgs())),
+      ...flatMap(this.#inputs, (input) => input.getArgs()),
+      ...flatMap(this.#outputs, (output) => output.getArgs()),
     ];
   }
 }
@@ -625,14 +625,12 @@ class Output implements FFmpegOutput {
     return this;
   }
   metadata(metadata: Record<string, string>, specifier?: string): this {
-    return this.args(...([] as string[]).concat(...Object.entries(metadata).map(([key, value]) => {
-      return [`-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`];
-    })));
+    return this.args(...flatMap(Object.entries(metadata), ([key, value]) => [
+      `-metadata${specifier ? ':' + specifier : ''}`, `${key}=${value}`
+    ]));
   }
   map(...streams: string[]): this {
-    return this.args(...([] as string[]).concat(...streams.map(
-      (stream) => ['-map', stream]
-    )));
+    return this.args(...flatMap(streams, (stream) => ['-map', stream]));
   }
   format(format: string): this {
     return this.args('-f', format);
