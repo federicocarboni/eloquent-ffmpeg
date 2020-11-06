@@ -1,18 +1,14 @@
 import { ChildProcess } from 'child_process';
 import { Readable } from 'stream';
 
-/** @internal */
 export const isWin32 = process.platform === 'win32';
 
-/** @internal */
 export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
-/** @internal */
 export function isNullish(o: unknown): o is undefined | null {
   return o === void 0 || o === null;
 }
 
-/** @internal */
 export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
@@ -43,7 +39,6 @@ export function read(stream: NodeJS.ReadableStream): Promise<Buffer> {
   });
 }
 
-/** @internal */
 export function write(stream: NodeJS.WritableStream, chunk?: any): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.write(chunk, () => {
@@ -54,31 +49,31 @@ export function write(stream: NodeJS.WritableStream, chunk?: any): Promise<void>
   });
 }
 
-/** @internal */
 export function toReadable(source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream {
   return 'readable' in source ? source : Readable.from(
     source instanceof Uint8Array ? [source] : source, { objectMode: false }
   );
 }
 
-// @ts-ignore
+// Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
+// if available or falls back to using `map` and `concat`.
+/* istanbul ignore next */ // @ts-ignore
 export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap ?
   (array, callback) => array.flatMap(callback) :
   (array, callback) => ([] as any[]).concat(...array.map(callback));
 
-/** @internal */
 export let pause: (p: ChildProcess) => boolean;
-/** @internal */
 export let resume: (p: ChildProcess) => boolean;
 
 /* istanbul ignore next */
 if (isWin32) {
   (() => {
-    // on Windows it is not possible to use `SIGSTOP` and `SIGCONT` to pause and
-    // resume processes because they are not supported; we call the native
-    // functions `NtSuspendProcess()` and `NtResumeProcess()` from NTDLL through
-    // a native Node.js addon packaged and released to NPM as `ntsuspend`
+    // on Windows `SIGSTOP` and `SIGCONT` cannot be used to pause and resume
+    // processes because they are not supported; we call the native functions
+    // `NtSuspendProcess()` and `NtResumeProcess()` from NTDLL through a
+    // native Node.js addon packaged and released to NPM as `ntsuspend`
     // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
+    // https://github.com/FedericoCarboni/node-ntsuspend
     try {
       // dynamically require `ntsuspend`, require() will be created with
       // createRequire() in the es module build
@@ -87,8 +82,8 @@ if (isWin32) {
       resume = (p) => ntsuspend.resume(p.pid);
     } catch {
       const error = new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
-      // `ntsuspend` is not supposed to be a hard dependency so we throw only when pause/resume
-      // are requested.
+      // `ntsuspend` is not supposed to be a hard dependency so we will
+      // only throw when pause or resume are actually called
       pause = resume = () => { throw error; };
     }
   })();
