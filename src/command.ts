@@ -3,10 +3,10 @@ import {
   spawn as spawnChildProcess,
   SpawnOptions as ChildProcessOptions
 } from 'child_process';
-import { PassThrough } from 'stream';
+import { Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { flatMap, IGNORED_ERRORS, isNullish, toReadable } from './utils';
+import { flatMap, IGNORED_ERRORS, isNullish, isReadableStream, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -412,35 +412,49 @@ class Command implements FFmpegCommand {
     return input;
   }
   concat(sources: ConcatSource[], options?: ConcatOptions) {
-    const stream = new PassThrough();
-    const path = getSocketPath();
-    const resource = getSocketResource(path);
-    this.#inputStreams.push([path, stream]);
-    const input = new Input(resource, true, stream);
-    const isInputSource = (o: unknown): o is InputSource => {
-      return typeof o === 'string' || o instanceof Uint8Array || Symbol.asyncIterator in (o as any);
-    };
-    const addSource = (file: ConcatSource) => {
-      if (isInputSource(file)) {
-        const [resource] = checkSource(file, this.#inputStreams);
-        stream.write(`file ${escapeConcatFile(resource)}\n`, 'utf8');
+    // dynamically create an ffconcat
+    let directives = 'ffconcat version 1.0\n';
+    const isInputSource = (o: any): o is InputSource => (
+      typeof o === 'string' || isReadableStream(o) ||
+      o instanceof Uint8Array || Symbol.asyncIterator in o
+    );
+    const inputStreams = this.#inputStreams;
+    const addDirective = (source: ConcatSource) => {
+      if (isInputSource(source)) {
+        // add a file directive for the input source
+        const [resource] = checkSource(source, inputStreams);
+        directives += `file ${escapeConcatFile(resource)}\n`;
       } else {
-        if (file.file)
-          addSource(file.file);
-        if (file.duration !== void 0)
-          stream.write(`duration ${file.duration}ms\n`, 'utf8');
-        if (file.inpoint !== void 0)
-          stream.write(`inpoint ${file.inpoint}ms\n`, 'utf8');
-        if (file.outpoint !== void 0)
-          stream.write(`outpoint ${file.outpoint}ms\n`, 'utf8');
+        if (source.file !== void 0)
+          addDirective(source.file);
+        // add directives based on the source
+        if (source.duration !== void 0)
+        directives += `duration ${source.duration}ms\n`;
+        if (source.inpoint !== void 0)
+        directives += `inpoint ${source.inpoint}ms\n`;
+        if (source.outpoint !== void 0)
+        directives += `outpoint ${source.outpoint}ms\n`;
+        // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
     };
-    stream.write('ffconcat version 1.0\n', 'utf8');
-    sources.forEach(addSource);
-    stream.end();
+    sources.forEach(addDirective);
+
+    const stream = Readable.from([Buffer.from(directives, 'utf8')], { objectMode: false });
+    const path = getSocketPath();
+    inputStreams.push([path, stream]);
+    const input = new Input(getSocketResource(path), true, stream);
+
+    // add extra arguments to the input based on the given options
+    // the option safe is NOT enabled by default because it doesn't
+    // allow streams or protocols other than the currently used one,
+    // which, depending on the platform, may be `file` (on Windows)
+    // or `unix` (on every other platform)
     input.args('-safe', options?.safe ? '1' : '0');
+    // protocol whitelist enables certain protocols in the ffconcat
+    // file dynamically created by this method
     if (options?.protocols)
       input.args('-protocol_whitelist', options.protocols.join(','));
+
     this.#inputs.push(input);
     return input;
   }
@@ -461,9 +475,10 @@ class Command implements FFmpegCommand {
       streams.push(dest);
       return [];
     });
-    const resource = resources.length === 1
+    const resource = resources.length === 0 ? 'NUL' : resources.length === 1
       ? resources[0]
       : `tee:${resources.map(escapeTeeComponent).join('|')}`;
+      console.log({ streams: streams!, isStream, resource });
     const output = new Output(resource, isStream);
     this.#outputs.push(output);
     return output;
@@ -696,6 +711,7 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code))
         socket.end();
+      console.log(error);
     };
     socket.on('error', onError);
 
