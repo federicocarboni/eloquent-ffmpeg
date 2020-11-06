@@ -3,6 +3,8 @@ import { Readable } from 'stream';
 
 export const isWin32 = process.platform === 'win32';
 
+export const DEV_NULL = isWin32 ? 'NUL' : '/dev/null';
+
 export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
