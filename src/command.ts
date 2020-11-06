@@ -6,7 +6,7 @@ import {
 import { Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketResource } from './sock';
-import { flatMap, IGNORED_ERRORS, isNullish, isReadableStream, toReadable } from './utils';
+import { DEV_NULL, flatMap, IGNORED_ERRORS, isNullish, isReadableStream, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -467,7 +467,7 @@ class Command implements FFmpegCommand {
       }
       if (!isStream) {
         isStream = true;
-        streams = [];
+        streams = [dest];
         const path = getSocketPath();
         this.#outputStreams.push([path, streams]);
         return getSocketResource(path);
@@ -475,10 +475,9 @@ class Command implements FFmpegCommand {
       streams.push(dest);
       return [];
     });
-    const resource = resources.length === 0 ? 'NUL' : resources.length === 1
-      ? resources[0]
+    const resource = resources.length === 0 ? DEV_NULL
+      : resources.length === 1 ? resources[0]
       : `tee:${resources.map(escapeTeeComponent).join('|')}`;
-      console.log({ streams: streams!, isStream, resource });
     const output = new Output(resource, isStream);
     this.#outputs.push(output);
     return output;
@@ -711,7 +710,6 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
     const onError = (error: Error & { code: string }): void => {
       if (!IGNORED_ERRORS.has(error.code))
         socket.end();
-      console.log(error);
     };
     socket.on('error', onError);
 
