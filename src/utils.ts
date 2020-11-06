@@ -56,7 +56,10 @@ export function toReadable(source: Uint8Array | AsyncIterable<Uint8Array>): Node
 }
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
-// if available or falls back to using `map` and `concat`.
+// if available or falls back to using `Array.prototype.map` and
+// `Array.prototype.concat`; this solution works, but it's potentially subject
+// to call stack size limits, though it's very very unlikely
+// TODO: use `flatMap` directly when Node.js drops support for v10
 /* istanbul ignore next */ // @ts-ignore
 export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap ?
   (array, callback) => array.flatMap(callback) :
