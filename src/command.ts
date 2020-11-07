@@ -431,7 +431,7 @@ class Command implements FFmpegCommand {
       } else {
         if (source.file !== void 0)
           addFile(source.file);
-          // add directives based on the source
+        // add directives based on the source
         if (source.duration !== void 0)
           directives += `duration ${source.duration}ms\n`;
         if (source.inpoint !== void 0)
