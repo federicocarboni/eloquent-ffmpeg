@@ -407,13 +407,14 @@ class Command implements FFmpegCommand {
 
   logLevel: LogLevel;
   input(source: InputSource): FFmpegInput {
-    const [url, isStream, stream] = checkSource(source, this.#inputStreams);
+    const [url, isStream, stream] = handleSource(source, this.#inputStreams);
     const input = new Input(url, isStream, stream);
     this.#inputs.push(input);
     return input;
   }
   concat(sources: ConcatSource[], options?: ConcatOptions) {
     // dynamically create an ffconcat file with the given directives
+    // https://ffmpeg.org/ffmpeg-all.html#toc-concat-1
     let directives = 'ffconcat version 1.0\n';
     const isInputSource = (o: any): o is InputSource => (
       typeof o === 'string' || isReadableStream(o) ||
@@ -421,7 +422,7 @@ class Command implements FFmpegCommand {
     );
     const inputStreams = this.#inputStreams;
     const addFile = (file: InputSource) => {
-      const [url] = checkSource(file, inputStreams);
+      const [url] = handleSource(file, inputStreams);
       directives += `file ${escapeConcatFile(url)}\n`;
     };
     sources.forEach((source) => {
@@ -437,7 +438,7 @@ class Command implements FFmpegCommand {
           directives += `inpoint ${source.inpoint}ms\n`;
         if (source.outpoint !== void 0)
           directives += `outpoint ${source.outpoint}ms\n`;
-          // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
+        // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
     });
 
@@ -506,6 +507,7 @@ class Command implements FFmpegCommand {
       spawnOptions = {},
     } = options;
     const args = this.getArgs();
+    // starts all socket servers needed to handle the streams
     const [inputSocketServers, outputSocketServers] = await Promise.all([
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams),
@@ -535,10 +537,10 @@ class Command implements FFmpegCommand {
   }
   getArgs(): string[] {
     const inputs = this.#inputs;
-    if (inputs.length === 0)
+    if (inputs.length < 1)
       throw new TypeError('At least one input file should be specified');
     const outputs = this.#outputs;
-    if (outputs.length === 0)
+    if (outputs.length < 1)
       throw new TypeError('At least one output file should be specified');
     return [
       ...this.#args,
@@ -690,7 +692,7 @@ class Output implements FFmpegOutput {
   }
 }
 
-function checkSource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
+function handleSource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
   if (typeof source === 'string') {
     return [source, false];
   } else {
