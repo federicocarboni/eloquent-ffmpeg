@@ -16,9 +16,9 @@ export const getSocketUrl = isWin32 ? (path: string): string => (
   `unix:${path}`
 );
 
-export function createSocketServer(path: string): Promise<Server> {
-  return new Promise((resolve) => {
+export const createSocketServer = (path: string): Promise<Server> => (
+  new Promise((resolve) => {
     const server = createServer();
     server.listen(path, () => resolve(server));
-  });
-}
+  })
+);

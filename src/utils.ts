@@ -35,7 +35,7 @@ export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => {
   }
 };
 
-export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
+export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
   new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
     const unlisten = (): void => {
@@ -62,21 +62,24 @@ export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
     stream.on('end', onEnd);
     stream.on('error', onError);
     stream.resume();
-  });
+  })
+);
 
-export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> =>
+export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> => (
   new Promise((resolve, reject) => {
     stream.write(chunk as any, () => {
       stream.off('error', reject);
       resolve();
     });
     stream.once('error', reject);
-  });
+  })
+);
 
-export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
-  isReadableStream(source) ? source : Readable.from(
+export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream => (
+  isReadableStream(source) ? source: Readable.from(
     source instanceof Uint8Array ? [source] : source, { objectMode: false }
-  );
+  )
+);
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
 // if available or falls back to using `Array.prototype.map` and
