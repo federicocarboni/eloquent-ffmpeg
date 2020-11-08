@@ -87,9 +87,9 @@ export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): Node
 // to call stack size limits, though it's very very unlikely
 // TODO: use `flatMap` directly when Node.js drops support for v10
 /* istanbul ignore next */ // @ts-ignore
-export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap ?
-  (array, callback) => array.flatMap(callback) :
-  (array, callback) => ([] as any[]).concat(...array.map(callback));
+export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap
+  ? (array, callback) => array.flatMap(callback)
+  : (array, callback) => ([] as any[]).concat(...array.map(callback));
 
 export let pause: (p: ChildProcess) => boolean;
 export let resume: (p: ChildProcess) => boolean;
