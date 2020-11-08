@@ -97,15 +97,15 @@ export let resume: (p: ChildProcess) => boolean;
 /* istanbul ignore next */
 if (isWin32) {
   (() => {
-    // on Windows `SIGSTOP` and `SIGCONT` cannot be used to pause and resume
+    // On Windows `SIGSTOP` and `SIGCONT` cannot be used to pause and resume
     // processes because they are not supported; we call the native functions
     // `NtSuspendProcess()` and `NtResumeProcess()` from NTDLL through a
-    // native Node.js addon packaged and released to NPM as `ntsuspend`
+    // native Node.js addon packaged and released to NPM as `ntsuspend`.
     // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
     // https://github.com/FedericoCarboni/node-ntsuspend
     try {
-      // dynamically require `ntsuspend`, require() will be created with
-      // createRequire() in the es module build
+      // Dynamically require `ntsuspend`, require() will be created with
+      // createRequire() in the es module build.
       const ntsuspend = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
@@ -117,7 +117,7 @@ if (isWin32) {
     }
   })();
 } else {
-  // on POSIX operating systems `SIGSTOP` and `SIGCONT` are available
+  // On POSIX operating systems `SIGSTOP` and `SIGCONT` are available.
   pause = (p) => p.kill('SIGSTOP');
   resume = (p) => p.kill('SIGCONT');
 }
