@@ -39,6 +39,7 @@ jobs:
         with:
           name: ffmpeg-git
           path: ffmpeg
+      - run: sudo chmod -R 777 ffmpeg
       - run: npm ci
       - run: npm run lint
       - run: npm run build
