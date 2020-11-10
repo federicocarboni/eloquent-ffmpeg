@@ -20,6 +20,7 @@ jobs:
       - run: mkdir .ffmpeg
       - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .ffmpeg
       - run: rm -rf ffmpeg-*-static
+      - run: printf "FFMPEG_PATH=.ffmpeg/ffmpeg\nFFPROBE_PATH=.ffmpeg/ffprobe" > .env
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
@@ -27,8 +28,4 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      - name: ${{ env.GITHUB_WORKSPACE }}
-        run: npm test
-        env:
-          FFMPEG_PATH: .ffmpeg/ffmpeg
-          FFPROBE_PATH: .ffmpeg/ffprobe
+      - run: npm test
