@@ -6,7 +6,7 @@ import {
 import { Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketUrl } from './sock';
-import { DEV_NULL, flatMap, isNullish, isReadableStream, toReadable } from './utils';
+import { DEV_NULL, flatMap, isReadableStream, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -525,13 +525,10 @@ class Command implements FFmpegCommand {
       outputSocketServers.forEach(closeSocketServer);
       // Remove listeners after cleanup.
       ffmpeg.off('exit', onExit);
-      ffmpeg.off('error', onError);
-    };
-    const onError = (): void => {
-      if (!isNullish(ffmpeg.exitCode)) onExit();
+      ffmpeg.off('error', onExit);
     };
     ffmpeg.on('exit', onExit);
-    ffmpeg.on('error', onError);
+    ffmpeg.on('error', onExit);
     return new Process(ffmpeg, args, ffmpegPath);
   }
   getArgs(): string[] {
