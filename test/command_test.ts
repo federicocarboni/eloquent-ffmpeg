@@ -216,6 +216,34 @@ describe('command', function () {
       });
     });
     describe('spawn()', function () {
+      it('should cleanup socket servers on errored process', async function () {
+        const cmd = ffmpeg();
+        cmd.input(createReadStream('test/samples/video.mkv'));
+        cmd.output(createWriteStream('test/samples/output.mkv'));
+        const process = await cmd.spawn({
+          ffmpegPath: './my_invalid_ffmpeg'
+        });
+        let caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(caught).to.equal(true);
+        caught = false;
+        try {
+          await process.complete();
+        } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+        try {
+          unlinkSync('test/samples/output.mkv');
+        } catch {
+          //
+        }
+      });
       it('should handle a NodeJS\' file write stream', async function () {
         try {
           const cmd = ffmpeg();
