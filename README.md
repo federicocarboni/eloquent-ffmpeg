@@ -1,4 +1,7 @@
 # Eloquent FFmpeg
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/FedericoCarboni/eloquent-ffmpeg.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/FedericoCarboni/eloquent-ffmpeg/context:javascript)
+[![Known Vulnerabilities](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg/badge.svg?targetFile=package.json)](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg?targetFile=package.json)
+
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
 This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
