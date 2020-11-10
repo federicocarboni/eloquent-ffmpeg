@@ -9,6 +9,9 @@
     "import": "./lib/lib.mjs",
     "require": "./lib/lib.cjs"
   },
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "typedoc": "typedoc && node -e \"require('fs').writeFileSync('docs/.nojekyll', '')\"",
     "dts": "tsc -p tsconfig.es6.json --emitDeclarationOnly --declaration --declarationDir ./temp && api-extractor run && npx rimraf ./temp",
