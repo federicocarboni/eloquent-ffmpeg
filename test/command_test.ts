@@ -71,7 +71,7 @@ describe('command', function () {
     describe('concat()', function () {
       it('should add strings as files', function () {
         const cmd = ffmpeg();
-        const input = cmd.concat(['test/samples/video.mkv', 'test/samples/video.mkv']);
+        const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv']);
         expect(input.isStream).to.equal(true);
       });
       it('should add streams as files', function () {
@@ -81,8 +81,40 @@ describe('command', function () {
       });
       it('should add multiple mixed sources as files', function () {
         const cmd = ffmpeg();
-        const input = cmd.concat(['test/samples/video.mkv', new PassThrough()]);
+        const input = cmd.concat(['file:test/samples/video.mkv', new PassThrough()]);
         expect(input.isStream).to.equal(true);
+      });
+      it('should set safe to 0 by default', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['file:test/samples/video.mkv']);
+        expect(input.isStream).to.equal(true);
+        const args = input.getArgs();
+        expect(args[args.indexOf('-safe') + 1]).to.equal('0');
+      });
+      it('should set safe to 1', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['file:test/samples/video.mkv'], { safe: true });
+        expect(input.isStream).to.equal(true);
+        const args = input.getArgs();
+        expect(args[args.indexOf('-safe') + 1]).to.equal('1');
+      });
+      it('should set protocol whitelist', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['file:test/samples/video.mkv'], {
+          protocols: ['unix', 'file'],
+        });
+        expect(input.isStream).to.equal(true);
+        const args = input.getArgs();
+        expect(args[args.indexOf('-protocol_whitelist') + 1]).to.equal('unix,file');
+      });
+      it('should not set protocol whitelist if empty', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['file:test/samples/video.mkv'], {
+          protocols: [],
+        });
+        expect(input.isStream).to.equal(true);
+        const args = input.getArgs();
+        expect(args.indexOf('-protocol_whitelist')).to.equal(-1);
       });
     });
     describe('output()', function () {
@@ -332,7 +364,11 @@ describe('command', function () {
             'file:test/samples/video.mkv',
             {
               file: createReadStream('test/samples/video.mkv'),
-              duration: 60000
+            },
+            {
+              duration: 60000,
+              inpoint: 0,
+              outpoint: 0,
             }
           ]);
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
