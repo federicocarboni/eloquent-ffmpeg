@@ -44,7 +44,7 @@
     "/lib"
   ],
   "optionalDependencies": {
-    "ntsuspend": "*"
+    "ntsuspend": "^1.0.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.11.2",
