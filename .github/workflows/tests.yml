@@ -27,7 +27,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      - run: npm test
+      - name: ${{ env.GITHUB_WORKSPACE }}
+        run: npm test
         env:
           FFMPEG_PATH: ${{ env.GITHUB_WORKSPACE }}/.ffmpeg/ffmpeg
           FFPROBE_PATH: ${{ env.GITHUB_WORKSPACE }}/.ffmpeg/ffprobe
