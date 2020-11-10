@@ -14,7 +14,7 @@ jobs:
       - run: tar xf ffmpeg-git-amd64-static.tar.xz
       - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .
       - run: rm -rf ffmpeg-*-static
-      - run: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: ffmpeg-git
           path: |
