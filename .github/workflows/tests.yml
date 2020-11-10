@@ -17,7 +17,8 @@ jobs:
     steps:
       - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
       - run: tar xf ffmpeg-git-amd64-static.tar.xz
-      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .ffmpeg
+      - run: mkdir $HOME/.ffmpeg
+      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} $HOME/.ffmpeg
       - run: rm -rf ffmpeg-*-static
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -28,5 +29,5 @@ jobs:
       - run: npm run build
       - run: npm test
         env:
-          FFMPEG_PATH: .ffmpeg/ffmpeg
-          FFPROBE_PATH: .ffmpeg/ffprobe
+          FFMPEG_PATH: $HOME/.ffmpeg/ffmpeg
+          FFPROBE_PATH: $HOME/.ffmpeg/ffprobe
