@@ -454,7 +454,7 @@ class Command implements FFmpegCommand {
     input.args('-safe', options?.safe ? '1' : '0');
     // Protocol whitelist enables certain protocols in the ffconcat
     // file dynamically created by this method.
-    if (options?.protocols)
+    if (options?.protocols && options.protocols.length > 0)
       input.args('-protocol_whitelist', options.protocols.join(','));
 
     this.#inputs.push(input);
