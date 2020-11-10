@@ -7,7 +7,23 @@ on:
     branches: [master]
 
 jobs:
+  setup-ffmpeg:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
+      - run: tar xf ffmpeg-git-amd64-static.tar.xz
+      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .
+      - run: rm -rf ffmpeg-*-static
+      - run: actions/upload-artifact@v2
+        with:
+          name: ffmpeg-git
+          path: |
+            ffmpeg
+            ffprobe
+
   test:
+    needs: setup-ffmpeg
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -16,16 +32,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
-      - run: tar xf ffmpeg-git-amd64-static.tar.xz
-      - run: mkdir .ffmpeg
-      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .ffmpeg
-      - run: rm -rf ffmpeg-*-static
-      - run: printf "FFMPEG_PATH=.ffmpeg/ffmpeg\nFFPROBE_PATH=.ffmpeg/ffprobe" > .env
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: ffmpeg-git
+          path: ffmpeg
       - run: npm ci
       - run: npm run lint
       - run: npm run build
       - run: npm test
+        env:
+          FFMPEG_PATH: ffmpeg/ffmpeg
+          FFPROBE_PATH: ffmpeg/ffprobe
