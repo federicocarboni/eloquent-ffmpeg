@@ -208,9 +208,8 @@ describe('process', function () {
       });
       it('should reject on errored process', async function () {
         const cmd = ffmpeg();
-        cmd.input('test/samples/video.mp4');
-        cmd.output()
-          .args('-c', 'copy', '-f', 'my_invalid_muxer');
+        cmd.input('test/samples/invalid');
+        cmd.output();
         const process = await cmd.spawn({
           ffmpegPath: './my_invalid_ffmpeg'
         });
