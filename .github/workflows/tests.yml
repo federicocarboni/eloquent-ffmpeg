@@ -25,7 +25,6 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
-        with:
-          env:
-            FFMPEG_PATH: /usr/bin/ffmpeg
-            FFPROBE_PATH: /usr/bin/ffprobe
+        env:
+          FFMPEG_PATH: /usr/bin/ffmpeg
+          FFPROBE_PATH: /usr/bin/ffprobe
