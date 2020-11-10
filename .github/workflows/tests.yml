@@ -29,5 +29,5 @@ jobs:
       - run: npm run build
       - run: npm test
         env:
-          FFMPEG_PATH: $HOME/.ffmpeg/ffmpeg
-          FFPROBE_PATH: $HOME/.ffmpeg/ffprobe
+          FFMPEG_PATH: ${{ env.HOME }}/.ffmpeg/ffmpeg
+          FFPROBE_PATH: ${{ env.HOME }}/.ffmpeg/ffprobe
