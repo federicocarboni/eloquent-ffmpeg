@@ -1,10 +1,10 @@
-name: Test Pull Request
+name: build
 
 on:
   push:
-    branches: [$default-branch]
+    branches: [master]
   pull_request:
-    branches: [$default-branch]
+    branches: [master]
 
 jobs:
   test:
