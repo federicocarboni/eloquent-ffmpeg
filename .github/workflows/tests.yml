@@ -15,13 +15,13 @@ jobs:
         node-version: [10.x, 12.x, 14.x]
 
     steps:
+      - uses: actions/checkout@v2
       - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
       - run: tar xf ffmpeg-git-amd64-static.tar.xz
       - run: mkdir .ffmpeg
       - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .ffmpeg
       - run: rm -rf ffmpeg-*-static
       - run: printf "FFMPEG_PATH=.ffmpeg/ffmpeg\nFFPROBE_PATH=.ffmpeg/ffprobe" > .env
-      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
