@@ -1,3 +1,12 @@
 {
-  "include": "src/**/*"
+  "include": "src/**/*",
+  "reporter": [
+    "lcov",
+    "text"
+  ],
+  "check-coverage": true,
+  "branches": 80,
+  "functions": 90,
+  "lines": 90,
+  "statements": 90
 }
