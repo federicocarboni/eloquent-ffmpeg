@@ -15,8 +15,10 @@ jobs:
         node-version: [10.x, 12.x, 14.x]
 
     steps:
-      - run: sudo apt-get update
-      - run: sudo apt-get install ffmpeg
+      - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
+      - run: tar xf ffmpeg-git-amd64-static.tar.xz
+      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .ffmpeg
+      - run: rm -rf ffmpeg-*-static
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
@@ -26,5 +28,5 @@ jobs:
       - run: npm run build
       - run: npm test
         env:
-          FFMPEG_PATH: /usr/bin/ffmpeg
-          FFPROBE_PATH: /usr/bin/ffprobe
+          FFMPEG_PATH: .ffmpeg/ffmpeg
+          FFPROBE_PATH: .ffmpeg/ffprobe
