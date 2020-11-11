@@ -219,7 +219,8 @@ describe('command', function () {
       it('should cleanup socket servers on errored process', async function () {
         const cmd = ffmpeg();
         cmd.input(createReadStream('test/samples/video.mkv'));
-        cmd.output(createWriteStream('test/samples/output.mkv'));
+        const writeStream = createWriteStream('test/samples/output.mkv');
+        cmd.output(writeStream);
         const process = await cmd.spawn({
           ffmpegPath: './my_invalid_ffmpeg'
         });
@@ -238,6 +239,7 @@ describe('command', function () {
           caught = true;
         }
         expect(caught).to.equal(true);
+        writeStream.end();
         try {
           unlinkSync('test/samples/output.mkv');
         } catch {
@@ -262,6 +264,13 @@ describe('command', function () {
         }
       });
       it('should handle NodeJS\' file write streams', async function () {
+        try {
+          unlinkSync('test/samples/[strange]output.mkv');
+          unlinkSync('test/samples/output.mkv');
+          unlinkSync('test/samples/output1.mkv');
+        } catch {
+          //
+        }
         try {
           const cmd = ffmpeg();
           cmd.input('test/samples/video.mp4');
