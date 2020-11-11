@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Progress | Eloquent FFmpeg - v0.13.0-alpha.0</title>
+	<title>ConcatOptions | Eloquent FFmpeg - v0.13.0-alpha.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">&quot;src/lib&quot;</a>
 				</li>
 				<li>
-					<a href="_src_lib_.progress.html">Progress</a>
+					<a href="_src_lib_.concatoptions.html">ConcatOptions</a>
 				</li>
 			</ul>
-			<h1>Interface Progress</h1>
+			<h1>Interface ConcatOptions</h1>
 		</div>
 	</div>
 </header>
@@ -64,13 +64,17 @@
 		<div class="col-8 col-content">
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
+					<dl class="tsd-comment-tags">
+						<dt>alpha</dt>
+						<dd></dd>
+					</dl>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Progress</span>
+						<span class="target">ConcatOptions</span>
 					</li>
 				</ul>
 			</section>
@@ -81,14 +85,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#bitrate" class="tsd-kind-icon">bitrate</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#bytes" class="tsd-kind-icon">bytes</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#fps" class="tsd-kind-icon">fps</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#frames" class="tsd-kind-icon">frames</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#framesdropped" class="tsd-kind-icon">frames<wbr>Dropped</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#framesduped" class="tsd-kind-icon">frames<wbr>Duped</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#speed" class="tsd-kind-icon">speed</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.progress.html#time" class="tsd-kind-icon">time</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.concatoptions.html#protocols" class="tsd-kind-icon">protocols</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.concatoptions.html#safe" class="tsd-kind-icon">safe</a></li>
 							</ul>
 						</section>
 					</div>
@@ -97,82 +95,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="bitrate" class="tsd-anchor"></a>
-					<h3>bitrate</h3>
-					<div class="tsd-signature tsd-kind-icon">bitrate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="protocols" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> protocols</h3>
+					<div class="tsd-signature tsd-kind-icon">protocols<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L181">src/command.ts:181</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L139">src/command.ts:139</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="bytes" class="tsd-anchor"></a>
-					<h3>bytes</h3>
-					<div class="tsd-signature tsd-kind-icon">bytes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="safe" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> safe</h3>
+					<div class="tsd-signature tsd-kind-icon">safe<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L182">src/command.ts:182</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="fps" class="tsd-anchor"></a>
-					<h3>fps</h3>
-					<div class="tsd-signature tsd-kind-icon">fps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L180">src/command.ts:180</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="frames" class="tsd-anchor"></a>
-					<h3>frames</h3>
-					<div class="tsd-signature tsd-kind-icon">frames<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L179">src/command.ts:179</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="framesdropped" class="tsd-anchor"></a>
-					<h3>frames<wbr>Dropped</h3>
-					<div class="tsd-signature tsd-kind-icon">frames<wbr>Dropped<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L185">src/command.ts:185</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="framesduped" class="tsd-anchor"></a>
-					<h3>frames<wbr>Duped</h3>
-					<div class="tsd-signature tsd-kind-icon">frames<wbr>Duped<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L184">src/command.ts:184</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="speed" class="tsd-anchor"></a>
-					<h3>speed</h3>
-					<div class="tsd-signature tsd-kind-icon">speed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L186">src/command.ts:186</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="time" class="tsd-anchor"></a>
-					<h3>time</h3>
-					<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L183">src/command.ts:183</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L138">src/command.ts:138</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -191,31 +129,13 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_src_lib_.progress.html" class="tsd-kind-icon">Progress</a>
+						<a href="_src_lib_.concatoptions.html" class="tsd-kind-icon">Concat<wbr>Options</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#bitrate" class="tsd-kind-icon">bitrate</a>
+								<a href="_src_lib_.concatoptions.html#protocols" class="tsd-kind-icon">protocols</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#bytes" class="tsd-kind-icon">bytes</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#fps" class="tsd-kind-icon">fps</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#frames" class="tsd-kind-icon">frames</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#framesdropped" class="tsd-kind-icon">frames<wbr>Dropped</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#framesduped" class="tsd-kind-icon">frames<wbr>Duped</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#speed" class="tsd-kind-icon">speed</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.progress.html#time" class="tsd-kind-icon">time</a>
+								<a href="_src_lib_.concatoptions.html#safe" class="tsd-kind-icon">safe</a>
 							</li>
 						</ul>
 					</li>

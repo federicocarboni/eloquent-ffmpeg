@@ -1,7 +1,7 @@
 {
   "mode": "library",
   "name": "Eloquent FFmpeg",
-  "out": "./docs",
+  "out": "./docs/api",
   "readme": "README.md",
   "exclude": [],
   "entryPoint": "\"src/lib\"",

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Filters | Eloquent FFmpeg - v0.13.0-alpha.0</title>
+	<title>LogLevel | Eloquent FFmpeg - v0.13.0-alpha.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">&quot;src/lib&quot;</a>
 				</li>
 				<li>
-					<a href="_src_lib_.filters.html">Filters</a>
+					<a href="_src_lib_.loglevel.html">LogLevel</a>
 				</li>
 			</ul>
-			<h1>Interface Filters</h1>
+			<h1>Enumeration LogLevel</h1>
 		</div>
 	</div>
 </header>
@@ -64,49 +64,126 @@
 		<div class="col-8 col-content">
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p><strong>UNSTABLE</strong>: Support for logging is under consideration, this is not useful enough to recommend
+						its usage.</p>
+					</div>
+					<dl class="tsd-comment-tags">
+						<dt>alpha</dt>
+						<dd></dd>
+					</dl>
 				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">Filters</span>
-					</li>
-				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Properties</h3>
+							<h3>Enumeration members</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.filters.html#audio" class="tsd-kind-icon">audio</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.filters.html#video" class="tsd-kind-icon">video</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#debug" class="tsd-kind-icon">Debug</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#error" class="tsd-kind-icon">Error</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#fatal" class="tsd-kind-icon">Fatal</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#info" class="tsd-kind-icon">Info</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#panic" class="tsd-kind-icon">Panic</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#quiet" class="tsd-kind-icon">Quiet</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#trace" class="tsd-kind-icon">Trace</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#verbose" class="tsd-kind-icon">Verbose</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_src_lib_.loglevel.html#warning" class="tsd-kind-icon">Warning</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="audio" class="tsd-anchor"></a>
-					<h3>audio</h3>
-					<div class="tsd-signature tsd-kind-icon">audio<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<h2>Enumeration members</h2>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="debug" class="tsd-anchor"></a>
+					<h3>Debug</h3>
+					<div class="tsd-signature tsd-kind-icon">Debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;debug&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/info.ts#L198">src/info.ts:198</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L36">src/command.ts:36</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="video" class="tsd-anchor"></a>
-					<h3>video</h3>
-					<div class="tsd-signature tsd-kind-icon">video<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="error" class="tsd-anchor"></a>
+					<h3>Error</h3>
+					<div class="tsd-signature tsd-kind-icon">Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;error&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/info.ts#L197">src/info.ts:197</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L32">src/command.ts:32</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="fatal" class="tsd-anchor"></a>
+					<h3>Fatal</h3>
+					<div class="tsd-signature tsd-kind-icon">Fatal<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;fatal&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L31">src/command.ts:31</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="info" class="tsd-anchor"></a>
+					<h3>Info</h3>
+					<div class="tsd-signature tsd-kind-icon">Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;info&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L34">src/command.ts:34</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="panic" class="tsd-anchor"></a>
+					<h3>Panic</h3>
+					<div class="tsd-signature tsd-kind-icon">Panic<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;panic&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L30">src/command.ts:30</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="quiet" class="tsd-anchor"></a>
+					<h3>Quiet</h3>
+					<div class="tsd-signature tsd-kind-icon">Quiet<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;quiet&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L29">src/command.ts:29</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="trace" class="tsd-anchor"></a>
+					<h3>Trace</h3>
+					<div class="tsd-signature tsd-kind-icon">Trace<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;trace&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L37">src/command.ts:37</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="verbose" class="tsd-anchor"></a>
+					<h3>Verbose</h3>
+					<div class="tsd-signature tsd-kind-icon">Verbose<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;verbose&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L35">src/command.ts:35</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="warning" class="tsd-anchor"></a>
+					<h3>Warning</h3>
+					<div class="tsd-signature tsd-kind-icon">Warning<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;warning&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/command.ts#L33">src/command.ts:33</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -124,14 +201,35 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_src_lib_.filters.html" class="tsd-kind-icon">Filters</a>
+					<li class="current tsd-kind-enum tsd-parent-kind-module">
+						<a href="_src_lib_.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.filters.html#audio" class="tsd-kind-icon">audio</a>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#debug" class="tsd-kind-icon">Debug</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.filters.html#video" class="tsd-kind-icon">video</a>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#error" class="tsd-kind-icon">Error</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#fatal" class="tsd-kind-icon">Fatal</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#info" class="tsd-kind-icon">Info</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#panic" class="tsd-kind-icon">Panic</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#quiet" class="tsd-kind-icon">Quiet</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#trace" class="tsd-kind-icon">Trace</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#verbose" class="tsd-kind-icon">Verbose</a>
+							</li>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="_src_lib_.loglevel.html#warning" class="tsd-kind-icon">Warning</a>
 							</li>
 						</ul>
 					</li>

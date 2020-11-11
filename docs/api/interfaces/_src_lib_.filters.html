@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>FFmpegOptions | Eloquent FFmpeg - v0.13.0-alpha.0</title>
+	<title>Filters | Eloquent FFmpeg - v0.13.0-alpha.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">&quot;src/lib&quot;</a>
 				</li>
 				<li>
-					<a href="_src_lib_.ffmpegoptions.html">FFmpegOptions</a>
+					<a href="_src_lib_.filters.html">Filters</a>
 				</li>
 			</ul>
-			<h1>Interface FFmpegOptions</h1>
+			<h1>Interface Filters</h1>
 		</div>
 	</div>
 </header>
@@ -70,7 +70,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">FFmpegOptions</span>
+						<span class="target">Filters</span>
 					</li>
 				</ul>
 			</section>
@@ -81,9 +81,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.ffmpegoptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.ffmpegoptions.html#overwrite" class="tsd-kind-icon">overwrite</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.ffmpegoptions.html#progress" class="tsd-kind-icon">progress</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.filters.html#audio" class="tsd-kind-icon">audio</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_src_lib_.filters.html#video" class="tsd-kind-icon">video</a></li>
 							</ul>
 						</section>
 					</div>
@@ -92,56 +91,24 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="loglevel" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> log<wbr>Level</h3>
-					<div class="tsd-signature tsd-kind-icon">log<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="../enums/_src_lib_.loglevel.html" class="tsd-signature-type">LogLevel</a></div>
+					<a name="audio" class="tsd-anchor"></a>
+					<h3>audio</h3>
+					<div class="tsd-signature tsd-kind-icon">audio<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L164">src/command.ts:164</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/info.ts#L198">src/info.ts:198</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p><strong>UNSTABLE</strong>: Support for logging is under consideration.</p>
-						</div>
-						<p>Change FFmpeg&#39;s LogLevel, defaults to <code>LogLevel.Error</code>.</p>
-						<dl class="tsd-comment-tags">
-							<dt>alpha</dt>
-							<dd></dd>
-						</dl>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="overwrite" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> overwrite</h3>
-					<div class="tsd-signature tsd-kind-icon">overwrite<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+					<a name="video" class="tsd-anchor"></a>
+					<h3>video</h3>
+					<div class="tsd-signature tsd-kind-icon">video<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L174">src/command.ts:174</a></li>
+							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/86f28fc/src/info.ts#L197">src/info.ts:197</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether to overwrite the output destinations if they already exist. Required
-							to be <code>true</code> for streaming outputs. Defaults to <code>true</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="progress" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> progress</h3>
-					<div class="tsd-signature tsd-kind-icon">progress<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/blob/7f0e5b6/src/command.ts#L169">src/command.ts:169</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Enable piping the conversion progress, if set to <code>false</code> <a href="_src_lib_.ffmpegprocess.html#progress">FFmpegProcess.progress</a>
-							will silently fail. Defaults to <code>true</code>.</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -158,16 +125,13 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_src_lib_.ffmpegoptions.html" class="tsd-kind-icon">FFmpeg<wbr>Options</a>
+						<a href="_src_lib_.filters.html" class="tsd-kind-icon">Filters</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.ffmpegoptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a>
+								<a href="_src_lib_.filters.html#audio" class="tsd-kind-icon">audio</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.ffmpegoptions.html#overwrite" class="tsd-kind-icon">overwrite</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_src_lib_.ffmpegoptions.html#progress" class="tsd-kind-icon">progress</a>
+								<a href="_src_lib_.filters.html#video" class="tsd-kind-icon">video</a>
 							</li>
 						</ul>
 					</li>

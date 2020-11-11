@@ -5,7 +5,7 @@
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
 This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
-You may also want to [view the API documentation](https://federicocarboni.github.io/eloquent-ffmpeg/globals.html)
+You may also want to [view the API documentation](https://federicocarboni.github.io/eloquent-ffmpeg/api/globals.html)
 or [`examples/`](https://github.com/FedericoCarboni/eloquent-ffmpeg/tree/master/examples).
 
 If something is missing or doesn't feel right, feel free to open an issue or a
@@ -85,8 +85,8 @@ streams for GIF files the input format must be `gif_pipe`.
 ### Input & Output Options
 
 Eloquent FFmpeg exposes a few methods which act as a shortcut to set a few
-options. See [FFmpegInput](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpeginput.html)
-and [FFmpegOutput](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpegoutput.html)
+options. See [FFmpegInput](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpeginput.html)
+and [FFmpegOutput](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegoutput.html)
 
 ```ts
 const cmd = ffmpeg();
@@ -107,10 +107,10 @@ cmd.output('output.mkv')
 ```
 
 ### Controlling your conversion
-Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpegprocess.html).
+Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegprocess.html).
 #### Monitor progress
 To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
-It returns an async generator of [Progress](https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html).
+It returns an async generator of [Progress](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.progress.html).
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
