@@ -1,8 +1,8 @@
 {
   "include": "src/**/*",
   "reporter": [
-    "lcov",
-    "text"
+    "text",
+    "json"
   ],
   "check-coverage": true,
   "branches": 80,
