@@ -12,7 +12,9 @@ jobs:
 
     strategy:
       matrix:
+        # Build and test on all LTS releases
         node-version: [10.x, 12.x, 14.x]
+        # TODO: should also be tested on macos
         os: [ubuntu-latest, windows-latest]
 
     steps:
@@ -20,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      # This action installs ffmpeg
       - uses: FedericoCarboni/setup-ffmpeg@master
         id: setup-ffmpeg
       - run: npm ci
