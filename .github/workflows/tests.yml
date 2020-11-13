@@ -27,5 +27,5 @@ jobs:
       - run: npm run build
       - run: npm test
         env:
-          FFMPEG_PATH: ${{ steps.setup-ffmpeg.ffmpeg-path }}
-          FFPROBE_PATH: ${{ steps.setup-ffmpeg.ffprobe-path }}
+          FFMPEG_PATH: ${{ steps.setup-ffmpeg.outputs.ffmpeg-path }}
+          FFPROBE_PATH: ${{ steps.setup-ffmpeg.outputs.ffprobe-path }}
