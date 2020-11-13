@@ -1,4 +1,4 @@
-name: build
+name: test
 
 on:
   push:
@@ -7,47 +7,25 @@ on:
     branches: [master]
 
 jobs:
-  setup-ffmpeg:
-    runs-on: ubuntu-latest
-    steps:
-      - run: curl https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -o ffmpeg-git-amd64-static.tar.xz
-      - run: tar xf ffmpeg-git-amd64-static.tar.xz
-      - run: cp ffmpeg-*-static/{ffmpeg,ffprobe} .
-      - run: rm -rf ffmpeg-*-static
-      - uses: actions/upload-artifact@v2
-        with:
-          retention-days: 1
-          name: ffmpeg-linux
-          path: |
-            ffmpeg
-            ffprobe
-      - run: rm -rf ffmpeg
-      - run: rm -rf ffprobe
-
   test:
-    needs: setup-ffmpeg
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         node-version: [10.x, 12.x, 14.x]
-        # os: [ubuntu, windows, macos]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: ffmpeg-linux
-          path: ${{ runner.temp }}/ffmpeg
-      - run: sudo chmod -R 777 ${{ runner.temp }}/ffmpeg
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: FedericoCarboni/setup-ffmpeg@master
+        id: setup-ffmpeg
       - run: npm ci
       - run: npm run lint
       - run: npm run build
       - run: npm test
         env:
-          FFMPEG_PATH: ${{ runner.temp }}/ffmpeg/ffmpeg
-          FFPROBE_PATH: ${{ runner.temp }}/ffmpeg/ffprobe
+          FFMPEG_PATH: ${{ steps.setup-ffmpeg.ffmpeg-path }}
+          FFPROBE_PATH: ${{ steps.setup-ffmpeg.ffprobe-path }}
