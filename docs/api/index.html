@@ -65,7 +65,7 @@
 				<p>Eloquent FFmpeg simplifies interactions with
 					<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.
 					This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
-					You may also want to <a href="https://federicocarboni.github.io/eloquent-ffmpeg/globals.html">view the API documentation</a>
+					You may also want to <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/globals.html">view the API documentation</a>
 				or <a href="https://github.com/FedericoCarboni/eloquent-ffmpeg/tree/master/examples"><code>examples/</code></a>.</p>
 				<p>If something is missing or doesn&#39;t feel right, feel free to open an issue or a
 					pull request to change it. This library is still in a very early stage, but
@@ -133,8 +133,8 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), 
 					<h3>Input &amp; Output Options</h3>
 				</a>
 				<p>Eloquent FFmpeg exposes a few methods which act as a shortcut to set a few
-					options. See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpeginput.html">FFmpegInput</a>
-				and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpegoutput.html">FFmpegOutput</a></p>
+					options. See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpeginput.html">FFmpegInput</a>
+				and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegoutput.html">FFmpegOutput</a></p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mp4'</span>)
   .format(<span class="hljs-string">'mp4'</span>);
@@ -149,12 +149,12 @@ cmd.output(<span class="hljs-string">'output.mkv'</span>)
 				<a href="#controlling-your-conversion" id="controlling-your-conversion" style="color: inherit; text-decoration: none;">
 					<h3>Controlling your conversion</h3>
 				</a>
-				<p>Make sure to check <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.ffmpegprocess.html">the API documentation for FFmpegProcess</a>.</p>
+				<p>Make sure to check <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegprocess.html">the API documentation for FFmpegProcess</a>.</p>
 				<a href="#monitor-progress" id="monitor-progress" style="color: inherit; text-decoration: none;">
 					<h4>Monitor progress</h4>
 				</a>
 				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.
-				It returns an async generator of <a href="https://federicocarboni.github.io/eloquent-ffmpeg/interfaces/_src_lib_.progress.html">Progress</a>.</p>
+				It returns an async generator of <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.progress.html">Progress</a>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);

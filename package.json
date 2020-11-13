@@ -13,7 +13,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "typedoc": "typedoc && node -e \"require('fs').writeFileSync('docs/api/.nojekyll', '')\"",
+    "typedoc": "typedoc && node -e \"for (const d of ['api', 'api/classes', 'api/enums', 'api/interfaces']) require('fs').writeFileSync(`docs/${d}/.nojekyll`, '')\"",
     "dts": "tsc -p tsconfig.es6.json --emitDeclarationOnly --declaration --declarationDir ./temp && api-extractor run && npx rimraf ./temp",
     "prepack": "npm run lint && npm run build && npm test",
     "types": "ts-node -r dotenv/config scripts/ffmpeg_types.ts",
