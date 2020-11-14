@@ -1,6 +1,7 @@
 {
   "include": "src/**/*",
   "reporter": [
+    "lcov",
     "text",
     "json"
   ],
