@@ -175,18 +175,6 @@ export interface FFmpegOptions {
 }
 
 /** @public */
-export interface Progress {
-  frames: number;
-  fps: number;
-  bitrate: number;
-  bytes: number;
-  time: number;
-  framesDuped: number;
-  framesDropped: number;
-  speed: number;
-}
-
-/** @public */
 export interface FFmpegInput {
   /**
    * **UNSTABLE**: Breaking changes are being considered, implementation details can change without
