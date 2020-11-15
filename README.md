@@ -1,6 +1,7 @@
 # Eloquent FFmpeg
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/FedericoCarboni/eloquent-ffmpeg.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/FedericoCarboni/eloquent-ffmpeg/context:javascript)
 [![Known Vulnerabilities](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg/badge.svg?targetFile=package.json)](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg?targetFile=package.json)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/FedericoCarboni/eloquent-ffmpeg)](https://codecov.io/gh/FedericoCarboni/eloquent-ffmpeg/branch/master)
 
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
