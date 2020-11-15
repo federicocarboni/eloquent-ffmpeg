@@ -1,6 +1,0 @@
-{
-  "ui": "bdd",
-  "spec": ["test/**/*_test.ts"],
-  "watch-files": ["src/**/*.ts", "test/**/*.ts"],
-  "require": ["dotenv/config", "ts-node/register"]
-}
