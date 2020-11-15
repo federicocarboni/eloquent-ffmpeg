@@ -3,10 +3,21 @@ import {
   spawn as spawnChildProcess
 } from 'child_process';
 import { createInterface as readlines } from 'readline';
-import { isNullish, pause, resume, write } from './utils';
+import { fromAsyncIterable, pause, resume, write } from './utils';
 import { extractMessage, FFmpegError } from './errors';
-import { Progress } from './command';
 import { getFFmpegPath } from './env';
+
+/** @public */
+export interface Progress {
+  frames: number;
+  fps: number;
+  bitrate: number;
+  bytes: number;
+  time: number;
+  framesDuped: number;
+  framesDropped: number;
+  speed: number;
+}
 
 /** @public */
 export interface FFmpegProcess {
@@ -116,12 +127,20 @@ export class Process implements FFmpegProcess {
     this.#process = process;
     this.args = args;
     this.ffmpegPath = ffmpegPath;
+    const onExit = (): void => {
+      this.#exited = true;
+      process.off('exit', onExit);
+      process.off('error', onExit);
+    };
+    process.on('exit', onExit);
+    process.on('error', onExit);
   }
   #process: ChildProcessWithoutNullStreams;
-  #stderr: string[] | undefined;
+  #exited = false;
+  #error?: FFmpegError;
   args: readonly string[];
   ffmpegPath: string;
-  async *progress(): AsyncGenerator<Progress, void, void> {
+  async *progress() {
     let progress: Partial<Progress> = {};
     for await (const line of readlines(this.#process.stdout)) {
       try {
@@ -166,66 +185,55 @@ export class Process implements FFmpegProcess {
   }
   async abort() {
     const stdin = this.#process.stdin;
-    if (!stdin.writable)
+    if (this.#exited || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
     await write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
     return await this.complete();
   }
-  pause(): boolean {
+  pause() {
     const process = this.#process;
-    if (this.#stderr !== void 0 || !isNullish(process.exitCode))
+    if (this.#exited)
       return false;
     return pause(process);
   }
-  resume(): boolean {
+  resume() {
     const process = this.#process;
-    if (this.#stderr !== void 0 || !isNullish(process.exitCode))
+    if (this.#exited)
       return false;
     return resume(process);
   }
-  complete(): Promise<void> {
-    const process = this.#process;
-    const { exitCode } = process;
-    return new Promise((resolve, reject) => {
-      const abruptComplete = async (exitCode: number | null): Promise<void> => {
-        if (!this.#stderr) {
-          const stderr: string[] = this.#stderr = [];
-          if (process.stderr.readable) {
-            for await (const line of readlines(process.stderr)) {
-              stderr.push(line);
-            }
-          }
+  complete() {
+    return new Promise<void>((resolve, reject) => {
+      const ffmpeg = this.#process;
+      const error = async () => {
+        if (!this.#error) {
+          const stderr = ffmpeg.stderr.readable ? await fromAsyncIterable(readlines(ffmpeg.stderr)) : [];
+          const message = extractMessage(stderr) || `FFmpeg exited with code ${ffmpeg.exitCode}`;
+          this.#error = new FFmpegError(message, stderr);
         }
-        const message = extractMessage(this.#stderr) ??
-          `FFmpeg exited with code ${exitCode}`;
-        reject(new FFmpegError(message, this.#stderr));
+        reject(this.#error);
       };
-      if (!isNullish(exitCode) || this.#stderr) {
-        if (exitCode === 0) resolve();
-        else abruptComplete(exitCode);
+      const complete = () => ffmpeg.exitCode === 0 ? resolve() : error();
+      if (this.#exited) {
+        complete();
       } else {
-        const onExit = (exitCode: number): void => {
-          if (exitCode === 0) resolve();
-          else abruptComplete(exitCode);
-          process.off('error', onError);
-          process.off('exit', onExit);
+        const onExit = () => {
+          ffmpeg.off('exit', onExit);
+          ffmpeg.off('error', onExit);
+          complete();
         };
-        const onError = (): void => {
-          const { exitCode } = process;
-          if (!isNullish(exitCode)) onExit(exitCode);
-        };
-        process.on('error', onError);
-        process.on('exit', onExit);
+        ffmpeg.on('exit', onExit);
+        ffmpeg.on('error', onExit);
       }
     });
   }
-  unwrap(): ChildProcess {
+  unwrap() {
     return this.#process;
   }
-  get pid(): number {
+  get pid() {
     return this.#process.pid;
   }
-  kill(signal?: number | NodeJS.Signals): boolean {
+  kill(signal?: number | NodeJS.Signals) {
     return this.#process.kill(signal);
   }
 }

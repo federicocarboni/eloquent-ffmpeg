@@ -1,4 +1,4 @@
-name: test
+name: tests
 
 on:
   push:
@@ -33,3 +33,7 @@ jobs:
         env:
           FFMPEG_PATH: ${{ steps.setup-ffmpeg.outputs.ffmpeg-path }}
           FFPROBE_PATH: ${{ steps.setup-ffmpeg.outputs.ffprobe-path }}
+      # Upload coverage to codecov.io
+      - run: npm run coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

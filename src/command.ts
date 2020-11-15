@@ -175,18 +175,6 @@ export interface FFmpegOptions {
 }
 
 /** @public */
-export interface Progress {
-  frames: number;
-  fps: number;
-  bitrate: number;
-  bytes: number;
-  time: number;
-  framesDuped: number;
-  framesDropped: number;
-  speed: number;
-}
-
-/** @public */
 export interface FFmpegInput {
   /**
    * **UNSTABLE**: Breaking changes are being considered, implementation details can change without
@@ -388,16 +376,16 @@ export interface FFmpegOutput {
  * @param options -
  * @public
  */
-export function ffmpeg(options?: FFmpegOptions): FFmpegCommand {
+export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
   return new Command(options);
 }
 
 class Command implements FFmpegCommand {
-  constructor(options: FFmpegOptions = {}) {
+  constructor(options: FFmpegOptions) {
     this.logLevel = options.logLevel ?? LogLevel.Error;
-    this.#args.push(options.overwrite !== false ? '-y' : '-n');
+    this.args(options.overwrite !== false ? '-y' : '-n');
     if (options.progress !== false)
-      this.#args.push('-progress', 'pipe:1', '-nostats');
+      this.args('-progress', 'pipe:1', '-nostats');
   }
   #args: string[] = [];
   #inputs: Input[] = [];
@@ -412,14 +400,13 @@ class Command implements FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: ConcatSource[], options?: ConcatOptions) {
+  concat(sources: ConcatSource[], options: ConcatOptions = {}) {
     // Dynamically create an ffconcat file with the given directives.
     // https://ffmpeg.org/ffmpeg-all.html#toc-concat-1
     let directives = 'ffconcat version 1.0\n';
-    const isInputSource = (o: any): o is InputSource => (
+    const isInputSource = (o: any): o is InputSource =>
       typeof o === 'string' || isReadableStream(o) ||
-      o instanceof Uint8Array || Symbol.asyncIterator in o
-    );
+      o instanceof Uint8Array || Symbol.asyncIterator in o;
     const inputStreams = this.#inputStreams;
     const addFile = (file: InputSource) => {
       const [url] = handleSource(file, inputStreams);
@@ -451,10 +438,10 @@ class Command implements FFmpegCommand {
     // allow streams or protocols other than the currently used one,
     // which, depending on the platform, may be `file` (on Windows)
     // or `unix` (on every other platform).
-    input.args('-safe', options?.safe ? '1' : '0');
+    input.args('-safe', options.safe ? '1' : '0');
     // Protocol whitelist enables certain protocols in the ffconcat
     // file dynamically created by this method.
-    if (options?.protocols && options.protocols.length > 0)
+    if (options.protocols && options.protocols.length > 0)
       input.args('-protocol_whitelist', options.protocols.join(','));
 
     this.#inputs.push(input);
