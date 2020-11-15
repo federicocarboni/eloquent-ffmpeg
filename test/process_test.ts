@@ -142,28 +142,6 @@ describe('process', function () {
       });
       it('should reject on non-zero exit code', async function () {
         const cmd = ffmpeg();
-        cmd.input('test/samples/video.mp4');
-        cmd.output()
-          .args('-c', 'copy', '-f', 'my_invalid_muxer');
-        const process = await cmd.spawn();
-        let caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(process.unwrap().exitCode).to.not.equal(null);
-        expect(caught).to.equal(true);
-        caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(caught).to.equal(true);
-      });
-      it('should reject on non-zero exit code (invalid input)', async function () {
-        const cmd = ffmpeg();
         cmd.input('test/samples/invalid');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
@@ -225,6 +203,37 @@ describe('process', function () {
         try {
           await process.complete();
         } catch {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+      });
+      it('should resolve on completion after process exit', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/video.mp4');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        await new Promise((resolve) => process.unwrap().on('exit', resolve));
+        await process.complete();
+      });
+      it('should reject on error after process exit', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output()
+          .args('-c', 'copy', '-f', 'matroska');
+        const process = await cmd.spawn();
+        await new Promise((resolve) => process.unwrap().on('exit', resolve));
+        let caught = false;
+        try {
+          await process.complete();
+        } catch (e) {
+          caught = true;
+        }
+        expect(caught).to.equal(true);
+        caught = false;
+        try {
+          await process.complete();
+        } catch (e) {
           caught = true;
         }
         expect(caught).to.equal(true);
