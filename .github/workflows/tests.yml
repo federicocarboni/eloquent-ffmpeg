@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       # This action installs ffmpeg
-      - uses: FedericoCarboni/setup-ffmpeg@master
+      - uses: FedericoCarboni/setup-ffmpeg@v1-alpha
         id: setup-ffmpeg
       - run: npm ci
       - run: npm run lint
