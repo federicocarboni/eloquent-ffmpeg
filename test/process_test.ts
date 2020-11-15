@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-
 import { ffmpeg } from '../src/command';
 import { spawn } from '../src/process';
 import { isWin32 } from '../src/utils';
@@ -19,8 +17,8 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.pid).to.be.a('number');
-        expect(process.pid).to.equal(process.unwrap().pid);
+        expect(typeof process.pid).toBe('number');
+        expect(process.pid).toBe(process.unwrap().pid);
       });
     });
     describe('kill()', function () {
@@ -30,8 +28,8 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.kill()).to.equal(true);
-        expect(process.unwrap().killed).to.equal(true);
+        expect(process.kill()).toBe(true);
+        expect(process.unwrap().killed).toBe(true);
       });
     });
     describe('pause()', function () {
@@ -41,14 +39,14 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.pause()).to.equal(true);
-        expect(process.resume()).to.equal(true);
+        expect(process.pause()).toBe(true);
+        expect(process.resume()).toBe(true);
         process.unwrap().kill();
         await process.complete()
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           .catch(() => {});
-        expect(process.pause()).to.equal(false);
-        expect(process.resume()).to.equal(false);
+        expect(process.pause()).toBe(false);
+        expect(process.resume()).toBe(false);
       });
       (!isWin32 ? it : it.skip)('should pause a process (SIGSTOP)', async function () {
         const cmd = ffmpeg();
@@ -56,14 +54,14 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.pause()).to.equal(true);
-        expect(process.resume()).to.equal(true);
-        expect(process.unwrap().killed).to.equal(true);
+        expect(process.pause()).toBe(true);
+        expect(process.resume()).toBe(true);
+        expect(process.unwrap().killed).toBe(true);
         await process.complete()
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           .catch(() => {});
-        expect(process.pause()).to.equal(false);
-        expect(process.resume()).to.equal(false);
+        expect(process.pause()).toBe(false);
+        expect(process.resume()).toBe(false);
       });
     });
     describe('resume()', function () {
@@ -73,14 +71,14 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        expect(process.pause()).to.equal(true);
-        expect(process.resume()).to.equal(true);
+        expect(process.pause()).toBe(true);
+        expect(process.resume()).toBe(true);
         process.unwrap().kill();
         await process.complete()
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           .catch(() => {});
-        expect(process.pause()).to.equal(false);
-        expect(process.resume()).to.equal(false);
+        expect(process.pause()).toBe(false);
+        expect(process.resume()).toBe(false);
       });
       (!isWin32 ? it : it.skip)('should resume a process (SIGCONT)', async function () {
         const cmd = ffmpeg();
@@ -89,18 +87,18 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         process.pause();
-        expect(process.pause()).to.equal(true);
-        expect(process.resume()).to.equal(true);
-        expect(process.unwrap().killed).to.equal(true);
+        expect(process.pause()).toBe(true);
+        expect(process.resume()).toBe(true);
+        expect(process.unwrap().killed).toBe(true);
         await process.complete()
           // eslint-disable-next-line @typescript-eslint/no-empty-function
           .catch(() => {});
-        expect(process.pause()).to.equal(false);
-        expect(process.resume()).to.equal(false);
+        expect(process.pause()).toBe(false);
+        expect(process.resume()).toBe(false);
       });
     });
     describe('abort()', function () {
-      this.timeout(1000);
+      // this.timeout(1000);
       it('should abort a running ffmpeg process', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
@@ -109,7 +107,7 @@ describe('process', function () {
         const process = await cmd.spawn();
         await process.abort();
         await process.complete();
-        expect(process.unwrap().exitCode).to.equal(0);
+        expect(process.unwrap().exitCode).toBe(0);
       });
       it('should reject on a non-running ffmpeg process', async function () {
         const cmd = ffmpeg();
@@ -125,7 +123,7 @@ describe('process', function () {
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
     });
     describe('complete()', function () {
@@ -136,9 +134,9 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         await process.complete();
-        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(process.unwrap().exitCode).not.toBeNull();
         await process.complete();
-        expect(process.unwrap().exitCode).to.not.equal(null);
+        expect(process.unwrap().exitCode).not.toBeNull();
       });
       it('should reject on non-zero exit code', async function () {
         const cmd = ffmpeg();
@@ -152,15 +150,15 @@ describe('process', function () {
         } catch {
           caught = true;
         }
-        expect(process.unwrap().exitCode).to.not.equal(null);
-        expect(caught).to.equal(true);
+        expect(process.unwrap().exitCode).not.toBeNull();
+        expect(caught).toBe(true);
         caught = false;
         try {
           await process.complete();
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
       it('should reject on killed process', async function () {
         const cmd = ffmpeg();
@@ -175,14 +173,14 @@ describe('process', function () {
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
         caught = false;
         try {
           await process.complete();
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
       it('should reject on errored process', async function () {
         const cmd = ffmpeg();
@@ -197,15 +195,15 @@ describe('process', function () {
         } catch {
           caught = true;
         }
-        expect(process.unwrap().exitCode).to.not.equal(null);
-        expect(caught).to.equal(true);
+        expect(process.unwrap().exitCode).not.toBeNull();
+        expect(caught).toBe(true);
         caught = false;
         try {
           await process.complete();
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
       it('should resolve on completion after process exit', async function () {
         const cmd = ffmpeg();
@@ -229,14 +227,14 @@ describe('process', function () {
         } catch (e) {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
         caught = false;
         try {
           await process.complete();
         } catch (e) {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
     });
     describe('progress()', function () {
@@ -247,22 +245,22 @@ describe('process', function () {
           .args('-c:a', 'aac', '-c:v', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         for await (const progress of process.progress()) {
-          expect(progress.bitrate).to.be.a('number');
-          expect(progress.bitrate).to.not.be.NaN;
-          expect(progress.fps).to.be.a('number');
-          expect(progress.fps).to.not.be.NaN;
-          expect(progress.frames).to.be.a('number');
-          expect(progress.frames).to.not.be.NaN;
-          expect(progress.framesDropped).to.be.a('number');
-          expect(progress.framesDropped).to.not.be.NaN;
-          expect(progress.framesDuped).to.be.a('number');
-          expect(progress.framesDuped).to.not.be.NaN;
-          expect(progress.bytes).to.be.a('number');
-          expect(progress.bytes).to.not.be.NaN;
-          expect(progress.speed).to.be.a('number');
-          expect(progress.speed).to.not.be.NaN;
-          expect(progress.time).to.be.a('number');
-          expect(progress.time).to.not.be.NaN;
+          expect(typeof progress.bitrate).toBe('number');
+          expect(progress.bitrate).not.toBeNaN();
+          expect(typeof progress.fps).toBe('number');
+          expect(progress.fps).not.toBeNaN();
+          expect(typeof progress.frames).toBe('number');
+          expect(progress.frames).not.toBeNaN();
+          expect(typeof progress.framesDropped).toBe('number');
+          expect(progress.framesDropped).not.toBeNaN();
+          expect(typeof progress.framesDuped).toBe('number');
+          expect(progress.framesDuped).not.toBeNaN();
+          expect(typeof progress.bytes).toBe('number');
+          expect(progress.bytes).not.toBeNaN();
+          expect(typeof progress.speed).toBe('number');
+          expect(progress.speed).not.toBeNaN();
+          expect(typeof progress.time).toBe('number');
+          expect(progress.time).not.toBeNaN();
         }
         await process.complete();
       });

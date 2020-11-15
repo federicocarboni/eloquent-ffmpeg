@@ -1,6 +1,5 @@
 import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
 import { PassThrough, Readable } from 'stream';
-import { expect } from 'chai';
 
 import { ffmpeg, LogLevel } from '../src/command';
 
@@ -8,134 +7,134 @@ describe('command', function () {
   describe('ffmpeg()', function () {
     it('should set a custom log level', function () {
       const cmd = ffmpeg({ logLevel: LogLevel.Info });
-      expect(cmd.logLevel).to.equal(LogLevel.Info);
+      expect(cmd.logLevel).toBe(LogLevel.Info);
     });
     it('should set log level to Error by default', function () {
       const cmd = ffmpeg();
-      expect(cmd.logLevel).to.equal(LogLevel.Error);
+      expect(cmd.logLevel).toBe(LogLevel.Error);
     });
     it('should set overwrite to true by default', function () {
       const cmd = ffmpeg();
       cmd.input('test/samples/invalid');
       cmd.output();
-      expect(cmd.getArgs()).to.include('-y');
+      expect(cmd.getArgs()).toContain('-y');
     });
     it('should set overwrite to false', function () {
       const cmd = ffmpeg({ overwrite: false });
       cmd.input('test/samples/invalid');
       cmd.output();
-      expect(cmd.getArgs()).to.include('-n');
+      expect(cmd.getArgs()).toContain('-n');
     });
     it('should set progress to true by default', function () {
       const cmd = ffmpeg({ progress: true });
       cmd.input('test/samples/invalid');
       cmd.output();
-      expect(cmd.getArgs()).to.include('-progress');
-      expect(cmd.getArgs()).to.include('-nostats');
+      expect(cmd.getArgs()).toContain('-progress');
+      expect(cmd.getArgs()).toContain('-nostats');
     });
     it('should set progress to false', function () {
       const cmd = ffmpeg({ progress: false });
       cmd.input('test/samples/invalid');
       cmd.output();
-      expect(cmd.getArgs()).to.not.include('-progress');
-      expect(cmd.getArgs()).to.not.include('-nostats');
+      expect(cmd.getArgs()).not.toContain('-progress');
+      expect(cmd.getArgs()).not.toContain('-nostats');
     });
   });
   describe('FFmpegCommand', function () {
-    this.timeout(10000);
+    // this.timeout(10000);
     describe('input()', function () {
       it('should add a string as source', function () {
         const cmd = ffmpeg();
         const input = cmd.input('protocol:location');
-        expect(input.isStream).to.equal(false);
-        expect(input.getArgs().pop()).to.equal('protocol:location');
+        expect(input.isStream).toBe(false);
+        expect(input.getArgs().pop()).toBe('protocol:location');
       });
       it('should add a buffer as source', async function () {
         const cmd = ffmpeg();
         const invalidBuffer = await promises.readFile('test/samples/invalid');
         const input1 = cmd.input(invalidBuffer);
-        expect(input1.isStream).to.equal(true);
+        expect(input1.isStream).toBe(true);
       });
       it('should add an async iterable as source', function () {
         async function* asyncIterable() { yield await promises.readFile('test/samples/invalid'); }
         const cmd = ffmpeg();
         const input = cmd.input(asyncIterable());
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
       it('should add a NodeJS.ReadableStream as source', async function () {
         const cmd = ffmpeg();
         const input = cmd.input(Readable.from([await promises.readFile('test/samples/invalid')]));
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
     });
     describe('concat()', function () {
       it('should add strings as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv']);
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
       it('should add streams as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat([new PassThrough(), new PassThrough()]);
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
       it('should add multiple mixed sources as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', new PassThrough()]);
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
       it('should set safe to 0 by default', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv']);
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
-        expect(args[args.indexOf('-safe') + 1]).to.equal('0');
+        expect(args[args.indexOf('-safe') + 1]).toBe('0');
       });
       it('should set safe to 1', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv'], { safe: true });
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
-        expect(args[args.indexOf('-safe') + 1]).to.equal('1');
+        expect(args[args.indexOf('-safe') + 1]).toBe('1');
       });
       it('should set protocol whitelist', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: ['unix', 'file'],
         });
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
-        expect(args[args.indexOf('-protocol_whitelist') + 1]).to.equal('unix,file');
+        expect(args[args.indexOf('-protocol_whitelist') + 1]).toBe('unix,file');
       });
       it('should not set protocol whitelist if empty', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: [],
         });
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
-        expect(args.indexOf('-protocol_whitelist')).to.equal(-1);
+        expect(args.indexOf('-protocol_whitelist')).toBe(-1);
       });
     });
     describe('output()', function () {
       it('should add a string as destination', function () {
         const cmd = ffmpeg();
         const input = cmd.output('protocol:location');
-        expect(input.isStream).to.equal(false);
-        expect(input.getArgs().pop()).to.equal('protocol:location');
+        expect(input.isStream).toBe(false);
+        expect(input.getArgs().pop()).toBe('protocol:location');
       });
       it('should add an async generator as destination', function () {
         const cmd = ffmpeg();
         const input = cmd.output(new PassThrough());
-        expect(input.isStream).to.equal(true);
+        expect(input.isStream).toBe(true);
       });
       it('should add multiple mixed destinations', function () {
         const cmd = ffmpeg();
         const input = cmd.output('protocol:location', new PassThrough());
         const lastArg = input.getArgs().pop();
-        expect(input.isStream).to.equal(true);
-        expect(lastArg).to.be.a('string');
-        expect(lastArg!.startsWith('tee:')).to.equal(true);
+        expect(input.isStream).toBe(true);
+        expect(typeof lastArg).toBe('string');
+        expect(lastArg!.startsWith('tee:')).toBe(true);
       });
     });
     describe('probe()', function () {
@@ -145,9 +144,9 @@ describe('command', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
-        expect(result.unwrap()).to.be.an('object');
+        expect(typeof result.unwrap()).toBe('object');
         const result1 = await input.probe();
-        expect(result1.unwrap()).to.be.an('object');
+        expect(typeof result1.unwrap()).toBe('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -157,7 +156,7 @@ describe('command', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
-        expect(result.unwrap()).to.be.an('object');
+        expect(typeof result.unwrap()).toBe('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -167,7 +166,7 @@ describe('command', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
-        expect(result.unwrap()).to.be.an('object');
+        expect(typeof result.unwrap()).toBe('object');
         const process = await cmd.spawn();
         await process.complete();
       });
@@ -180,7 +179,7 @@ describe('command', function () {
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
       it('should throw on an invalid input stream', async function () {
         const cmd = ffmpeg();
@@ -191,7 +190,7 @@ describe('command', function () {
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
       it('should throw on an invalid input buffer', async function () {
         const cmd = ffmpeg();
@@ -202,17 +201,17 @@ describe('command', function () {
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
       });
     });
     describe('args()', function () {
       it('should return this', function () {
         const cmd = ffmpeg();
-        expect(cmd.args()).to.equal(cmd);
+        expect(cmd.args()).toBe(cmd);
       });
       it('should push arguments to the start of the command', async function () {
         const cmd = ffmpeg();
-        expect(cmd.args()).to.equal(cmd);
+        expect(cmd.args()).toBe(cmd);
       });
     });
     describe('spawn()', function () {
@@ -230,15 +229,15 @@ describe('command', function () {
         } catch {
           caught = true;
         }
-        expect(process.unwrap().exitCode).to.not.equal(null);
-        expect(caught).to.equal(true);
+        expect(process.unwrap().exitCode).not.toBeNull();
+        expect(caught).toBe(true);
         caught = false;
         try {
           await process.complete();
         } catch {
           caught = true;
         }
-        expect(caught).to.equal(true);
+        expect(caught).toBe(true);
         writeStream.end();
         try {
           unlinkSync('test/samples/output.mkv');
@@ -254,7 +253,7 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -280,9 +279,9 @@ describe('command', function () {
               .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
-          expect((await promises.lstat('test/samples/output.mkv')).isFile()).to.equal(true);
-          expect((await promises.lstat('test/samples/output1.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
+          expect((await promises.lstat('test/samples/output.mkv')).isFile()).toBe(true);
+          expect((await promises.lstat('test/samples/output1.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -301,7 +300,7 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -318,8 +317,8 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
-          expect((await promises.lstat('test/samples/output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
+          expect((await promises.lstat('test/samples/output.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -345,7 +344,7 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         streams.forEach((stream) => {
           stream.on('data', (chunk) => {
-            expect(chunk).to.be.an.instanceOf(Uint8Array);
+            expect(chunk).toBeInstanceOf(Uint8Array);
           });
         });
         const process = await cmd.spawn();
@@ -364,7 +363,7 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         streams.forEach((stream) => {
           stream.on('data', (chunk) => {
-            expect(chunk).to.be.an.instanceOf(Uint8Array);
+            expect(chunk).toBeInstanceOf(Uint8Array);
           });
         });
         const process = await cmd.spawn();
@@ -413,7 +412,7 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -439,7 +438,7 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
-          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).to.equal(true);
+          expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
             unlinkSync('test/samples/[strange]output.mkv');
@@ -453,12 +452,12 @@ describe('command', function () {
       it('should throw when no inputs are specified', async function () {
         const cmd = ffmpeg();
         cmd.output();
-        expect(() => cmd.getArgs()).to.throw();
+        expect(() => cmd.getArgs()).toThrow();
       });
       it('should throw when no outputs are specified', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/invalid');
-        expect(() => cmd.getArgs()).to.throw();
+        expect(() => cmd.getArgs()).toThrow();
       });
     });
   });
@@ -466,133 +465,133 @@ describe('command', function () {
     it('format()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.format('mp4')).to.equal(input);
+      expect(input.format('mp4')).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-f') + 1]).to.equal('mp4');
+      expect(args[args.indexOf('-f') + 1]).toBe('mp4');
     });
     it('codec()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.codec('h264')).to.equal(input);
+      expect(input.codec('h264')).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-c') + 1]).to.equal('h264');
+      expect(args[args.indexOf('-c') + 1]).toBe('h264');
     });
     it('videoCodec()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.videoCodec('h264')).to.equal(input);
+      expect(input.videoCodec('h264')).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-c:V') + 1]).to.equal('h264');
+      expect(args[args.indexOf('-c:V') + 1]).toBe('h264');
     });
     it('audioCodec()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.audioCodec('aac')).to.equal(input);
+      expect(input.audioCodec('aac')).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-c:a') + 1]).to.equal('aac');
+      expect(args[args.indexOf('-c:a') + 1]).toBe('aac');
     });
     it('subtitleCodec()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.subtitleCodec('mov_text')).to.equal(input);
+      expect(input.subtitleCodec('mov_text')).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
+      expect(args[args.indexOf('-c:s') + 1]).toBe('mov_text');
     });
     it('duration()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.duration(2000)).to.equal(input);
+      expect(input.duration(2000)).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-t') + 1]).to.equal('2000ms');
+      expect(args[args.indexOf('-t') + 1]).toBe('2000ms');
     });
     it('start()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.start(2000)).to.equal(input);
+      expect(input.start(2000)).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-ss') + 1]).to.equal('2000ms');
+      expect(args[args.indexOf('-ss') + 1]).toBe('2000ms');
     });
     it('offset()', function () {
       const cmd = ffmpeg();
       const input = cmd.input('test/samples/video.mp4');
-      expect(input.offset(2000)).to.equal(input);
+      expect(input.offset(2000)).toBe(input);
       const args = input.getArgs();
-      expect(args[args.indexOf('-itsoffset') + 1]).to.equal('2000ms');
+      expect(args[args.indexOf('-itsoffset') + 1]).toBe('2000ms');
     });
   });
   describe('FFmpegOutput', function () {
     it('format()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.format('mp4')).to.equal(output);
+      expect(output.format('mp4')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-f') + 1]).to.equal('mp4');
+      expect(args[args.indexOf('-f') + 1]).toBe('mp4');
     });
     it('codec()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.codec('h264')).to.equal(output);
+      expect(output.codec('h264')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-c') + 1]).to.equal('h264');
+      expect(args[args.indexOf('-c') + 1]).toBe('h264');
     });
     it('videoCodec()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.videoCodec('h264')).to.equal(output);
+      expect(output.videoCodec('h264')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-c:V') + 1]).to.equal('h264');
+      expect(args[args.indexOf('-c:V') + 1]).toBe('h264');
     });
     it('audioCodec()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.audioCodec('aac')).to.equal(output);
+      expect(output.audioCodec('aac')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-c:a') + 1]).to.equal('aac');
+      expect(args[args.indexOf('-c:a') + 1]).toBe('aac');
     });
     it('subtitleCodec()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.subtitleCodec('mov_text')).to.equal(output);
+      expect(output.subtitleCodec('mov_text')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-c:s') + 1]).to.equal('mov_text');
+      expect(args[args.indexOf('-c:s') + 1]).toBe('mov_text');
     });
     it('videoFilter()', function () {
       const cmd = ffmpeg();
       const output = cmd.output('test/samples/video.mp4');
-      expect(output.videoFilter('my_filter1', { opt1: true })).to.equal(output);
-      expect(output.videoFilter('my_filter2', [42, 56])).to.equal(output);
+      expect(output.videoFilter('my_filter1', { opt1: true })).toBe(output);
+      expect(output.videoFilter('my_filter2', [42, 56])).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-filter:V') + 1]).to.equal('my_filter1=opt1=true,my_filter2=42:56');
+      expect(args[args.indexOf('-filter:V') + 1]).toBe('my_filter1=opt1=true,my_filter2=42:56');
     });
     it('audioFilter()', function () {
       const cmd = ffmpeg();
       const output = cmd.output('test/samples/video.mp4');
-      expect(output.audioFilter('my_filter1', { opt1: true })).to.equal(output);
-      expect(output.audioFilter('my_filter2', [42, 56])).to.equal(output);
+      expect(output.audioFilter('my_filter1', { opt1: true })).toBe(output);
+      expect(output.audioFilter('my_filter2', [42, 56])).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-filter:a') + 1]).to.equal('my_filter1=opt1=true,my_filter2=42:56');
+      expect(args[args.indexOf('-filter:a') + 1]).toBe('my_filter1=opt1=true,my_filter2=42:56');
     });
     it('duration()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.duration(2000)).to.equal(output);
+      expect(output.duration(2000)).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-t') + 1]).to.equal('2000ms');
+      expect(args[args.indexOf('-t') + 1]).toBe('2000ms');
     });
     it('start()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.start(2000)).to.equal(output);
+      expect(output.start(2000)).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-ss') + 1]).to.equal('2000ms');
+      expect(args[args.indexOf('-ss') + 1]).toBe('2000ms');
     });
     it('map()', function () {
       const cmd = ffmpeg();
       const output = cmd.output();
-      expect(output.map('0:1', '1:0')).to.equal(output);
+      expect(output.map('0:1', '1:0')).toBe(output);
       const args = output.getArgs();
-      expect(args[args.indexOf('-map') + 1]).to.equal('0:1');
-      expect(args[args.lastIndexOf('-map') + 1]).to.equal('1:0');
+      expect(args[args.indexOf('-map') + 1]).toBe('0:1');
+      expect(args[args.lastIndexOf('-map') + 1]).toBe('1:0');
     });
     it('metadata()', async function () {
       const cmd = ffmpeg();
@@ -601,18 +600,18 @@ describe('command', function () {
       expect(output.metadata({
         title: '\'somethin\\ =g',
         artist: 'someone'
-      }, 's:0')).to.equal(output);
+      }, 's:0')).toBe(output);
       let args = output.getArgs();
-      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=\'somethin\\ =g');
-      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).to.equal('artist=someone');
+      expect(args[args.indexOf('-metadata:s:0') + 1]).toBe('title=\'somethin\\ =g');
+      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).toBe('artist=someone');
       output = cmd.output();
-      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).to.equal(output);
-      expect(output.metadata({ title: 'something', artist: 'someone' })).to.equal(output);
+      expect(output.metadata({ title: 'something', artist: 'someone' }, 's:0')).toBe(output);
+      expect(output.metadata({ title: 'something', artist: 'someone' })).toBe(output);
       args = output.getArgs();
-      expect(args[args.indexOf('-metadata:s:0') + 1]).to.equal('title=something');
-      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).to.equal('artist=someone');
-      expect(args[args.indexOf('-metadata') + 1]).to.equal('title=something');
-      expect(args[args.lastIndexOf('-metadata') + 1]).to.equal('artist=someone');
+      expect(args[args.indexOf('-metadata:s:0') + 1]).toBe('title=something');
+      expect(args[args.lastIndexOf('-metadata:s:0') + 1]).toBe('artist=someone');
+      expect(args[args.indexOf('-metadata') + 1]).toBe('title=something');
+      expect(args[args.lastIndexOf('-metadata') + 1]).toBe('artist=someone');
     });
   });
 });
