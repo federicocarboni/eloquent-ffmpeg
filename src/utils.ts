@@ -91,6 +91,13 @@ export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, arr
   ? (array, callback) => array.flatMap(callback)
   : (array, callback) => ([] as any[]).concat(...array.map(callback));
 
+export async function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Promise<T[]> {
+  const array: T[] = [];
+  for await (const item of iterable)
+    array.push(item);
+  return array;
+}
+
 export let pause: (p: ChildProcess) => boolean;
 export let resume: (p: ChildProcess) => boolean;
 

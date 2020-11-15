@@ -3,7 +3,7 @@ import {
   spawn as spawnChildProcess
 } from 'child_process';
 import { createInterface as readlines } from 'readline';
-import { pause, resume, write } from './utils';
+import { fromAsyncIterable, pause, resume, write } from './utils';
 import { extractMessage, FFmpegError } from './errors';
 import { getFFmpegPath } from './env';
 
@@ -203,38 +203,27 @@ export class Process implements FFmpegProcess {
     return resume(process);
   }
   complete() {
-    const process = this.#process;
-    const { exitCode } = process;
     return new Promise<void>((resolve, reject) => {
-      const abruptComplete = async (exitCode: number | null): Promise<void> => {
+      const ffmpeg = this.#process;
+      const error = async () => {
         if (!this.#error) {
-          const stderr: string[] = [];
-          if (process.stderr.readable) {
-            for await (const line of readlines(process.stderr)) {
-              stderr.push(line);
-            }
-          }
-          const message = extractMessage(stderr) ?? `FFmpeg exited with code ${exitCode}`;
+          const stderr = ffmpeg.stderr.readable ? await fromAsyncIterable(readlines(ffmpeg.stderr)) : [];
+          const message = extractMessage(stderr) || `FFmpeg exited with code ${ffmpeg.exitCode}`;
           this.#error = new FFmpegError(message, stderr);
         }
         reject(this.#error);
       };
+      const complete = () => ffmpeg.exitCode === 0 ? resolve() : error();
       if (this.#exited) {
-        if (exitCode === 0) resolve();
-        else abruptComplete(exitCode);
+        complete();
       } else {
-        const onExit = (exitCode: number | null): void => {
-          if (exitCode === 0) resolve();
-          else abruptComplete(exitCode);
-          process.off('error', onError);
-          process.off('exit', onExit);
+        const onExit = () => {
+          ffmpeg.off('exit', onExit);
+          ffmpeg.off('error', onExit);
+          complete();
         };
-        const onError = (): void => {
-          const { exitCode } = process;
-          onExit(exitCode);
-        };
-        process.on('error', onError);
-        process.on('exit', onExit);
+        ffmpeg.on('exit', onExit);
+        ffmpeg.on('error', onExit);
       }
     });
   }
