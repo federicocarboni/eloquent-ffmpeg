@@ -19,6 +19,7 @@
     "types": "ts-node -r dotenv/config scripts/ffmpeg_types.ts",
     "build": "rollup -c && npm run dts",
     "lint": "eslint {src,test}/**/*.ts",
+    "coverage": "codecov",
     "test": "jest"
   },
   "repository": {
@@ -56,6 +57,7 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
+    "codecov": "^3.8.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.9.0",
     "jest": "^26.6.3",
