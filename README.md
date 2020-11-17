@@ -26,9 +26,8 @@ import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
 setFFmpegPath('/path/to/your/ffmpeg');
 setFFprobePath('/path/to/your/ffprobe');
 ```
-**Note:** Eloquent FFmpeg will not search your `PATH`, if you want to search the
-executables use [node which](https://github.com/npm/node-which), which mimics
-unix operating systems' `which` command.
+**Note:** Eloquent FFmpeg will not search in `PATH`, to search for the executables in `PATH` use
+[node which](https://github.com/npm/node-which), which mimics unix operating systems' `which` command.
 
 `npm install --save which`
 ```ts
@@ -39,9 +38,13 @@ setFFmpegPath(which.sync('ffmpeg'));
 setFFprobePath(which.sync('ffprobe'));
 ```
 
+**GitHub Actions**
+
+To install FFmpeg on a GitHub Actions' runner use [FedericoCarboni/setup-ffmpeg](https://github.com/FedericoCarboni/setup-ffmpeg).
+
 ## Usage
 Since most of Eloquent FFmpeg's methods are asynchronous it is advised to use
-`async-await` to make your code more readable.
+`async-await` to improve readability.
 
 A simple example could use the following:
 
@@ -51,9 +54,9 @@ const cmd = ffmpeg({
   // Include any options here...
 });
 
-// Select your input(s)
+// Select input(s)
 cmd.input('input.mkv');
-// ... and your output(s)
+// ... and output(s)
 cmd.output('output.mp4');
 
 // Spawn ffmpeg as a child process
@@ -64,7 +67,7 @@ await process.complete();
 
 ### Streams
 Streams can be used as input sources and output destinations, there is no hard
-limit on how many streams you can use. Pass your streams directly to
+limit on how many streams can be used. Pass Node.js streams directly to
 `FFmpegCommand.input()` and `FFmpegCommand.output()`.
 
 Example using NodeJS' `fs` module.
@@ -100,9 +103,9 @@ const process = await cmd.spawn();
 await process.complete();
 ```
 
-**Note:** When passing inputs to `FFmpegCommand.concat()` you must specify the protocol, `file:` for
-example, streams are handled automatically. Sometimes it may be necessary to explicitly enable
-certain protocols.
+**Note:** When passing inputs to `FFmpegCommand.concat()` the protocol must be explicitly specified,
+`file:` for example, streams are handled automatically. Sometimes it may be necessary to explicitly
+enable certain protocols.
 
 ```ts
 const cmd = ffmpeg();
@@ -131,7 +134,7 @@ cmd.output('output.mkv')
   .audioCodec('aac');
 ```
 
-To set input and output options you could also use their `.args()` method.
+To set input and output options their `.args()` method can also be used.
 
 ```ts
 const cmd = ffmpeg();
@@ -141,10 +144,10 @@ cmd.output('output.mkv')
   .args('-codec:a', 'aac');
 ```
 
-### Controlling your conversion
+### Controlling the conversion
 Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegprocess.html).
 #### Monitor progress
-To receive real-time updates on your conversion's progress, use the `FFmpegProcess.progress()` method.
+To receive real-time updates on the conversion's progress, use the `FFmpegProcess.progress()` method.
 It returns an async generator of [Progress](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.progress.html).
 ```ts
 const cmd = ffmpeg();
@@ -161,8 +164,8 @@ for await (const { speed, time } of process.progress()) {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
-If you want to use NodeJS' streams, turn `FFmpegProcess.progress()` into a
-NodeJS readable stream using `Readable.from()`.
+To use NodeJS' streams, `FFmpegProcess.progress()` can be turned into a Node.js readable stream
+using `Readable.from()`.
 ```ts
 const cmd = ffmpeg();
 cmd.input('input.mkv');
@@ -182,8 +185,8 @@ progress.on('end', () => {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
-**Tracking progress as a percentage:** To get a percentage from the progress you must know the total
-duration of the media, this is very easy if the duration is not modified.
+**Tracking progress as a percentage:** To get a percentage from the progress the total
+duration of the media must be known, this is very easy if the duration is not modified.
 
 Probe the input file and calculate the percentage by dividing the current `time` by the `duration`
 and multiplying by 100.
@@ -225,7 +228,7 @@ await process.complete();
 #### Abort
 The conversion can be terminated early using `FFmpegProcess.abort()`, this
 gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
-The method is asynchronous so you have to `await` it.
+The method is asynchronous.
 
 **Note:** `abort()` resolves when FFmpeg exits, but it doesn't guarantee that it
 will exit successfully, any possible errors should be handled explicitly.
