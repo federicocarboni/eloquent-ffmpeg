@@ -83,46 +83,50 @@
 
 setFFmpegPath(<span class="hljs-string">'/path/to/your/ffmpeg'</span>);
 setFFprobePath(<span class="hljs-string">'/path/to/your/ffprobe'</span>);</code></pre>
-				<p><strong>Note:</strong> Eloquent FFmpeg will not search your <code>PATH</code>, if you want to search the
-					executables use <a href="https://github.com/npm/node-which">node which</a>, which mimics
-				unix operating systems&#39; <code>which</code> command.</p>
+				<p><strong>Note:</strong> Eloquent FFmpeg will not search in <code>PATH</code>, to search for the executables in <code>PATH</code> use
+				<a href="https://github.com/npm/node-which">node which</a>, which mimics unix operating systems&#39; <code>which</code> command.</p>
 				<p><code>npm install --save which</code></p>
 				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { setFFmpegPath, setFFprobePath } <span class="hljs-keyword">from</span> <span class="hljs-string">'eloquent-ffmpeg'</span>;
 <span class="hljs-keyword">import</span> which <span class="hljs-keyword">from</span> <span class="hljs-string">'which'</span>;
 
 setFFmpegPath(which.sync(<span class="hljs-string">'ffmpeg'</span>));
 setFFprobePath(which.sync(<span class="hljs-string">'ffprobe'</span>));</code></pre>
+				<p><strong>GitHub Actions</strong></p>
+				<p>To install FFmpeg on a GitHub Actions&#39; runner use <a href="https://github.com/FedericoCarboni/setup-ffmpeg">FedericoCarboni/setup-ffmpeg</a>.</p>
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
 					<h2>Usage</h2>
 				</a>
 				<p>Since most of Eloquent FFmpeg&#39;s methods are asynchronous it is advised to use
-				<code>async-await</code> to make your code more readable.</p>
+				<code>async-await</code> to improve readability.</p>
 				<p>A simple example could use the following:</p>
-				<pre><code class="language-ts"><span class="hljs-comment">// create a new command</span>
+				<pre><code class="language-ts"><span class="hljs-comment">// Create a new command</span>
 <span class="hljs-keyword">const</span> cmd = ffmpeg({
-  <span class="hljs-comment">// include any options here...</span>
+  <span class="hljs-comment">// Include any options here...</span>
 });
 
-<span class="hljs-comment">// select your input(s)</span>
+<span class="hljs-comment">// Select input(s)</span>
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
-<span class="hljs-comment">// ... and your output(s)</span>
+<span class="hljs-comment">// ... and output(s)</span>
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
 
-<span class="hljs-comment">// spawn ffmpeg as a child process</span>
+<span class="hljs-comment">// Spawn ffmpeg as a child process</span>
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-comment">// wait for the conversion to complete</span>
+<span class="hljs-comment">// Wait for the conversion to complete</span>
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
 				<a href="#streams" id="streams" style="color: inherit; text-decoration: none;">
 					<h3>Streams</h3>
 				</a>
 				<p>Streams can be used as input sources and output destinations, there is no hard
-					limit on how many streams you can use. Pass your streams directly to
+					limit on how many streams can be used. Pass Node.js streams directly to
 				<code>FFmpegCommand.input()</code> and <code>FFmpegCommand.output()</code>.</p>
-				<p>Example using NodeJS&#39; <code>fs</code> module.</p>
+				<p>Example using Node.js&#39; <code>fs</code> module.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(fs.createReadStream(<span class="hljs-string">'input.mkv'</span>));
 <span class="hljs-comment">// The same output will be written to two destinations.</span>
-cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), <span class="hljs-string">'dest2.webm'</span>);
+cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), <span class="hljs-string">'dest2.webm'</span>)
+<span class="hljs-comment">// When using streams the format must be explicitly specified</span>
+<span class="hljs-comment">// because it can't be inferred from the file extension.</span>
+  .format(<span class="hljs-string">'webm'</span>);
 
 <span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-keyword">await</span> process.complete();</code></pre>
@@ -130,6 +134,29 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), 
 					that they cannot be used with streams, notable example being MP4. Some other
 					formats require a special format name to be explicitly set, for example to use
 				streams for GIF files the input format must be <code>gif_pipe</code>.</p>
+				<p>See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#input">FFmpegCommand.input()</a> and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#output">FFmpegCommand.output()</a></p>
+				<a href="#concatenate-inputs" id="concatenate-inputs" style="color: inherit; text-decoration: none;">
+					<h3>Concatenate Inputs</h3>
+				</a>
+				<p>To concatenate inputs use <code>FFmpegCommand.concat()</code>, at the moment it is still unstable.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hljs-string">'file:input2.mkv'</span>]);
+cmd.output(<span class="hljs-string">'output.mkv'</span>);
+
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+				<p><strong>Note:</strong> When passing inputs to <code>FFmpegCommand.concat()</code> the protocol must be explicitly specified,
+					<code>file:</code> for example, streams are handled automatically. Sometimes it may be necessary to explicitly
+				enable certain protocols.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
+cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hljs-string">'https://example.com/input2.mkv'</span>], {
+  protocols: [<span class="hljs-string">'file'</span>, <span class="hljs-string">'tcp'</span>, <span class="hljs-string">'tls'</span>, <span class="hljs-string">'http'</span>, <span class="hljs-string">'https'</span>],
+});
+cmd.output(<span class="hljs-string">'output.mkv'</span>);
+
+<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> process.complete();</code></pre>
+				<p>See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#concat">FFmpegCommand.concat()</a> and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.concatoptions.html">ConcatOptions</a>.</p>
 				<a href="#input-amp-output-options" id="input-amp-output-options" style="color: inherit; text-decoration: none;">
 					<h3>Input &amp; Output Options</h3>
 				</a>
@@ -141,29 +168,20 @@ cmd.input(<span class="hljs-string">'input.mp4'</span>)
   .format(<span class="hljs-string">'mp4'</span>);
 cmd.output(<span class="hljs-string">'output.mkv'</span>)
   .audioCodec(<span class="hljs-string">'aac'</span>);</code></pre>
-				<p>To set input and output options you could also use their <code>.args()</code> method.</p>
+				<p>To set input and output options their <code>.args()</code> method can also be used.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mp4'</span>)
   .args(<span class="hljs-string">'-format'</span>, <span class="hljs-string">'mp4'</span>);
 cmd.output(<span class="hljs-string">'output.mkv'</span>)
   .args(<span class="hljs-string">'-codec:a'</span>, <span class="hljs-string">'aac'</span>);</code></pre>
-				<a href="#concatenating-media-files" id="concatenating-media-files" style="color: inherit; text-decoration: none;">
-					<h4>Concatenating Media Files</h4>
-				</a>
-				<p>Media files can be concatenated using</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
-<span class="hljs-comment">// make sure to use file urls</span>
-cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hljs-string">'file:input2.mkv'</span>]);
-cmd.output(<span class="hljs-string">'output.mkv'</span>)
-  .videoCodec(<span class="hljs-string">''</span>);</code></pre>
-				<a href="#controlling-your-conversion" id="controlling-your-conversion" style="color: inherit; text-decoration: none;">
-					<h3>Controlling your conversion</h3>
+				<a href="#controlling-the-conversion" id="controlling-the-conversion" style="color: inherit; text-decoration: none;">
+					<h3>Controlling the conversion</h3>
 				</a>
 				<p>Make sure to check <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegprocess.html">the API documentation for FFmpegProcess</a>.</p>
 				<a href="#monitor-progress" id="monitor-progress" style="color: inherit; text-decoration: none;">
 					<h4>Monitor progress</h4>
 				</a>
-				<p>To receive real-time updates on your conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.
+				<p>To receive real-time updates on the conversion&#39;s progress, use the <code>FFmpegProcess.progress()</code> method.
 				It returns an async generator of <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.progress.html">Progress</a>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
@@ -178,8 +196,8 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hooray! Conversion complete!'</span>);</code></pre>
-				<p>If you want to use NodeJS&#39; streams, turn <code>FFmpegProcess.progress()</code> into a
-				NodeJS readable stream using <code>Readable.from()</code>.</p>
+				<p>To use Node.js&#39; streams, <code>FFmpegProcess.progress()</code> can be turned into a Node.js readable stream
+				using <code>Readable.from()</code>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
@@ -197,8 +215,8 @@ progress.on(<span class="hljs-string">'end'</span>, <span class="hljs-function">
 <span class="hljs-comment">// Use process.complete() to wait for completion.</span>
 <span class="hljs-keyword">await</span> process.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hooray! Conversion complete!'</span>);</code></pre>
-				<p><strong>Tracking progress as a percentage:</strong> To get a percentage from the progress you must know the total
-				duration of the media, this is very easy if the duration is not modified.</p>
+				<p><strong>Tracking progress as a percentage:</strong> To get a percentage from the progress the total
+				duration of the media must be known, this is very easy if the duration is not modified.</p>
 				<p>Probe the input file and calculate the percentage by dividing the current <code>time</code> by the <code>duration</code>
 				and multiplying by 100.</p>
 				<pre><code class="language-ts">const cmd = ffmpeg();
@@ -234,7 +252,7 @@ process.resume();
 				</a>
 				<p>The conversion can be terminated early using <code>FFmpegProcess.abort()</code>, this
 					gracefully interrupts the conversion allowing FFmpeg to end the file correctly.
-				The method is asynchronous so you have to <code>await</code> it.</p>
+				The method is asynchronous.</p>
 				<p><strong>Note:</strong> <code>abort()</code> resolves when FFmpeg exits, but it doesn&#39;t guarantee that it
 				will exit successfully, any possible errors should be handled explicitly.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
