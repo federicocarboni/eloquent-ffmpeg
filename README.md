@@ -46,19 +46,19 @@ Since most of Eloquent FFmpeg's methods are asynchronous it is advised to use
 A simple example could use the following:
 
 ```ts
-// create a new command
+// Create a new command
 const cmd = ffmpeg({
-  // include any options here...
+  // Include any options here...
 });
 
-// select your input(s)
+// Select your input(s)
 cmd.input('input.mkv');
 // ... and your output(s)
 cmd.output('output.mp4');
 
-// spawn ffmpeg as a child process
+// Spawn ffmpeg as a child process
 const process = await cmd.spawn();
-// wait for the conversion to complete
+// Wait for the conversion to complete
 await process.complete();
 ```
 
@@ -72,7 +72,10 @@ Example using NodeJS' `fs` module.
 const cmd = ffmpeg();
 cmd.input(fs.createReadStream('input.mkv'));
 // The same output will be written to two destinations.
-cmd.output(fs.createWriteStream('dest1.webm'), 'dest2.webm');
+cmd.output(fs.createWriteStream('dest1.webm'), 'dest2.webm')
+// When using streams the format must be explicitly specified
+// because it can't be inferred from the file extension.
+  .format('webm');
 
 const process = await cmd.spawn();
 await process.complete();
@@ -82,6 +85,37 @@ await process.complete();
 that they cannot be used with streams, notable example being MP4. Some other
 formats require a special format name to be explicitly set, for example to use
 streams for GIF files the input format must be `gif_pipe`.
+
+See [FFmpegCommand.input()](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#input) and [FFmpegCommand.output()](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#output)
+
+### Concatenate Inputs
+To concatenate inputs use `FFmpegCommand.concat()`, at the moment it is still unstable.
+
+```ts
+const cmd = ffmpeg();
+cmd.concat(['file:input1.mkv', 'file:input2.mkv']);
+cmd.output('output.mkv');
+
+const process = await cmd.spawn();
+await process.complete();
+```
+
+**Note:** When passing inputs to `FFmpegCommand.concat()` you must specify the protocol, `file:` for
+example, streams are handled automatically. Sometimes it may be necessary to explicitly enable
+certain protocols.
+
+```ts
+const cmd = ffmpeg();
+cmd.concat(['file:input1.mkv', 'https://example.com/input2.mkv'], {
+  protocols: ['file', 'tcp', 'tls', 'http', 'https'],
+});
+cmd.output('output.mkv');
+
+const process = await cmd.spawn();
+await process.complete();
+```
+
+See [FFmpegCommand.concat()](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#concat) and [ConcatOptions](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.concatoptions.html).
 
 ### Input & Output Options
 
