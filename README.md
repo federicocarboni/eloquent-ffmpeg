@@ -70,7 +70,7 @@ Streams can be used as input sources and output destinations, there is no hard
 limit on how many streams can be used. Pass Node.js streams directly to
 `FFmpegCommand.input()` and `FFmpegCommand.output()`.
 
-Example using NodeJS' `fs` module.
+Example using Node.js' `fs` module.
 ```ts
 const cmd = ffmpeg();
 cmd.input(fs.createReadStream('input.mkv'));
@@ -164,7 +164,7 @@ for await (const { speed, time } of process.progress()) {
 await process.complete();
 console.log('Hooray! Conversion complete!');
 ```
-To use NodeJS' streams, `FFmpegProcess.progress()` can be turned into a Node.js readable stream
+To use Node.js' streams, `FFmpegProcess.progress()` can be turned into a Node.js readable stream
 using `Readable.from()`.
 ```ts
 const cmd = ffmpeg();
