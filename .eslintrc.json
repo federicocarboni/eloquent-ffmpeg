@@ -47,6 +47,14 @@
         "anonymous": "always",
         "named": "never"
       }
+    ],
+    "capitalized-comments": [
+      "error",
+      "always",
+      {
+        "ignoreConsecutiveComments": true,
+        "ignoreInlineComments": true
+      }
     ]
   }
 }
