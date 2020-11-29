@@ -35,7 +35,8 @@ const injectCreateRequire = inject({
   },
 });
 
-export default [{
+/** @type {import('rollup').RollupOptions[]} */
+const config = [{
   // Fixes #6 by providing a .js file for WebPack (and other bundlers) and a .mjs file
   // for Node.js imports. Unforturnately requires a lot of duplication since those two
   // files are mostly the same. See package.json's `exports` field.
@@ -93,3 +94,5 @@ export default [{
   plugins,
   external,
 }];
+
+export default config;
