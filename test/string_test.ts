@@ -1,5 +1,4 @@
 import { escapeConcatFile, escapeFilterComponent } from '../src/string';
-// import { expect } from 'chai';
 
 describe('escape', function () {
   describe('escapeConcatFile()', function () {
