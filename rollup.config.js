@@ -40,6 +40,7 @@ export default [{
   // for Node.js imports. Unforturnately requires a lot of duplication since those two
   // files are mostly the same. See package.json's `exports` field.
   // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/6
+  // This file is a bridge between commonjs and es modules.
   input: 'src/lib.ts',
   output: [{
     file: 'lib/lib.js',
