@@ -113,6 +113,8 @@ if (isWin32) {
     try {
       // Dynamically require `ntsuspend`, this will be replaced at built time
       // to support both commonjs, es modules and module bundlers.
+      // TODO: replace this with a `await import()` when top-level `await` gets
+      // better support
       const ntsuspend = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
