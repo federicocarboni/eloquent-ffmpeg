@@ -3,7 +3,8 @@
  * https://jestjs.io/docs/en/configuration.html
  */
 
-module.exports = {
+/** @type {import('@jest/types').Config.InitialOptions} */
+const config = {
   // Automatically clear mock calls and instances between every test
   clearMocks: true,
 
@@ -52,3 +53,5 @@ module.exports = {
   // Indicates whether each individual test should be reported during the run
   verbose: true,
 };
+
+module.exports = config;
