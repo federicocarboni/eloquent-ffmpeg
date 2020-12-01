@@ -470,11 +470,11 @@ class Command implements FFmpegCommand {
       streams.push(dest);
       return [];
     });
-    // - If there are no urls the output will be disarded by
+    // - If there are no urls the output will be discarded by
     //   using `/dev/null` or `NUL` as the destination.
     // - If there is only one url it will be given directly
     //   as the output url to ffmpeg.
-    // - If there are more than one urls the `tee` protocol
+    // - If there is more than one url, the `tee` protocol
     //   will be used.
     const url = urls.length === 0 ? DEV_NULL
       : urls.length === 1 ? urls[0]
