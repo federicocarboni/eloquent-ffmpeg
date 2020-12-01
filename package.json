@@ -2,10 +2,11 @@
   "name": "eloquent-ffmpeg",
   "version": "0.13.0-alpha.0",
   "description": "A high level API for FFmpeg",
-  "module": "lib/lib.mjs",
+  "module": "lib/lib.js",
   "main": "lib/lib.cjs",
   "types": "lib/lib.d.ts",
   "exports": {
+    "module": "./lib/lib.js",
     "import": "./lib/lib.mjs",
     "require": "./lib/lib.cjs"
   },
@@ -20,7 +21,8 @@
     "build": "rollup -c && npm run dts",
     "lint": "eslint {src,test}/**/*.ts",
     "coverage": "codecov",
-    "test": "jest"
+    "test": "jest",
+    "test:modules": "npm test --prefix test/modules"
   },
   "repository": {
     "type": "git",
@@ -51,6 +53,7 @@
     "@microsoft/api-extractor": "^7.11.2",
     "@rollup/plugin-inject": "^4.0.2",
     "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-replace": "^2.3.4",
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/jest": "^26.0.15",
     "@types/node": "^14.11.1",

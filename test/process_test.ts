@@ -98,7 +98,6 @@ describe('process', function () {
       });
     });
     describe('abort()', function () {
-      // this.timeout(1000);
       it('should abort a running ffmpeg process', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
@@ -133,10 +132,9 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        await process.complete();
-        expect(process.unwrap().exitCode).not.toBeNull();
-        await process.complete();
-        expect(process.unwrap().exitCode).not.toBeNull();
+        await expect(process.complete()).resolves.toBeUndefined();
+        expect(process.unwrap().exitCode).toBe(0);
+        await expect(process.complete()).resolves.toBeUndefined();
       });
       it('should reject on non-zero exit code', async function () {
         const cmd = ffmpeg();
@@ -144,21 +142,8 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        let caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(process.unwrap().exitCode).not.toBeNull();
-        expect(caught).toBe(true);
-        caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(caught).toBe(true);
+        await expect(process.complete()).rejects.toThrow();
+        await expect(process.complete()).rejects.toThrow();
       });
       it('should reject on killed process', async function () {
         const cmd = ffmpeg();
@@ -167,20 +152,8 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         process.unwrap().kill();
-        let caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(caught).toBe(true);
-        caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(caught).toBe(true);
+        await expect(process.complete()).rejects.toThrow();
+        await expect(process.complete()).rejects.toThrow();
       });
       it('should reject on errored process', async function () {
         const cmd = ffmpeg();
@@ -189,21 +162,8 @@ describe('process', function () {
         const process = await cmd.spawn({
           ffmpegPath: './my_invalid_ffmpeg'
         });
-        let caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(process.unwrap().exitCode).not.toBeNull();
-        expect(caught).toBe(true);
-        caught = false;
-        try {
-          await process.complete();
-        } catch {
-          caught = true;
-        }
-        expect(caught).toBe(true);
+        await expect(process.complete()).rejects.toThrow();
+        await expect(process.complete()).rejects.toThrow();
       });
       it('should resolve on completion after process exit', async function () {
         const cmd = ffmpeg();
@@ -212,7 +172,8 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         await new Promise((resolve) => process.unwrap().on('exit', resolve));
-        await process.complete();
+        await expect(process.complete()).resolves.toBeUndefined();
+        await expect(process.complete()).resolves.toBeUndefined();
       });
       it('should reject on error after process exit', async function () {
         const cmd = ffmpeg();
@@ -221,20 +182,8 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         await new Promise((resolve) => process.unwrap().on('exit', resolve));
-        let caught = false;
-        try {
-          await process.complete();
-        } catch (e) {
-          caught = true;
-        }
-        expect(caught).toBe(true);
-        caught = false;
-        try {
-          await process.complete();
-        } catch (e) {
-          caught = true;
-        }
-        expect(caught).toBe(true);
+        await expect(process.complete()).rejects.toThrow();
+        await expect(process.complete()).rejects.toThrow();
       });
     });
     describe('progress()', function () {

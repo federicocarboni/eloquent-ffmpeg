@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "test": "rollup -c && webpack && node index.mjs && node index.js && node build/index-rollup.js && node build/index-webpack.js"
+  },
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "@zeit/webpack-asset-relocator-loader": "^0.8.0",
+    "eloquent-ffmpeg": "file:../..",
+    "rollup": "^2.34.0",
+    "webpack": "^5.9.0",
+    "webpack-cli": "^4.2.0"
+  }
+}

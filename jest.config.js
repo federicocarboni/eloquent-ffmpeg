@@ -3,7 +3,8 @@
  * https://jestjs.io/docs/en/configuration.html
  */
 
-module.exports = {
+/** @type {import('@jest/types').Config.InitialOptions} */
+const config = {
   // Automatically clear mock calls and instances between every test
   clearMocks: true,
 
@@ -46,9 +47,11 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    '**/test/**/*.[jt]s?(x)'
+    '**/test/**/*_test.[jt]s?(x)'
   ],
 
   // Indicates whether each individual test should be reported during the run
   verbose: true,
 };
+
+module.exports = config;

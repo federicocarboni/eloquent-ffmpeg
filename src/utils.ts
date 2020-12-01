@@ -111,8 +111,10 @@ if (isWin32) {
     // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
     // https://github.com/FedericoCarboni/node-ntsuspend
     try {
-      // Dynamically require `ntsuspend`, require() will be created with
-      // createRequire() in the es module build.
+      // Dynamically require `ntsuspend`, this will be replaced at built time
+      // to support both commonjs, es modules and module bundlers.
+      // TODO: replace this with a `await import()` when top-level `await` gets
+      // better support
       const ntsuspend = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);

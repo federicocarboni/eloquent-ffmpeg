@@ -41,7 +41,6 @@ describe('command', function () {
     });
   });
   describe('FFmpegCommand', function () {
-    // this.timeout(10000);
     describe('input()', function () {
       it('should add a string as source', function () {
         const cmd = ffmpeg();

@@ -1,10 +1,10 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import cleanup from 'rollup-plugin-cleanup';
 import inject from '@rollup/plugin-inject';
 import { execSync } from 'child_process';
 import { builtinModules } from 'module';
-import * as path from 'path';
 import pkg from './package.json';
 
 const commit = execSync('git rev-parse HEAD').toString('utf-8').slice(0, 12);
@@ -29,8 +29,41 @@ const plugins = [
     extensions: ['ts', 'js'],
   }),
 ];
+const injectCreateRequire = inject({
+  modules: {
+    createRequire: ['module', 'createRequire'],
+  },
+});
 
-export default [{
+/** @type {import('rollup').RollupOptions[]} */
+const config = [{
+  // Fixes #6 by providing a .js file for WebPack (and other bundlers) and a .mjs file
+  // for Node.js imports. Unforturnately requires a lot of duplication since those two
+  // files are mostly the same. See package.json's `exports` field.
+  // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/6
+  // This file is a bridge between commonjs and es modules.
+  input: 'src/lib.ts',
+  output: [{
+    file: 'lib/lib.js',
+    format: 'es',
+    banner,
+  }],
+  plugins: [
+    ...plugins,
+    // Until top-level `await` gets better support, we're stuck with this build time
+    // helper which enables support for dynamically `require()`ing ntsuspend from an
+    // ES module. To support bundlers this build also checks if `require` is already
+    // defined.
+    replace({
+      delimiters: ['', ''],
+      values: {
+        "require('ntsuspend')": `/* dynamic require ('ntsuspend') */ ((typeof require === 'function' ? require : createRequire(import.meta.url))('ntsuspend'))`,
+      },
+    }),
+    injectCreateRequire,
+  ],
+  external,
+}, {
   input: 'src/lib.ts',
   output: [{
     file: 'lib/lib.mjs',
@@ -39,11 +72,14 @@ export default [{
   }],
   plugins: [
     ...plugins,
-    inject({
-      modules: {
-        require: [path.resolve('src/require.ts'), '_require']
-      }
+    // Replace `require()` with `createRequire(import.meta.url)()` in the .mjs file.
+    replace({
+      delimiters: ['', ''],
+      values: {
+        "require('ntsuspend')": `/* dynamic require ('ntsuspend') */ (createRequire(import.meta.url)('ntsuspend'))`,
+      },
     }),
+    injectCreateRequire,
   ],
   external,
 }, {
@@ -51,9 +87,12 @@ export default [{
   output: [{
     file: 'lib/lib.cjs',
     format: 'cjs',
+    // Avoid unnecessary interop helpers for Node.js builtins.
     interop: (id) => builtinModules.includes(id) ? 'default' : 'auto',
     banner,
   }],
   plugins,
   external,
 }];
+
+export default config;
