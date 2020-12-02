@@ -2,6 +2,7 @@
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/FedericoCarboni/eloquent-ffmpeg.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/FedericoCarboni/eloquent-ffmpeg/context:javascript)
 [![Known Vulnerabilities](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg/badge.svg?targetFile=package.json)](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg?targetFile=package.json)
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/FedericoCarboni/eloquent-ffmpeg)](https://codecov.io/gh/FedericoCarboni/eloquent-ffmpeg/branch/master)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_shield)
 
 Eloquent FFmpeg simplifies interactions with
 [FFmpeg's command line tools](https://ffmpeg.org/) into a simple yet powerful API.
@@ -247,3 +248,7 @@ This error is likely caused by a corrupt or missing installation of [ntsuspend](
 required to pause and resume the process on Windows. Try to uninstall and
 reinstall ntsuspend, and if you experience further issues open a new issue to
 get help.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_large)
