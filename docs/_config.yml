@@ -1,4 +1,4 @@
-theme: jekyll-theme-minimal
+theme: minima
 include:
   - '_*_.html'
   - '_*_.*.html'
