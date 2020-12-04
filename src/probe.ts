@@ -337,7 +337,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     if (source instanceof Uint8Array) {
       writeStdin(stdin, source);
     } else if (typeof source !== 'string') {
-      pipeStdin(stdin, toReadable(source));
+      pipeToStdin(stdin, toReadable(source));
     }
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
@@ -381,7 +381,7 @@ class Result implements ProbeResult {
 }
 
 function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const unlisten = (): void => {
       stdin.off('error', onError);
       stdin.off('close', onClose);
@@ -402,8 +402,8 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   });
 }
 
-function pipeStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
-  return new Promise((resolve, reject) => {
+function pipeToStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
+  return new Promise<void>((resolve, reject) => {
     const unlisten = (): void => {
       stream.off('error', onStreamError);
       stdin.off('error', onError);
