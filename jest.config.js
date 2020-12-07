@@ -37,7 +37,7 @@ const config = {
   // setupFilesAfterEnv: [],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
-  slowTestThreshold: 10,
+  // slowTestThreshold: 10,
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
@@ -49,6 +49,8 @@ const config = {
   testMatch: [
     '**/test/**/*_test.[jt]s?(x)'
   ],
+
+  testTimeout: 20000,
 
   // Indicates whether each individual test should be reported during the run
   verbose: true,
