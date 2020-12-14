@@ -688,8 +688,13 @@ function handleSource(source: InputSource, streams: [string, NodeJS.ReadableStre
 
 function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
   server.once('connection', (socket) => {
+    const unlisten = (): void => {
+      socket.off('error', onError);
+      stream.off('error', onError);
+      stream.off('end', unlisten);
+    };
     // TODO: errors are ignored, this is potentially inconsistent with
-    // the current behavior of output streams, where any/ error will be
+    // the current behavior of output streams, where any error will be
     // either caught by the user or terminate the Node.js process with
     // an uncaught exception message.
     const onError = (): void => {
@@ -697,11 +702,11 @@ function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
       // ffmpeg waiting for further chunks that will never be emitted
       // by an errored stream.
       if (socket.writable) socket.end();
-      stream.off('error', onError);
-      socket.off('error', onError);
+      unlisten();
     };
-    stream.on('error', onError);
     socket.on('error', onError);
+    stream.on('error', onError);
+    stream.on('end', unlisten);
     stream.pipe(socket);
 
     // Do NOT accept further connections, close() will close the server after
