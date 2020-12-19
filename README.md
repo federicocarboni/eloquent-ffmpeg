@@ -1,6 +1,7 @@
 # Eloquent FFmpeg
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/FedericoCarboni/eloquent-ffmpeg.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/FedericoCarboni/eloquent-ffmpeg/context:javascript)
 [![Known Vulnerabilities](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg/badge.svg?targetFile=package.json)](https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg?targetFile=package.json)
+![tests](https://github.com/FedericoCarboni/eloquent-ffmpeg/workflows/tests/badge.svg)
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/FedericoCarboni/eloquent-ffmpeg)](https://codecov.io/gh/FedericoCarboni/eloquent-ffmpeg/branch/master)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_shield)
 
