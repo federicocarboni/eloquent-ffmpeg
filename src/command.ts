@@ -428,6 +428,7 @@ class Command implements FFmpegCommand {
       }
     });
 
+    // TODO: allow concat to work multiple times
     const stream = Readable.from([Buffer.from(directives, 'utf8')], { objectMode: false });
     const path = getSocketPath();
     inputStreams.push([path, stream]);
