@@ -22,7 +22,9 @@ const plugins = [
   typescript({
     tsconfig: './tsconfig.es6.json'
   }),
-  resolve(),
+  resolve({
+    exportConditions: ['node']
+  }),
   cleanup({
     comments: 'none',
     include: ['src/**/*.ts', 'node_modules/**'],
