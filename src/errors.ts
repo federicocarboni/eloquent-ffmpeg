@@ -3,6 +3,7 @@
  * @public
  */
 export class FFmpegError extends Error {
+  name = 'FFmpegError';
   constructor(message: string, public stderr: readonly string[]) {
     super(message);
   }
@@ -13,6 +14,7 @@ export class FFmpegError extends Error {
  * @public
  */
 export class FFprobeError extends Error {
+  name = 'FFprobeError';
   constructor(message: string, public stderr: readonly string[], public code?: number) {
     super(message);
   }
