@@ -18,27 +18,8 @@ there shouldn't be any major breaking changes.
 **Only NodeJS 10.x or higher is supported**
 
 ## Prerequisites
-Eloquent FFmpeg must know where to find your `ffmpeg` or `ffprobe` executables,
-you can use the environment variables `FFMPEG_PATH` and `FFPROBE_PATH`, pointing
-to the `ffmpeg` and `ffprobe` executables respectively.
-To set the path programmatically use `setFFmpegPath()` or `setFFprobePath()`.
-```ts
-import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
-
-setFFmpegPath('/path/to/your/ffmpeg');
-setFFprobePath('/path/to/your/ffprobe');
-```
-**Note:** Eloquent FFmpeg will not search in `PATH`, to search for the executables in `PATH` use
-[node which](https://github.com/npm/node-which), which mimics unix operating systems' `which` command.
-
-`npm install --save which`
-```ts
-import { setFFmpegPath, setFFprobePath } from 'eloquent-ffmpeg';
-import which from 'which';
-
-setFFmpegPath(which.sync('ffmpeg'));
-setFFprobePath(which.sync('ffprobe'));
-```
+Eloquent FFmpeg requires a recent version of FFmpeg to be installed. Make sure that ffmpeg and
+ffprobe executables are in `PATH`, or use the options `ffmpegPath` and `ffprobePath`.
 
 **GitHub Actions**
 
@@ -105,8 +86,8 @@ const process = await cmd.spawn();
 await process.complete();
 ```
 
-**Note:** When passing inputs to `FFmpegCommand.concat()` the protocol must be explicitly specified,
-`file:` for example, streams are handled automatically. Sometimes it may be necessary to explicitly
+**Note:** When passing inputs to `FFmpegCommand.concat()` the protocol must be explicitly specified:
+`file:` for example; streams are handled automatically. Sometimes it may be necessary to explicitly
 enable certain protocols.
 
 ```ts
