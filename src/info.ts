@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import { getFFmpegPath } from './env';
 import { read } from './utils';
 
 /** @public */
@@ -26,7 +25,7 @@ export interface Version {
  * ```
  * @public
  */
-export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version> {
+export async function getVersion(ffmpegPath = 'ffmpeg'): Promise<Version> {
   const lines = await getLines(ffmpegPath, ['-version']);
   const split = lines[0].slice(15).split(' ');
   const version = split[0];
@@ -74,7 +73,7 @@ export async function getVersion(ffmpegPath = getFFmpegPath()): Promise<Version>
  * ```
  * @public
  */
-export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
+export async function getDemuxers(ffmpegPath = 'ffmpeg'): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-demuxers']);
   const demuxers = new Set<string>();
   for (const line of lines.slice(4)) {
@@ -95,7 +94,7 @@ export async function getDemuxers(ffmpegPath = getFFmpegPath()): Promise<Set<str
  * ```
  * @public
  */
-export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
+export async function getMuxers(ffmpegPath = 'ffmpeg'): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-muxers']);
   const muxers = new Set<string>();
   for (const line of lines.slice(4)) {
@@ -110,7 +109,7 @@ export async function getMuxers(ffmpegPath = getFFmpegPath()): Promise<Set<strin
  * @param ffmpegPath - Path to the ffmpeg executable.
  * @public
  */
-export async function getFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
+export async function getFormats(ffmpegPath = 'ffmpeg'): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-formats']);
   const formats = new Set<string>();
   for (const line of lines.slice(4)) {
@@ -138,7 +137,7 @@ export interface Codecs {
  * ```
  * @public
  */
-export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+export async function getEncoders(ffmpegPath = 'ffmpeg'): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-encoders']);
   return parseCodecs(lines, 1);
 }
@@ -155,7 +154,7 @@ export async function getEncoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
  * ```
  * @public
  */
-export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+export async function getDecoders(ffmpegPath = 'ffmpeg'): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-decoders']);
   return parseCodecs(lines, 1);
 }
@@ -167,7 +166,7 @@ export async function getDecoders(ffmpegPath = getFFmpegPath()): Promise<Codecs>
  * @returns All codecs supported by ffmpeg.
  * @public
  */
-export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
+export async function getCodecs(ffmpegPath = 'ffmpeg'): Promise<Codecs> {
   const lines = await getLines(ffmpegPath, ['-codecs']);
   return parseCodecs(lines, 3);
 }
@@ -184,7 +183,7 @@ export async function getCodecs(ffmpegPath = getFFmpegPath()): Promise<Codecs> {
  * ```
  * @public
  */
-export async function getPixelFormats(ffmpegPath = getFFmpegPath()): Promise<Set<string>> {
+export async function getPixelFormats(ffmpegPath = 'ffmpeg'): Promise<Set<string>> {
   const lines = await getLines(ffmpegPath, ['-pix_fmts']);
   const pixelFormats = new Set<string>();
   for (const line of lines.slice(8)) {
@@ -203,7 +202,7 @@ export interface Filters {
  * @param ffmpegPath - Path to the ffmpeg executable.
  * @public
  */
-export async function getFilters(ffmpegPath = getFFmpegPath()): Promise<Filters> {
+export async function getFilters(ffmpegPath = 'ffmpeg'): Promise<Filters> {
   const lines = await getLines(ffmpegPath, ['-filters']);
   const filters: Filters = {
     video: new Set<string>(),

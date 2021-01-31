@@ -5,7 +5,6 @@ import {
 import { createInterface as readlines } from 'readline';
 import { fromAsyncIterable, pause, resume, write } from './utils';
 import { extractMessage, FFmpegError } from './errors';
-import { getFFmpegPath } from './env';
 
 /** @public */
 export interface Progress {
@@ -116,7 +115,7 @@ export interface FFmpegProcess {
  * @param ffmpegPath - Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
  * @public
  */
-export function spawn(args: string[], ffmpegPath: string = getFFmpegPath()): FFmpegProcess {
+export function spawn(args: string[], ffmpegPath = 'ffmpeg'): FFmpegProcess {
   const process = spawnChildProcess(ffmpegPath, args, { stdio: 'pipe' });
   return new Process(process, args, ffmpegPath);
 }
