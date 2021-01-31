@@ -3,7 +3,6 @@ const { ffmpeg } = require('eloquent-ffmpeg');
 const { loadImage, createCanvas } = require('canvas');
 const { SingleBar } = require('cli-progress');
 const { relative } = require('path');
-const which = require('which');
 
 const FPS = 30;
 const FRAMES = FPS * 30;
