@@ -1,10 +1,9 @@
 import { ChildProcessWithoutNullStreams, spawn, SpawnOptions } from 'child_process';
-import { IGNORED_ERRORS, isNullish, read, toReadable } from './utils';
+import { fromAsyncIterable, IGNORED_ERRORS, isNullish, read, toReadable } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
-import { FFprobeError } from './errors';
-import { getFFprobePath } from './env';
 import { Demuxer, Format } from './_types';
+import { FFprobeError } from './errors';
 
 /* eslint-disable camelcase */
 
@@ -302,7 +301,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   const {
     probeSize,
     analyzeDuration,
-    ffprobePath = getFFprobePath(),
+    ffprobePath = 'ffprobe',
     logLevel = LogLevel.Error,
     format,
     args = [],
@@ -327,10 +326,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   }) as ChildProcessWithoutNullStreams;
   const { stdin, stdout, stderr } = ffprobe;
   const extractError = async (error: RawProbeError): Promise<FFprobeError> => {
-    const logs: string[] = [];
-    if (stderr.readable) for await (const line of readlines(stderr)) {
-      logs.push(line);
-    }
+    const logs = stderr.readable ? await fromAsyncIterable(readlines(stderr)) : [];
     return new FFprobeError(error.string, logs, error.code);
   };
   try {

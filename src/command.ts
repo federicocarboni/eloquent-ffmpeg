@@ -16,7 +16,6 @@ import {
 import { probe, ProbeOptions, ProbeResult } from './probe';
 import { stringifySimpleFilterGraph } from './filters';
 import { FFmpegProcess, Process } from './process';
-import { getFFmpegPath } from './env';
 import { escapeConcatFile, escapeTeeComponent } from './string';
 
 /**
@@ -490,7 +489,7 @@ class Command implements FFmpegCommand {
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
     const {
-      ffmpegPath = getFFmpegPath(),
+      ffmpegPath = 'ffmpeg',
       spawnOptions = {},
     } = options;
     const args = this.getArgs();

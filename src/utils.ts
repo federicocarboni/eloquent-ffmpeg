@@ -13,27 +13,15 @@ export const isObject = (o: unknown): o is any => o !== null && typeof o === 'ob
 
 const isStream = (o: unknown): o is any => isObject(o) && typeof o.pipe === 'function';
 
-export const isReadableStream = (o: unknown): o is NodeJS.ReadableStream => {
-  try {
-    return isStream(o) &&
-      'readable' in o && o.readable !== false &&
-      typeof o._read === 'function' &&
-      typeof o._readableState === 'object';
-  } catch {
-    return false;
-  }
-};
+export const isReadableStream = (o: unknown): o is NodeJS.ReadableStream => isStream(o) &&
+  'readable' in o && o.readable !== false &&
+  typeof o._read === 'function' &&
+  typeof o._readableState === 'object';
 
-export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => {
-  try {
-    return isStream(o) &&
-      'writable' in o && o.writable !== false &&
-      typeof o._write === 'function' &&
-      typeof o._writableState === 'object';
-  } catch {
-    return false;
-  }
-};
+export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => isStream(o) &&
+  'writable' in o && o.writable !== false &&
+  typeof o._write === 'function' &&
+  typeof o._writableState === 'object';
 
 export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
   new Promise((resolve, reject) => {
@@ -76,7 +64,7 @@ export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise
 );
 
 export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream => (
-  isReadableStream(source) ? source: Readable.from(
+  isReadableStream(source) ? source : Readable.from(
     source instanceof Uint8Array ? [source] : source, { objectMode: false }
   )
 );

@@ -1,11 +1,8 @@
 'use strict';
-const { ffmpeg, setFFmpegPath } = require('eloquent-ffmpeg');
+const { ffmpeg } = require('eloquent-ffmpeg');
 const { loadImage, createCanvas } = require('canvas');
 const { SingleBar } = require('cli-progress');
 const { relative } = require('path');
-const which = require('which');
-
-setFFmpegPath(which.sync('ffmpeg'));
 
 const FPS = 30;
 const FRAMES = FPS * 30;
