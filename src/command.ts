@@ -145,6 +145,7 @@ export interface SpawnOptions {
 
 /** @public */
 export interface FFmpegLogger {
+  logLevel?: LogLevel;
   fatal?(message: string): void;
   error?(message: string): void;
   warning?(message: string): void;
@@ -162,7 +163,6 @@ export interface ReportOptions {
 
 /** @public */
 export interface FFmpegOptions {
-  logLevel?: LogLevel;
   /**
    * **UNSTABLE**
    *
@@ -394,9 +394,11 @@ export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
   return new Command(options);
 }
 
+// Match the `[level]` segment inside an ffmpeg line.
 const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
-const logLevelN = {
+// Turn an ffmpeg log level into its numeric representation.
+const logLevelToN = {
   quiet: -8,
   panic: 0,
   fatal: 8,
@@ -411,11 +413,12 @@ const logLevelN = {
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
     this.#options = options;
-    const { overwrite, progress, logLevel = LogLevel.Error } = options;
+    const { overwrite, progress, logger } = options;
     this.args(overwrite !== false ? '-y' : '-n');
     if (progress !== false)
       this.args('-progress', 'pipe:1', '-nostats');
-    this.args('-loglevel', `+repeat+level+${logLevel}`);
+    if (!isNullish(logger))
+      this.args('-loglevel', `+repeat+level+${logger.logLevel ?? LogLevel.Error}`);
   }
   #args: string[] = [];
   #inputs: Input[] = [];
@@ -519,18 +522,18 @@ class Command implements FFmpegCommand {
     return this;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
+    const { report, logger } = this.#options;
     const {
       ffmpegPath = 'ffmpeg',
       spawnOptions = {},
     } = options;
     const args = this.getArgs();
+
     // Starts all socket servers needed to handle the streams.
     const [inputSocketServers, outputSocketServers] = await Promise.all([
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams),
     ]);
-
-    const { report, logger } = this.#options;
 
     const cpSpawnOptions: SpawnOptionsWithoutStdio = {
       stdio: 'pipe',
@@ -545,7 +548,7 @@ class Command implements FFmpegCommand {
       // https://ffmpeg.org/ffmpeg-all.html#Generic-options
       const FFREPORT = report !== true && stringifyObjectColonSeparated({
         file: report.file,
-        level: isNullish(logLevel = report.logLevel) ? void 0 : logLevelN[logLevel],
+        level: isNullish(logLevel = report.logLevel) ? void 0 : logLevelToN[logLevel],
       }) || 'true';
       cpSpawnOptions.env = {
         // Merge with previous options or the current environment.
@@ -555,6 +558,7 @@ class Command implements FFmpegCommand {
     }
 
     const cp = spawnChildProcess(ffmpegPath, args, cpSpawnOptions);
+
     const onExit = () => {
       const closeSocketServer = (server: Server) => {
         if (server.listening) server.close();
@@ -572,16 +576,16 @@ class Command implements FFmpegCommand {
 
     const ffmpeg = new Process(cp, args, ffmpegPath);
 
-    if (logger) {
+    if (!isNullish(logger)) {
       const rl = readlines(cp.stderr);
-      const line = (message: string) => {
-        const match = message.match(LEVEL_REGEX);
+      const onLine = (line: string) => {
+        const match = line.match(LEVEL_REGEX);
         if (match !== null) {
-          const level = match[1] as keyof FFmpegLogger;
-          logger[level]?.(message);
+          const level = match[1] as Exclude<keyof FFmpegLogger, 'logLevel'>;
+          logger[level]?.(line);
         }
       };
-      rl.on('line', line);
+      rl.on('line', onLine);
     }
 
     return ffmpeg;
@@ -610,6 +614,7 @@ class Input implements FFmpegInput {
   #url: string;
   #args: string[] = [];
   #stream?: NodeJS.ReadableStream;
+
   isStream: boolean;
   offset(offset: number): this {
     return this.args('-itsoffset', `${offset}ms`);
