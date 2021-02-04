@@ -3,8 +3,8 @@ import {
   spawn as spawnChildProcess
 } from 'child_process';
 import { createInterface as readlines } from 'readline';
-import { fromAsyncIterable, pause, resume, write } from './utils';
-import { extractMessage, FFmpegError } from './errors';
+import { pause, resume, write } from './utils';
+import { FFmpegError } from './errors';
 import type { SpawnOptions } from './command';
 
 /** @public */
@@ -130,26 +130,25 @@ export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess
 
 /** @internal */
 export class Process implements FFmpegProcess {
-  constructor(process: ChildProcessWithoutNullStreams, args: string[], ffmpegPath: string) {
-    this.#process = process;
+  constructor(ffmpeg: ChildProcessWithoutNullStreams, args: string[], ffmpegPath: string) {
+    this.#ffmpeg = ffmpeg;
     this.args = args;
     this.ffmpegPath = ffmpegPath;
-    const onExit = (): void => {
+    const onExit = () => {
       this.#exited = true;
-      process.off('exit', onExit);
-      process.off('error', onExit);
+      ffmpeg.off('exit', onExit);
+      ffmpeg.off('error', onExit);
     };
-    process.on('exit', onExit);
-    process.on('error', onExit);
+    ffmpeg.on('exit', onExit);
+    ffmpeg.on('error', onExit);
   }
-  #process: ChildProcessWithoutNullStreams;
+  #ffmpeg: ChildProcessWithoutNullStreams;
   #exited = false;
-  #error?: FFmpegError;
   args: readonly string[];
   ffmpegPath: string;
   async *progress() {
     let progress: Partial<Progress> = {};
-    for await (const line of readlines(this.#process.stdout)) {
+    for await (const line of readlines(this.#ffmpeg.stdout)) {
       try {
         const [key, rawValue] = line.split('=');
         const value = rawValue.trim();
@@ -191,36 +190,27 @@ export class Process implements FFmpegProcess {
     }
   }
   async abort() {
-    const stdin = this.#process.stdin;
+    const stdin = this.#ffmpeg.stdin;
     if (this.#exited || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
-    await write(stdin, new Uint8Array([113, 13, 10])); // => writes 'q\r\n'
+    await write(stdin, new Uint8Array([113, 10])); // => writes 'q\n'
     return await this.complete();
   }
   pause() {
-    const process = this.#process;
     if (this.#exited)
       return false;
-    return pause(process);
+    return pause(this.#ffmpeg);
   }
   resume() {
-    const process = this.#process;
     if (this.#exited)
       return false;
-    return resume(process);
+    return resume(this.#ffmpeg);
   }
   complete() {
     return new Promise<void>((resolve, reject) => {
-      const ffmpeg = this.#process;
-      const error = async () => {
-        if (!this.#error) {
-          const stderr = ffmpeg.stderr.readable ? await fromAsyncIterable(readlines(ffmpeg.stderr)) : [];
-          const message = extractMessage(stderr) || `FFmpeg exited with code ${ffmpeg.exitCode}`;
-          this.#error = new FFmpegError(message, stderr);
-        }
-        reject(this.#error);
-      };
-      const complete = () => ffmpeg.exitCode === 0 ? resolve() : error();
+      const ffmpeg = this.#ffmpeg;
+      const complete = () => ffmpeg.exitCode === 0 ? resolve() : reject(
+        new FFmpegError(`FFmpeg exited with code ${ffmpeg.exitCode}`));
       if (this.#exited) {
         complete();
       } else {
@@ -235,12 +225,12 @@ export class Process implements FFmpegProcess {
     });
   }
   unwrap() {
-    return this.#process;
+    return this.#ffmpeg;
   }
   get pid() {
-    return this.#process.pid;
+    return this.#ffmpeg.pid;
   }
   kill(signal?: number | NodeJS.Signals) {
-    return this.#process.kill(signal);
+    return this.#ffmpeg.kill(signal);
   }
 }

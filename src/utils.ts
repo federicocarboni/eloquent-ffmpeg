@@ -26,23 +26,23 @@ export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => isSt
 export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
   new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
-    const unlisten = (): void => {
+    const unlisten = () => {
       stream.off('readable', onReadable);
       stream.off('error', onError);
       stream.off('end', onEnd);
     };
-    const onReadable = (): void => {
+    const onReadable = () => {
       let chunk: Uint8Array | null;
       while ((chunk = stream.read() as Uint8Array) !== null) {
         chunks.push(chunk);
       }
     };
-    const onEnd = (): void => {
+    const onEnd = () => {
       const buffer = Buffer.concat(chunks);
       unlisten();
       resolve(buffer);
     };
-    const onError = (reason?: any): void => {
+    const onError = (reason?: any) => {
       unlisten();
       reject(reason);
     };

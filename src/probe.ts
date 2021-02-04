@@ -377,17 +377,17 @@ class Result implements ProbeResult {
 
 function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
   return new Promise<void>((resolve, reject) => {
-    const unlisten = (): void => {
+    const unlisten = () => {
       stdin.off('error', onError);
       stdin.off('close', onClose);
     };
-    const onError = (error: Error & { code: string }): void => {
+    const onError = (error: Error & { code: string }) => {
       if (!IGNORED_ERRORS.has(error.code)) {
         unlisten();
         reject(error);
       }
     };
-    const onClose = (): void => {
+    const onClose = () => {
       unlisten();
       resolve();
     };
@@ -399,24 +399,24 @@ function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
 
 function pipeToStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
   return new Promise<void>((resolve, reject) => {
-    const unlisten = (): void => {
+    const unlisten = () => {
       stream.off('error', onStreamError);
       stdin.off('error', onError);
       stdin.off('close', onClose);
     };
-    const onError = (error: Error & { code: string }): void => {
+    const onError = (error: Error & { code: string }) => {
       if (!IGNORED_ERRORS.has(error.code)) {
         unlisten();
         reject(error);
       }
     };
-    const onStreamError = (error: Error): void => {
+    const onStreamError = (error: Error) => {
       if (stdin.writable)
         stdin.end();
       unlisten();
       reject(error);
     };
-    const onClose = (): void => {
+    const onClose = () => {
       unlisten();
       resolve();
     };

@@ -1,12 +1,12 @@
 import {
-  ChildProcessWithoutNullStreams,
   spawn as spawnChildProcess,
-  SpawnOptions as ChildProcessOptions
+  SpawnOptionsWithoutStdio
 } from 'child_process';
+import { createInterface as readlines } from 'readline';
 import { Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketUrl } from './sock';
-import { DEV_NULL, flatMap, isReadableStream, toReadable } from './utils';
+import { DEV_NULL, flatMap, isNullish, isReadableStream, toReadable } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -14,16 +14,15 @@ import {
   VideoDecoder, VideoEncoder, VideoFilter
 } from './_types';
 import { probe, ProbeOptions, ProbeResult } from './probe';
-import { stringifySimpleFilterGraph } from './filters';
 import { FFmpegProcess, Process } from './process';
-import { escapeConcatFile, escapeTeeComponent } from './string';
+import {
+  escapeConcatFile,
+  escapeTeeComponent,
+  stringifyFilterDescription,
+  stringifyObjectColonSeparated
+} from './string';
 
-/**
- * **UNSTABLE**: Support for logging is under consideration, this is not useful enough to recommend
- * its usage.
- *
- * @alpha
- */
+/** @public */
 export enum LogLevel {
   Quiet = 'quiet',
   Panic = 'panic',
@@ -35,7 +34,6 @@ export enum LogLevel {
   Debug = 'debug',
   Trace = 'trace',
 }
-
 /** @public */
 export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array>;
 /** @public */
@@ -51,13 +49,6 @@ export type ConcatSource = InputSource
 
 /** @public */
 export interface FFmpegCommand {
-  /**
-   * **UNSTABLE**: Under consideration for removal.
-   *
-   * The log level that will be used for the command. Set it using {@link FFmpegOptions}.
-   * @alpha
-   */
-  readonly logLevel: LogLevel;
   /**
    * Adds an input to the conversion.
    * @param source -
@@ -149,18 +140,42 @@ export interface SpawnOptions {
    * Add custom options that will be used to spawn the process.
    * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
    */
-  spawnOptions?: ChildProcessOptions;
+  spawnOptions?: SpawnOptionsWithoutStdio;
+}
+
+/** @public */
+export interface FFmpegLogger {
+  fatal?(message: string): void;
+  error?(message: string): void;
+  warning?(message: string): void;
+  info?(message: string): void;
+  verbose?(message: string): void;
+  debug?(message: string): void;
+  trace?(message: string): void;
+}
+
+/** @public */
+export interface ReportOptions {
+  file?: string;
+  logLevel?: LogLevel;
 }
 
 /** @public */
 export interface FFmpegOptions {
-  /**
-   * **UNSTABLE**: Support for logging is under consideration.
-   *
-   * Change FFmpeg's LogLevel, defaults to `LogLevel.Error`.
-   * @alpha
-   */
   logLevel?: LogLevel;
+  /**
+   * **UNSTABLE**
+   *
+   * Enable processing of FFmpeg's logs, implies `+repeat+level`.
+   */
+  logger?: FFmpegLogger;
+  /**
+   * **UNSTABLE**
+   *
+   * Enable dumping full command line args and logs to a specified file.
+   * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
+   */
+  report?: ReportOptions | boolean;
   /**
    * Enable piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
    * will silently fail. Defaults to `true`.
@@ -379,20 +394,36 @@ export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
   return new Command(options);
 }
 
+const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
+
+const logLevelN = {
+  quiet: -8,
+  panic: 0,
+  fatal: 8,
+  error: 16,
+  warning: 24,
+  info: 32,
+  verbose: 40,
+  debug: 48,
+  trace: 56,
+};
+
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
-    this.logLevel = options.logLevel ?? LogLevel.Error;
-    this.args(options.overwrite !== false ? '-y' : '-n');
-    if (options.progress !== false)
+    this.#options = options;
+    const { overwrite, progress, logLevel = LogLevel.Error } = options;
+    this.args(overwrite !== false ? '-y' : '-n');
+    if (progress !== false)
       this.args('-progress', 'pipe:1', '-nostats');
+    this.args('-loglevel', `+repeat+level+${logLevel}`);
   }
   #args: string[] = [];
   #inputs: Input[] = [];
   #outputs: Output[] = [];
+  #options: FFmpegOptions;
   #inputStreams: [string, NodeJS.ReadableStream][] = [];
   #outputStreams: [string, NodeJS.WritableStream[]][] = [];
 
-  logLevel: LogLevel;
   input(source: InputSource): FFmpegInput {
     const [url, isStream, stream] = handleSource(source, this.#inputStreams);
     const input = new Input(url, isStream, stream);
@@ -498,12 +529,34 @@ class Command implements FFmpegCommand {
       handleInputs(this.#inputStreams),
       handleOutputs(this.#outputStreams),
     ]);
-    const ffmpeg = spawnChildProcess(ffmpegPath, args, {
+
+    const { report, logger } = this.#options;
+
+    const cpSpawnOptions: SpawnOptionsWithoutStdio = {
       stdio: 'pipe',
       ...spawnOptions,
-    }) as ChildProcessWithoutNullStreams;
-    const onExit = (): void => {
-      const closeSocketServer = (server: Server): void => {
+    };
+
+    if (report) {
+      let logLevel: LogLevel | undefined;
+      // FFREPORT can be either a ':' separated key-value pair which takes `file` and `level` as
+      // options or any non-empty string which enables reporting with default options.
+      // If no options are specified the string `true` is used.
+      // https://ffmpeg.org/ffmpeg-all.html#Generic-options
+      const FFREPORT = report !== true && stringifyObjectColonSeparated({
+        file: report.file,
+        level: isNullish(logLevel = report.logLevel) ? void 0 : logLevelN[logLevel],
+      }) || 'true';
+      cpSpawnOptions.env = {
+        // Merge with previous options or the current environment.
+        ...(cpSpawnOptions.env ?? process.env),
+        FFREPORT,
+      };
+    }
+
+    const cp = spawnChildProcess(ffmpegPath, args, cpSpawnOptions);
+    const onExit = () => {
+      const closeSocketServer = (server: Server) => {
         if (server.listening) server.close();
       };
       // Close all socket servers, this is necessary for proper cleanup after
@@ -511,12 +564,27 @@ class Command implements FFmpegCommand {
       inputSocketServers.forEach(closeSocketServer);
       outputSocketServers.forEach(closeSocketServer);
       // Remove listeners after cleanup.
-      ffmpeg.off('exit', onExit);
-      ffmpeg.off('error', onExit);
+      cp.off('exit', onExit);
+      cp.off('error', onExit);
     };
-    ffmpeg.on('exit', onExit);
-    ffmpeg.on('error', onExit);
-    return new Process(ffmpeg, args, ffmpegPath);
+    cp.on('exit', onExit);
+    cp.on('error', onExit);
+
+    const ffmpeg = new Process(cp, args, ffmpegPath);
+
+    if (logger) {
+      const rl = readlines(cp.stderr);
+      const line = (message: string) => {
+        const match = message.match(LEVEL_REGEX);
+        if (match !== null) {
+          const level = match[1] as keyof FFmpegLogger;
+          logger[level]?.(message);
+        }
+      };
+      rl.on('line', line);
+    }
+
+    return ffmpeg;
   }
   getArgs(): string[] {
     const inputs = this.#inputs;
@@ -527,7 +595,6 @@ class Command implements FFmpegCommand {
       throw new TypeError('At least one output file should be specified');
     return [
       ...this.#args,
-      '-v', this.logLevel.toString(),
       ...flatMap(inputs, (input) => input.getArgs()),
       ...flatMap(outputs, (output) => output.getArgs()),
     ];
@@ -573,15 +640,15 @@ class Input implements FFmpegInput {
       const stream = this.#stream!;
       const size = options.probeSize ?? 5000000;
       return new Promise<Uint8Array>((resolve, reject) => {
-        const unlisten = (): void => {
+        const unlisten = () => {
           stream.off('readable', onReadable);
           stream.off('error', onError);
         };
-        const onError = (error: Error): void => {
+        const onError = (error: Error) => {
           unlisten();
           reject(error);
         };
-        const onReadable = (): void => {
+        const onReadable = () => {
           const chunk = stream.read(size) as Uint8Array;
           if (chunk !== null) {
             unlisten();
@@ -622,11 +689,11 @@ class Output implements FFmpegOutput {
   #audioFilters: string[] = [];
   isStream: boolean;
   videoFilter(filter: string, options?: Record<string, any> | any[]) {
-    this.#videoFilters.push(stringifySimpleFilterGraph(filter, options));
+    this.#videoFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
   audioFilter(filter: string, options?: Record<string, any> | any[]) {
-    this.#audioFilters.push(stringifySimpleFilterGraph(filter, options));
+    this.#audioFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
   metadata(metadata: Record<string, string>, specifier?: string): this {
@@ -688,7 +755,7 @@ function handleSource(source: InputSource, streams: [string, NodeJS.ReadableStre
 
 function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
   server.once('connection', (socket) => {
-    const unlisten = (): void => {
+    const unlisten = () => {
       socket.off('error', onError);
       stream.off('error', onError);
       stream.off('end', unlisten);
@@ -697,7 +764,7 @@ function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
     // the current behavior of output streams, where any error will be
     // either caught by the user or terminate the Node.js process with
     // an uncaught exception message.
-    const onError = (): void => {
+    const onError = () => {
       // Close the socket connection on error, this reduces the risk of
       // ffmpeg waiting for further chunks that will never be emitted
       // by an errored stream.
@@ -716,20 +783,20 @@ function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
 }
 function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
   server.once('connection', (socket) => {
-    const unlisten = (): void => {
+    const unlisten = () => {
       socket.off('error', onError);
       socket.off('data', onData);
       socket.off('end', onEnd);
     };
     // TODO: improve error handling
-    const onError = (): void => {
+    const onError = () => {
       if (socket.writable) socket.end();
       unlisten();
     };
     // TODO: errors in output streams will fall through, so we just rely
     // on the user to add an error listener to their output streams.
     // Could this be different from the behavior one might expect?
-    const onData = (data: Uint8Array): void => {
+    const onData = (data: Uint8Array) => {
       streams.forEach((stream) => stream.write(data));
     };
     const onEnd = () => {

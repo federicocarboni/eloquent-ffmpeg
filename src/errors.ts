@@ -4,7 +4,7 @@
  */
 export class FFmpegError extends Error {
   name = 'FFmpegError';
-  constructor(message: string, public stderr: readonly string[]) {
+  constructor(message: string) {
     super(message);
   }
 }
