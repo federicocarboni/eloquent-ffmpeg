@@ -35,8 +35,8 @@ export function stringifyFilterDescription(filter: string, options?: Record<stri
 }
 
 /**
- * Turn an object into a `:`-separated list of `key=value` pairs. Values which are `null`,
- * `undefined` or `''` (empty string) are ignored. Values are escaped using {@link escapeFilterValue}.
+ * Turn an object into a `:`-separated list of `key=value` pairs. Nullish values (`null` or
+ * `undefined`) are ignored. Values are escaped using {@link escapeFilterValue}.
  * No checks are applied to keys, they are assumed to be valid in FFmpeg.
  *
  * @returns A string containing a list of `:`-separated list of `key=value` pairs, may be `''`
