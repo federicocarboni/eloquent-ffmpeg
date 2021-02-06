@@ -5,8 +5,8 @@ import {
 import { createInterface as readlines } from 'readline';
 import { Readable } from 'stream';
 import { Server } from 'net';
-import { createSocketServer, getSocketPath, getSocketUrl } from './sock';
-import { DEV_NULL, flatMap, isNullish, isReadableStream, toReadable } from './utils';
+import { createSocketServer, getSocketPath, getSocketURL } from './sock';
+import { DEV_NULL, flatMap, isNullish, isUint8Array, toReadableStream } from './utils';
 import {
   AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
   Muxer,
@@ -128,6 +128,7 @@ export interface FFmpegCommand {
 export interface ConcatOptions {
   safe?: boolean;
   protocols?: string[];
+  useDataURI?: boolean;
   // TODO: add support for using an intermediate file
 }
 
@@ -431,7 +432,7 @@ class Command implements FFmpegCommand {
   #outputStreams: [string, NodeJS.WritableStream[]][] = [];
 
   input(source: InputSource): FFmpegInput {
-    const [url, isStream, stream] = handleSource(source, this.#inputStreams);
+    const [url, isStream, stream] = handleInputSource(source, this.#inputStreams);
     const input = new Input(url, isStream, stream);
     this.#inputs.push(input);
     return input;
@@ -439,38 +440,51 @@ class Command implements FFmpegCommand {
   concat(sources: ConcatSource[], options: ConcatOptions = {}) {
     // Dynamically create an ffconcat file with the given directives.
     // https://ffmpeg.org/ffmpeg-all.html#toc-concat-1
-    let directives = 'ffconcat version 1.0\n';
-    const isInputSource = (o: any): o is InputSource =>
-      typeof o === 'string' || isReadableStream(o) ||
-      o instanceof Uint8Array || Symbol.asyncIterator in o;
+    const directives = ['ffconcat version 1.0'];
     const inputStreams = this.#inputStreams;
-    const addFile = (file: InputSource) => {
-      const [url] = handleSource(file, inputStreams);
-      directives += `file ${escapeConcatFile(url)}\n`;
+    const isInputSource = (o: ConcatSource): o is InputSource => (
+      typeof o === 'string' || isUint8Array(o) || Symbol.asyncIterator in o
+    );
+    const addFile = (source: InputSource) => {
+      const [url] = handleInputSource(source, inputStreams);
+      directives.push(`file ${escapeConcatFile(url)}`);
     };
     sources.forEach((source) => {
       if (isInputSource(source)) {
         addFile(source);
       } else {
-        if (source.file !== void 0)
+        if (!isNullish(source.file))
           addFile(source.file);
-        if (source.duration !== void 0)
-          directives += `duration ${source.duration}ms\n`;
-        if (source.inpoint !== void 0)
-          directives += `inpoint ${source.inpoint}ms\n`;
-        if (source.outpoint !== void 0)
-          directives += `outpoint ${source.outpoint}ms\n`;
+        if (!isNullish(source.duration))
+          directives.push(`duration ${source.duration}ms`);
+        if (!isNullish(source.inpoint))
+          directives.push(`inpoint ${source.inpoint}ms`);
+        if (!isNullish(source.outpoint))
+          directives.push(`outpoint ${source.outpoint}ms`);
         // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
     });
 
-    // TODO: allow concat to work multiple times
-    const stream = Readable.from([Buffer.from(directives, 'utf8')], { objectMode: false });
-    const path = getSocketPath();
-    inputStreams.push([path, stream]);
-    const input = new Input(getSocketUrl(path), true, stream);
+    const { safe, protocols, useDataURI } = options;
 
-    const { safe, protocols } = options;
+    const ffconcat = Buffer.from(directives.join('\n'), 'utf8');
+
+    let stream: NodeJS.ReadableStream | undefined;
+    let isStream: boolean;
+    let url: string;
+
+    if (useDataURI !== false) {
+      url = `data:text/plain;base64,${ffconcat.toString('base64')}`;
+      isStream = false;
+    } else {
+      const path = getSocketPath();
+      url = getSocketURL(path);
+      isStream = true;
+      stream = Readable.from([ffconcat], { objectMode: false });
+      inputStreams.push([path, stream]);
+    }
+
+    const input = new Input(url, isStream, stream);
 
     // Add extra arguments to the input based on the given options
     // the option safe is NOT enabled by default because it doesn't
@@ -501,7 +515,7 @@ class Command implements FFmpegCommand {
         streams = [dest];
         const path = getSocketPath();
         this.#outputStreams.push([path, streams]);
-        return getSocketUrl(path);
+        return getSocketURL(path);
       }
       // `streams` has been already added to `#outputStreams` here
       // we push the new stream and return an empty array to avoid
@@ -754,14 +768,14 @@ class Output implements FFmpegOutput {
   }
 }
 
-function handleSource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
+function handleInputSource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
   if (typeof source === 'string') {
     return [source, false];
   } else {
     const path = getSocketPath();
-    const stream = toReadable(source);
+    const stream = toReadableStream(source);
     streams.push([path, stream]);
-    return [getSocketUrl(path), true, stream];
+    return [getSocketURL(path), true, stream];
   }
 }
 
