@@ -20,7 +20,8 @@ import {
   escapeFilterDescription,
   escapeTeeComponent,
   stringifyFilterDescription,
-  stringifyObjectColonSeparated
+  stringifyObjectColonSeparated,
+  stringifyValue
 } from './string';
 
 /** @public */
@@ -370,13 +371,14 @@ export interface FFmpegOutput {
    */
   map(...streams: string[]): this;
   /**
-   * Add metadata to a stream or an output.
+   * Add metadata to a stream or an output, if a value is `undefined`, `null` or `''` (empty string),
+   * the key will be deleted.
    * {@link https://ffmpeg.org/ffmpeg.html#Main-options}
-   * @param metadata - The metadata to add to the stream.
+   * @param metadata - The metadata to add to the stream or output.
    * @param specifier - The stream to add metadata to, if not given `metadata`
    * will be added to the output file.
    */
-  metadata(metadata: Record<string, string>, specifier?: string): this;
+  metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this;
   /**
    * Returns all the arguments for the output.
    */
@@ -720,10 +722,10 @@ class Output implements FFmpegOutput {
     this.#audioFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
-  metadata(metadata: Record<string, string>, specifier?: string): this {
+  metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this {
     return this.args(...flatMap(Object.entries(metadata), ([key, value]) => [
       `-metadata${specifier ? ':' + specifier : ''}`,
-      `${key}=${value}`,
+      `${key}=${isNullish(value) ? '' : stringifyValue(value)}`,
     ]));
   }
   map(...streams: string[]): this {
