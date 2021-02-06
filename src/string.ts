@@ -44,7 +44,7 @@ export function stringifyFilterDescription(filter: string, options?: Record<stri
  */
 export function stringifyObjectColonSeparated(object: Record<string, any>) {
   return Object.entries(object)
-    .filter(([, value]) => !isNullish(value) && value !== '')
+    .filter(([, value]) => !isNullish(value))
     .map(([key, value]) => `${key}=${escapeFilterValue(stringifyValue(value))}`)
     .join(':');
 }
