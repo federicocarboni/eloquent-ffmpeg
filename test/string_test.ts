@@ -48,11 +48,10 @@ describe('string', function () {
     });
     it('should stringify empty options', function () {
       expect(stringifyFilterDescription('my_filter', [])).toBe('my_filter');
-      expect(stringifyFilterDescription('my_filter', [null, void 0, ''])).toBe('my_filter');
+      expect(stringifyFilterDescription('my_filter', [null, void 0])).toBe('my_filter');
       expect(stringifyFilterDescription('my_filter', {
         a: null,
         b: void 0,
-        c: '',
       })).toBe('my_filter');
       expect(stringifyFilterDescription('my_filter')).toBe('my_filter');
     });
