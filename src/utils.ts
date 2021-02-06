@@ -9,17 +9,15 @@ export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
-export const isObject = (o: unknown): o is any => o !== null && typeof o === 'object';
+const isStream = (o: any) => o !== null && typeof o === 'object' && typeof o.pipe === 'function';
 
-const isStream = (o: unknown): o is any => isObject(o) && typeof o.pipe === 'function';
-
-export const isReadableStream = (o: unknown): o is NodeJS.ReadableStream => isStream(o) &&
-  'readable' in o && o.readable !== false &&
+export const isReadableStream = (o: any): o is NodeJS.ReadableStream => isStream(o) &&
+  o.readable !== false &&
   typeof o._read === 'function' &&
   typeof o._readableState === 'object';
 
-export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => isStream(o) &&
-  'writable' in o && o.writable !== false &&
+export const isWritableStream = (o: any): o is NodeJS.WritableStream => isStream(o) &&
+  o.writable !== false &&
   typeof o._write === 'function' &&
   typeof o._writableState === 'object';
 
@@ -71,8 +69,7 @@ export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): Node
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
 // if available or falls back to using `Array.prototype.map` and
-// `Array.prototype.concat`; this solution works, but it's potentially subject
-// to call stack size limits, though it's very very unlikely
+// `Array.prototype.concat`.
 // TODO: use `flatMap` directly when Node.js drops support for v10
 /* istanbul ignore next */ // @ts-ignore
 export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap
