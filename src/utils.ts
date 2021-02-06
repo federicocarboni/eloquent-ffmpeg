@@ -16,10 +16,7 @@ export const isReadableStream = (o: any): o is NodeJS.ReadableStream => isStream
   typeof o._read === 'function' &&
   typeof o._readableState === 'object';
 
-export const isWritableStream = (o: any): o is NodeJS.WritableStream => isStream(o) &&
-  o.writable !== false &&
-  typeof o._write === 'function' &&
-  typeof o._writableState === 'object';
+export const isUint8Array = (o: any): o is Uint8Array => Object.prototype.toString.call(o) === '[object Uint8Array]';
 
 export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
   new Promise((resolve, reject) => {
@@ -61,11 +58,8 @@ export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise
   })
 );
 
-export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream => (
-  isReadableStream(source) ? source : Readable.from(
-    source instanceof Uint8Array ? [source] : source, { objectMode: false }
-  )
-);
+export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
+  isReadableStream(source) ? source : Readable.from(isUint8Array(source) ? [source] : source, { objectMode: false });
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
 // if available or falls back to using `Array.prototype.map` and
