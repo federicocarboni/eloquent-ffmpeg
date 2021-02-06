@@ -17,6 +17,7 @@ import { probe, ProbeOptions, ProbeResult } from './probe';
 import { FFmpegProcess, Process } from './process';
 import {
   escapeConcatFile,
+  escapeFilterDescription,
   escapeTeeComponent,
   stringifyFilterDescription,
   stringifyObjectColonSeparated
@@ -417,8 +418,10 @@ class Command implements FFmpegCommand {
     this.args(overwrite !== false ? '-y' : '-n');
     if (progress !== false)
       this.args('-progress', 'pipe:1', '-nostats');
-    if (!isNullish(logger))
-      this.args('-loglevel', `+repeat+level+${logger.logLevel ?? LogLevel.Error}`);
+    if (!isNullish(logger)) {
+      const { logLevel } = logger;
+      this.args('-loglevel', `+repeat+level${isNullish(logLevel) ? '' : `+${logLevel}`}`);
+    }
   }
   #args: string[] = [];
   #inputs: Input[] = [];
@@ -467,16 +470,18 @@ class Command implements FFmpegCommand {
     inputStreams.push([path, stream]);
     const input = new Input(getSocketUrl(path), true, stream);
 
+    const { safe, protocols } = options;
+
     // Add extra arguments to the input based on the given options
     // the option safe is NOT enabled by default because it doesn't
     // allow streams or protocols other than the currently used one,
     // which, depending on the platform, may be `file` (on Windows)
     // or `unix` (on every other platform).
-    input.args('-safe', options.safe ? '1' : '0');
+    input.args('-safe', safe ? '1' : '0');
     // Protocol whitelist enables certain protocols in the ffconcat
     // file dynamically created by this method.
-    if (options.protocols && options.protocols.length > 0)
-      input.args('-protocol_whitelist', options.protocols.join(','));
+    if (!isNullish(protocols) && protocols.length > 0)
+      input.args('-protocol_whitelist', protocols.join(','));
 
     this.#inputs.push(input);
     return input;
@@ -740,8 +745,10 @@ class Output implements FFmpegOutput {
     const audioFilters = this.#audioFilters;
     return [
       ...this.#args,
-      ...(videoFilters.length > 0 ? ['-filter:V', videoFilters.join(',')] : []),
-      ...(audioFilters.length > 0 ? ['-filter:a', audioFilters.join(',')] : []),
+      ...(videoFilters.length > 0
+        ? ['-filter:V', videoFilters.map(escapeFilterDescription).join(',')] : []),
+      ...(audioFilters.length > 0
+        ? ['-filter:a', audioFilters.map(escapeFilterDescription).join(',')] : []),
       this.#url,
     ];
   }
