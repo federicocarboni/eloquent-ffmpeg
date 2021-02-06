@@ -1,5 +1,5 @@
 import { ChildProcessWithoutNullStreams, spawn, SpawnOptions } from 'child_process';
-import { fromAsyncIterable, IGNORED_ERRORS, isNullish, read, toReadable } from './utils';
+import { fromAsyncIterable, IGNORED_ERRORS, isNullish, read, toReadableStream } from './utils';
 import { createInterface as readlines } from 'readline';
 import { InputSource, LogLevel } from './command';
 import { Demuxer, Format } from './_types';
@@ -333,7 +333,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     if (source instanceof Uint8Array) {
       writeStdin(stdin, source);
     } else if (typeof source !== 'string') {
-      pipeToStdin(stdin, toReadable(source));
+      pipeToStdin(stdin, toReadableStream(source));
     }
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
