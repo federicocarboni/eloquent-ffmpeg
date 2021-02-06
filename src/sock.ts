@@ -10,7 +10,7 @@ export const getSocketPath = isWin32 ? (): string => (
 );
 
 /* istanbul ignore next */
-export const getSocketUrl = isWin32 ? (path: string): string => (
+export const getSocketURL = isWin32 ? (path: string): string => (
   `file:${path}`
 ) : (path: string): string => (
   `unix:${path}`
