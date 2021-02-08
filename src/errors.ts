@@ -4,7 +4,7 @@
  */
 export class FFmpegError extends Error {
   name = 'FFmpegError';
-  constructor(message: string) {
+  constructor(message: string, public readonly args: readonly string[], public readonly ffmpegPath: string) {
     super(message);
   }
 }
@@ -18,15 +18,4 @@ export class FFprobeError extends Error {
   constructor(message: string, public stderr: readonly string[], public code?: number) {
     super(message);
   }
-}
-
-export function extractMessage(stderr: string[]): string | undefined {
-  let message: string | undefined;
-  for (const line of stderr) {
-    if (!message && line.includes(': '))
-      message = line.slice(line.indexOf(': ') + 2);
-    if (line.startsWith('[NULL @ '))
-      message = line.slice(line.indexOf('] ') + 2);
-  }
-  return message;
 }

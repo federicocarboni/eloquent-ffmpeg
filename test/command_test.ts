@@ -6,42 +6,6 @@ import { ffmpeg, LogLevel } from '../src/command';
 
 describe('command', function () {
   describe('ffmpeg()', function () {
-    it('should set report to true', async function () {
-      const cmd = ffmpeg({
-        report: true,
-      });
-      cmd.input('test/samples/invalid');
-      cmd.output().format('matroska');
-      const proc = await cmd.spawn({
-        spawnOptions: {
-          cwd: 'test/samples'
-        },
-      });
-      await proc.complete().catch(() => {
-        //
-      });
-      const files = await promises.readdir('test/samples');
-      const log = files.find((file) => file.startsWith('ffmpeg-'))!;
-      expect(log).not.toBeUndefined();
-      await promises.readFile(join('test/samples', log), 'utf8');
-      await promises.unlink(join('test/samples', log));
-    });
-    it('should set report file', async function () {
-      const cmd = ffmpeg({
-        report: {
-          file: 'test/samples/report.log',
-          logLevel: LogLevel.Info,
-        },
-      });
-      cmd.input('test/samples/invalid');
-      cmd.output().format('matroska');
-      const proc = await cmd.spawn();
-      await proc.complete().catch(() => {
-        //
-      });
-      await promises.readFile('test/samples/report.log', 'utf8');
-      await promises.unlink('test/samples/report.log');
-    });
     it('should set overwrite to true by default', function () {
       const cmd = ffmpeg();
       cmd.input('test/samples/invalid');
@@ -250,6 +214,42 @@ describe('command', function () {
       });
     });
     describe('spawn()', function () {
+      it('should handle report set to true', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output().format('matroska');
+        const proc = await cmd.spawn({
+          report: true,
+          spawnOptions: {
+            // Create the report file in test/samples
+            cwd: 'test/samples'
+          },
+        });
+        await proc.complete().catch(() => {
+          //
+        });
+        const files = await promises.readdir('test/samples');
+        const log = files.find((file) => file.startsWith('ffmpeg-'))!;
+        expect(log).not.toBeUndefined();
+        await promises.readFile(join('test/samples', log), 'utf8');
+        await promises.unlink(join('test/samples', log));
+      });
+      it('should handle report file and level', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output().format('matroska');
+        const proc = await cmd.spawn({
+          report: {
+            file: 'test/samples/report.log',
+            level: LogLevel.Info,
+          },
+        });
+        await proc.complete().catch(() => {
+          //
+        });
+        await promises.readFile('test/samples/report.log', 'utf8');
+        await promises.unlink('test/samples/report.log');
+      });
       it('should cleanup socket servers on errored process', async function () {
         const cmd = ffmpeg();
         cmd.input(createReadStream('test/samples/video.mkv'));

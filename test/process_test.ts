@@ -1,4 +1,5 @@
 import { ffmpeg } from '../src/command';
+import { FFmpegError } from '../src/lib';
 import { spawn } from '../src/process';
 import { isWin32 } from '../src/utils';
 
@@ -105,7 +106,6 @@ describe('process', function () {
           .args('-f', 'matroska');
         const process = await cmd.spawn();
         await process.abort();
-        await process.complete();
         expect(process.unwrap().exitCode).toBe(0);
       });
       it('should reject on a non-running ffmpeg process', async function () {
@@ -142,8 +142,9 @@ describe('process', function () {
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
-        await expect(process.complete()).rejects.toThrow();
-        await expect(process.complete()).rejects.toThrow();
+        process.complete().then(console.log, console.log);
+        await expect(process.complete()).rejects.toThrow(FFmpegError);
+        await expect(process.complete()).rejects.toThrow(FFmpegError);
       });
       it('should reject on killed process', async function () {
         const cmd = ffmpeg();
@@ -152,8 +153,8 @@ describe('process', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const process = await cmd.spawn();
         process.unwrap().kill();
-        await expect(process.complete()).rejects.toThrow();
-        await expect(process.complete()).rejects.toThrow();
+        await expect(process.complete()).rejects.toThrow(FFmpegError);
+        await expect(process.complete()).rejects.toThrow(FFmpegError);
       });
       it('should reject on errored process', async function () {
         const cmd = ffmpeg();
@@ -162,6 +163,7 @@ describe('process', function () {
         const process = await cmd.spawn({
           ffmpegPath: './my_invalid_ffmpeg'
         });
+        process.complete().catch(console.log);
         await expect(process.complete()).rejects.toThrow();
         await expect(process.complete()).rejects.toThrow();
       });

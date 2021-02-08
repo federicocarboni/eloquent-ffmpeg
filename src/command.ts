@@ -109,7 +109,7 @@ export interface FFmpegCommand {
   args(...args: string[]): this;
   /**
    * Starts the conversion, this method is asynchronous so it must be `await`'ed.
-   * @param ffmpegPath - Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+   * @param options - See {@link SpawnOptions}.
    * @example
    * ```ts
    * const cmd = ffmpeg();
@@ -134,21 +134,7 @@ export interface ConcatOptions {
 }
 
 /** @public */
-export interface SpawnOptions {
-  /**
-   * Path to the FFmpeg executable.
-   */
-  ffmpegPath?: string;
-  /**
-   * Add custom options that will be used to spawn the process.
-   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
-   */
-  spawnOptions?: SpawnOptionsWithoutStdio;
-}
-
-/** @public */
 export interface FFmpegLogger {
-  logLevel?: LogLevel;
   fatal?(message: string): void;
   error?(message: string): void;
   warning?(message: string): void;
@@ -159,17 +145,11 @@ export interface FFmpegLogger {
 }
 
 /** @public */
-export interface ReportOptions {
-  file?: string;
-  logLevel?: LogLevel;
-}
-
-/** @public */
-export interface FFmpegOptions {
+export interface SpawnOptions {
   /**
    * **UNSTABLE**
    *
-   * Enable processing of FFmpeg's logs, implies `+repeat+level`.
+   * Define a logger for FFmpeg.
    */
   logger?: FFmpegLogger;
   /**
@@ -179,14 +159,48 @@ export interface FFmpegOptions {
    * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
    */
   report?: ReportOptions | boolean;
+  /** Path to the ffmpeg executable. */
+  ffmpegPath?: string;
+  /**
+   * Add custom options that will be used to spawn the process.
+   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
+   */
+  spawnOptions?: SpawnOptionsWithoutStdio;
+}
+
+/** @public */
+export interface ReportOptions {
+  /**
+   * A path to the file the report will be written to, relative to the current working directory of
+   * FFmpeg. When not given, FFmpeg will write the report to `ffmpeg-YYYYMMDD-HHMMSS.log` in its
+   * working directory.
+   */
+  file?: string;
+  /**
+   * Change the log level used for the report file, it will not interfere with logging. When not
+   * given FFmpeg defaults to `LogLevel.Debug`.
+   */
+  level?: LogLevel;
+}
+
+/** @public */
+export interface FFmpegOptions {
+  /**
+   * **UNSTABLE**
+   *
+   * Change the log level used for FFmpeg's logs.
+   */
+  level?: LogLevel;
   /**
    * Enable piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
-   * will silently fail. Defaults to `true`.
+   * will silently fail.
+   * @defaultValue `true`
    */
   progress?: boolean;
   /**
    * Whether to overwrite the output destinations if they already exist. Required
-   * to be `true` for streaming outputs. Defaults to `true`.
+   * to be `true` for streaming outputs.
+   * @defaultValue `true`
    */
   overwrite?: boolean;
 }
@@ -416,20 +430,15 @@ const logLevelToN = {
 
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
-    this.#options = options;
-    const { overwrite, progress, logger } = options;
-    this.args(overwrite !== false ? '-y' : '-n');
-    if (progress !== false)
+    const { level, progress = true, overwrite = true } = options;
+    this.args(overwrite ? '-y' : '-n');
+    if (progress)
       this.args('-progress', 'pipe:1', '-nostats');
-    if (!isNullish(logger)) {
-      const { logLevel } = logger;
-      this.args('-loglevel', `+repeat+level${isNullish(logLevel) ? '' : `+${logLevel}`}`);
-    }
+    this.args('-loglevel', `+repeat+level${level ? `+${level}` : ''}`);
   }
   #args: string[] = [];
   #inputs: Input[] = [];
   #outputs: Output[] = [];
-  #options: FFmpegOptions;
   #inputStreams: [string, NodeJS.ReadableStream][] = [];
   #outputStreams: [string, NodeJS.WritableStream[]][] = [];
 
@@ -440,13 +449,13 @@ class Command implements FFmpegCommand {
     return input;
   }
   concat(sources: ConcatSource[], options: ConcatOptions = {}) {
+    const { safe = false, protocols, useDataURI = true } = options;
     // Dynamically create an ffconcat file with the given directives.
-    // https://ffmpeg.org/ffmpeg-all.html#toc-concat-1
+    // https://ffmpeg.org/ffmpeg-all.html#concat-1
     const directives = ['ffconcat version 1.0'];
     const inputStreams = this.#inputStreams;
-    const isInputSource = (o: ConcatSource): o is InputSource => (
-      typeof o === 'string' || isUint8Array(o) || Symbol.asyncIterator in o
-    );
+    const isInputSource = (o: ConcatSource): o is InputSource =>
+      typeof o === 'string' || isUint8Array(o) || Symbol.asyncIterator in o;
     const addFile = (source: InputSource) => {
       const [url] = handleInputSource(source, inputStreams);
       directives.push(`file ${escapeConcatFile(url)}`);
@@ -467,15 +476,13 @@ class Command implements FFmpegCommand {
       }
     });
 
-    const { safe, protocols, useDataURI } = options;
-
     const ffconcat = Buffer.from(directives.join('\n'), 'utf8');
 
     let stream: NodeJS.ReadableStream | undefined;
     let isStream: boolean;
     let url: string;
 
-    if (useDataURI !== false) {
+    if (useDataURI) {
       url = `data:text/plain;base64,${ffconcat.toString('base64')}`;
       isStream = false;
     } else {
@@ -496,7 +503,7 @@ class Command implements FFmpegCommand {
     input.args('-safe', safe ? '1' : '0');
     // Protocol whitelist enables certain protocols in the ffconcat
     // file dynamically created by this method.
-    if (!isNullish(protocols) && protocols.length > 0)
+    if (protocols && protocols.length > 0)
       input.args('-protocol_whitelist', protocols.join(','));
 
     this.#inputs.push(input);
@@ -505,10 +512,9 @@ class Command implements FFmpegCommand {
   output(...destinations: OutputDestination[]): FFmpegOutput {
     let streams: NodeJS.WritableStream[];
     let isStream = false;
-    const urls = flatMap(destinations, (dest) => {
-      if (typeof dest === 'string') {
+    const urls = destinations.map((dest) => {
+      if (typeof dest === 'string')
         return dest;
-      }
       // When the output has to be written to multiple streams, we
       // we only use one unix socket / windows pipe by writing the
       // same output to multiple streams internally.
@@ -523,8 +529,9 @@ class Command implements FFmpegCommand {
       // we push the new stream and return an empty array to avoid
       // duplicating the unix socket / windows pipe path.
       streams.push(dest);
-      return [];
-    });
+      return;
+    }).filter((value): value is string => value !== void 0);
+
     // - If there are no urls the output will be discarded by
     //   using `/dev/null` or `NUL` as the destination.
     // - If there is only one url it will be given directly
@@ -534,6 +541,7 @@ class Command implements FFmpegCommand {
     const url = urls.length === 0 ? DEV_NULL
       : urls.length === 1 ? urls[0]
       : `tee:${urls.map(escapeTeeComponent).join('|')}`;
+
     const output = new Output(url, isStream);
     this.#outputs.push(output);
     return output;
@@ -543,17 +551,13 @@ class Command implements FFmpegCommand {
     return this;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
-    const { report, logger } = this.#options;
-    const {
-      ffmpegPath = 'ffmpeg',
-      spawnOptions = {},
-    } = options;
+    const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger } = options;
     const args = this.getArgs();
 
     // Starts all socket servers needed to handle the streams.
     const [inputSocketServers, outputSocketServers] = await Promise.all([
-      handleInputs(this.#inputStreams),
-      handleOutputs(this.#outputStreams),
+      handleInputStreams(this.#inputStreams),
+      handleOutputStreams(this.#outputStreams),
     ]);
 
     const cpSpawnOptions: SpawnOptionsWithoutStdio = {
@@ -562,14 +566,14 @@ class Command implements FFmpegCommand {
     };
 
     if (report) {
-      let logLevel: LogLevel | undefined;
+      let level: LogLevel | undefined;
       // FFREPORT can be either a ':' separated key-value pair which takes `file` and `level` as
       // options or any non-empty string which enables reporting with default options.
       // If no options are specified the string `true` is used.
       // https://ffmpeg.org/ffmpeg-all.html#Generic-options
       const FFREPORT = report !== true && stringifyObjectColonSeparated({
         file: report.file,
-        level: isNullish(logLevel = report.logLevel) ? void 0 : logLevelToN[logLevel],
+        level: isNullish(level = report.level) ? void 0 : logLevelToN[level],
       }) || 'true';
       cpSpawnOptions.env = {
         // Merge with previous options or the current environment.
@@ -597,16 +601,16 @@ class Command implements FFmpegCommand {
 
     const ffmpeg = new Process(cp, args, ffmpegPath);
 
-    if (!isNullish(logger)) {
-      const rl = readlines(cp.stderr);
+    if (logger) {
+      const stderr = readlines(cp.stderr);
       const onLine = (line: string) => {
         const match = line.match(LEVEL_REGEX);
         if (match !== null) {
-          const level = match[1] as Exclude<keyof FFmpegLogger, 'logLevel'>;
+          const level = match[1] as keyof FFmpegLogger;
           logger[level]?.(line);
         }
       };
-      rl.on('line', onLine);
+      stderr.on('line', onLine);
     }
 
     return ffmpeg;
@@ -841,12 +845,12 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
   });
 }
 
-async function handleOutputs(outputStreams: [string, NodeJS.WritableStream[]][]) {
+async function handleOutputStreams(outputStreams: [string, NodeJS.WritableStream[]][]) {
   const servers = await Promise.all(outputStreams.map(([path]) => createSocketServer(path)));
   outputStreams.forEach(([, streams], i) => handleOutputStream(servers[i], streams));
   return servers;
 }
-async function handleInputs(inputStreams: [string, NodeJS.ReadableStream][]) {
+async function handleInputStreams(inputStreams: [string, NodeJS.ReadableStream][]) {
   const servers = await Promise.all(inputStreams.map(([path]) => createSocketServer(path)));
   inputStreams.forEach(([, stream], i) => handleInputStream(servers[i], stream));
   return servers;

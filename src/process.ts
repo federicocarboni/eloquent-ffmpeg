@@ -29,13 +29,9 @@ export interface FFmpegProcess {
    * Returns the process identifier (PID) of the process.
    */
   readonly pid: number;
-  /**
-   * The command line arguments used to spawn the process.
-   */
+  /** Command line arguments used to spawn the process. */
   readonly args: readonly string[];
-  /**
-   * Path of the running ffmpeg executable.
-   */
+  /** Path of the running ffmpeg executable. */
   readonly ffmpegPath: string;
   /**
    * Returns an AsyncGenerator representing the real-time progress of the conversion.
@@ -57,8 +53,9 @@ export interface FFmpegProcess {
    */
   progress(): AsyncGenerator<Progress, void, void>;
   /**
-   * Returns a Promise which resolves when the process exits, or rejects when the
-   * process exits with a non-zero status code.
+   * Returns a Promise which resolves when the process exits, or rejects when the process exits with
+   * a non-zero status code. If the `ChildProcess` emits an `error` event, the Promise will be
+   * rejected with that error.
    * @example
    * ```ts
    * const process = cmd.spawn();
@@ -79,13 +76,11 @@ export interface FFmpegProcess {
   complete(): Promise<void>;
   /**
    * Aborts the conversion allowing FFmpeg to finish the generated files correctly.
-   * This waits for FFmpeg to exit but doesn't wait guarantee that FFmpeg will succeed,
-   * you should handle any possible errors.
+   * This waits for FFmpeg to exit but doesn't guarantee that FFmpeg will succeed,
+   * any possible errors should still be handled.
    */
   abort(): Promise<void>;
-  /**
-   * Returns the underlying NodeJS' ChildProcess instance.
-   */
+  /** Returns the underlying NodeJS' ChildProcess instance. */
   unwrap(): ChildProcess;
   /**
    * **UNSTABLE**: Deprecated, not for use in new projects.
@@ -100,52 +95,46 @@ export interface FFmpegProcess {
    * @param signal - The signal to send.
    */
   kill(signal?: NodeJS.Signals | number): boolean;
-  /**
-   * Pauses the conversion, returns `true` if the operation succeeds, `false` otherwise.
-   */
+  /** Pauses the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   pause(): boolean;
-  /**
-   * Resumes the conversion, returns `true` if the operation succeeds, `false` otherwise.
-   */
+  /** Resumes the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   resume(): boolean;
 }
 
 /**
  * Start an FFmpeg process with the given arguments.
  * @param args - The arguments to spawn FFmpeg with.
- * @param ffmpegPath - Path to the ffmpeg executable. Defaults to `getFFmpegPath()`.
+ * @param options - `logger` and `report` are not currently supported by this function.
  * @public
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
-  const {
-    ffmpegPath = 'ffmpeg',
-    spawnOptions = {},
-  } = options;
-  const process = spawnChildProcess(ffmpegPath, args, {
+  const { ffmpegPath = 'ffmpeg', spawnOptions = {} } = options;
+  const ffmpeg = spawnChildProcess(ffmpegPath, args, {
     stdio: 'pipe',
     ...spawnOptions,
   }) as ChildProcessWithoutNullStreams;
-  return new Process(process, args, ffmpegPath);
+  return new Process(ffmpeg, args, ffmpegPath);
 }
 
 /** @internal */
 export class Process implements FFmpegProcess {
-  constructor(ffmpeg: ChildProcessWithoutNullStreams, args: string[], ffmpegPath: string) {
+  constructor(
+    ffmpeg: ChildProcessWithoutNullStreams,
+    public readonly args: readonly string[],
+    public readonly ffmpegPath: string
+  ) {
     this.#ffmpeg = ffmpeg;
-    this.args = args;
-    this.ffmpegPath = ffmpegPath;
     const onExit = () => {
-      this.#exited = true;
       ffmpeg.off('exit', onExit);
       ffmpeg.off('error', onExit);
+      this.#exited = true;
     };
     ffmpeg.on('exit', onExit);
     ffmpeg.on('error', onExit);
   }
   #ffmpeg: ChildProcessWithoutNullStreams;
   #exited = false;
-  args: readonly string[];
-  ffmpegPath: string;
+
   async *progress() {
     let progress: Partial<Progress> = {};
     for await (const line of readlines(this.#ffmpeg.stdout)) {
@@ -206,21 +195,37 @@ export class Process implements FFmpegProcess {
       return false;
     return resume(this.#ffmpeg);
   }
-  complete() {
-    return new Promise<void>((resolve, reject) => {
+  async complete() {
+    return await new Promise<void>((resolve, reject) => {
       const ffmpeg = this.#ffmpeg;
-      const complete = () => ffmpeg.exitCode === 0 ? resolve() : reject(
-        new FFmpegError(`FFmpeg exited with code ${ffmpeg.exitCode}`));
+      const complete = () => {
+        if (ffmpeg.exitCode === 0) {
+          resolve();
+        } else {
+          const message = ffmpeg.exitCode === null
+            ? 'FFmpeg exited prematurely, was it killed?'
+            : `FFmpeg exited with code ${ffmpeg.exitCode}`;
+          reject(new FFmpegError(message, this.args, this.ffmpegPath));
+        }
+      };
       if (this.#exited) {
         complete();
       } else {
-        const onExit = () => {
+        const unlisten = () => {
           ffmpeg.off('exit', onExit);
-          ffmpeg.off('error', onExit);
+          ffmpeg.off('error', onError);
+        };
+        const onError = (error: Error) => {
+          unlisten();
+          // Forward the error from Node.js child process.
+          reject(error);
+        };
+        const onExit = () => {
+          unlisten();
           complete();
         };
         ffmpeg.on('exit', onExit);
-        ffmpeg.on('error', onExit);
+        ffmpeg.on('error', onError);
       }
     });
   }
