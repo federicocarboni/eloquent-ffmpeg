@@ -2,7 +2,8 @@ import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
 import { join } from 'path';
 import { PassThrough, Readable } from 'stream';
 
-import { ffmpeg, LogLevel } from '../src/command';
+import { ffmpeg } from '../src/command';
+import { LogLevel } from '../src/types';
 
 describe('command', function () {
   describe('ffmpeg()', function () {

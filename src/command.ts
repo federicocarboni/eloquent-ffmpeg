@@ -1,20 +1,25 @@
-import {
-  spawn as spawnChildProcess,
-  SpawnOptionsWithoutStdio
-} from 'child_process';
+import { SpawnOptionsWithoutStdio, spawn as spawnChildProcess } from 'child_process';
 import { createInterface as readlines } from 'readline';
 import { Readable } from 'stream';
 import { Server } from 'net';
 import { createSocketServer, getSocketPath, getSocketURL } from './sock';
 import { DEV_NULL, flatMap, isNullish, isUint8Array, toReadableStream } from './utils';
-import {
-  AudioCodec, AudioDecoder, AudioEncoder, AudioFilter, Demuxer, Format,
-  Muxer,
-  SubtitleCodec, SubtitleDecoder, SubtitleEncoder, VideoCodec,
-  VideoDecoder, VideoEncoder, VideoFilter
-} from './_types';
 import { probe, ProbeOptions, ProbeResult } from './probe';
-import { FFmpegProcess, Process } from './process';
+import { Process } from './process';
+import {
+  ConcatOptions,
+  ConcatSource,
+  FFmpegCommand,
+  FFmpegInput,
+  FFmpegLogger,
+  FFmpegOptions,
+  FFmpegOutput,
+  FFmpegProcess,
+  InputSource,
+  LogLevel,
+  OutputDestination,
+  SpawnOptions
+} from './types';
 import {
   escapeConcatFile,
   escapeFilterDescription,
@@ -23,394 +28,6 @@ import {
   stringifyObjectColonSeparated,
   stringifyValue
 } from './string';
-
-/** @public */
-export enum LogLevel {
-  Quiet = 'quiet',
-  Panic = 'panic',
-  Fatal = 'fatal',
-  Error = 'error',
-  Warning = 'warning',
-  Info = 'info',
-  Verbose = 'verbose',
-  Debug = 'debug',
-  Trace = 'trace',
-}
-/** @public */
-export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array>;
-/** @public */
-export type OutputDestination = string | NodeJS.WritableStream;
-/** @alpha */
-export type ConcatSource = InputSource
-  | {
-    file?: InputSource;
-    duration?: number;
-    inpoint?: number;
-    outpoint?: number;
-  };
-
-/** @public */
-export interface FFmpegCommand {
-  /**
-   * Adds an input to the conversion.
-   * @param source -
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.input('input.avi');
-   * cmd.input(fs.createReadStream('input2.avi'));
-   * cmd.output();
-   * const process = await cmd.spawn();
-   * await process.complete();
-   * ```
-   */
-  input(source: InputSource): FFmpegInput;
-  /**
-   * **UNSTABLE:** New API, see https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/2
-   *
-   * Concatenate media files using the `concat` demuxer.
-   *
-   * @param sources - The input sources to be concatenated, they can be in different formats but
-   * they must have the same streams, codecs, timebases, etc...
-   * {@link https://ffmpeg.org/ffmpeg-formats.html#concat-1}
-   * {@link https://trac.ffmpeg.org/wiki/Concatenate}
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.concat(['chunk1.webm', 'chunk2.webm']);
-   * cmd.output('complete_video.webm');
-   * const process = await cmd.spawn();
-   * await process.complete();
-   * ```
-   * @alpha
-   */
-  concat(sources: ConcatSource[], options?: ConcatOptions): FFmpegInput;
-  /**
-   * Adds an output to the conversion, multiple destinations are supported using
-   * the `tee` protocol. You can use mixed destinations and multiple streams.
-   * Both NodeJS WritableStreams and AsyncGenerators are fully supported.
-   * @param destinations - A sequence of OutputDestinations to which the output
-   * will be written. If no destinations are specified the conversion will run,
-   * but any output data will be ignored.
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.input('input.avi');
-   * cmd.output(fs.createWriteStream('dest1.mkv'), 'dest2.mkv');
-   * const process = await cmd.spawn();
-   * await process.complete();
-   * ```
-   */
-  output(...destinations: OutputDestination[]): FFmpegOutput;
-  /**
-   * Add arguments, they will be placed before any input or output arguments.
-   * @param args -
-   */
-  args(...args: string[]): this;
-  /**
-   * Starts the conversion, this method is asynchronous so it must be `await`'ed.
-   * @param options - See {@link SpawnOptions}.
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.input('input.avi');
-   * cmd.output('output.mp4');
-   * const process = await cmd.spawn();
-   * ```
-   */
-  spawn(options?: SpawnOptions): Promise<FFmpegProcess>;
-  /**
-   * Returns all the arguments with which ffmpeg will be spawned.
-   */
-  getArgs(): string[];
-}
-
-/** @alpha */
-export interface ConcatOptions {
-  safe?: boolean;
-  protocols?: string[];
-  useDataURI?: boolean;
-  // TODO: add support for using an intermediate file
-}
-
-/** @public */
-export interface FFmpegLogger {
-  fatal?(message: string): void;
-  error?(message: string): void;
-  warning?(message: string): void;
-  info?(message: string): void;
-  verbose?(message: string): void;
-  debug?(message: string): void;
-  trace?(message: string): void;
-}
-
-/** @public */
-export interface SpawnOptions {
-  /**
-   * **UNSTABLE**
-   *
-   * Define a logger for FFmpeg.
-   */
-  logger?: FFmpegLogger;
-  /**
-   * **UNSTABLE**
-   *
-   * Enable dumping full command line args and logs to a specified file.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
-   */
-  report?: ReportOptions | boolean;
-  /** Path to the ffmpeg executable. */
-  ffmpegPath?: string;
-  /**
-   * Add custom options that will be used to spawn the process.
-   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
-   */
-  spawnOptions?: SpawnOptionsWithoutStdio;
-}
-
-/** @public */
-export interface ReportOptions {
-  /**
-   * A path to the file the report will be written to, relative to the current working directory of
-   * FFmpeg. When not given, FFmpeg will write the report to `ffmpeg-YYYYMMDD-HHMMSS.log` in its
-   * working directory.
-   */
-  file?: string;
-  /**
-   * Change the log level used for the report file, it will not interfere with logging. When not
-   * given FFmpeg defaults to `LogLevel.Debug`.
-   */
-  level?: LogLevel;
-}
-
-/** @public */
-export interface FFmpegOptions {
-  /**
-   * **UNSTABLE**
-   *
-   * Change the log level used for FFmpeg's logs.
-   */
-  level?: LogLevel;
-  /**
-   * Enable piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
-   * will silently fail.
-   * @defaultValue `true`
-   */
-  progress?: boolean;
-  /**
-   * Whether to overwrite the output destinations if they already exist. Required
-   * to be `true` for streaming outputs.
-   * @defaultValue `true`
-   */
-  overwrite?: boolean;
-}
-
-/** @public */
-export interface FFmpegInput {
-  /**
-   * **UNSTABLE**: Breaking changes are being considered, implementation details can change without
-   * notice.
-   *
-   * Get information about the input, this is especially helpful when working
-   * with streams. If the source is a stream `options.probeSize` number of bytes
-   * will be read and passed to ffprobe; those bytes will be kept in memory
-   * until the input is used in conversion.
-   *
-   * **Note:** This is not recommended for `concat()` inputs, because it may not
-   * have effect you may expect. When using `concat()` inputs with streams, the
-   * streams will be consumed.
-   *
-   * @param options -
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.output('output.mp4');
-   * const input = cmd.input(fs.createReadStream('input.mkv'));
-   * const info = await input.probe();
-   * console.log(`Video duration: ${info.duration}, format: ${info.format}`);
-   * const process = await cmd.spawn();
-   * await process.complete();
-   * ```
-   * @alpha
-   */
-  probe(options?: ProbeOptions): Promise<ProbeResult>;
-  /**
-   * Add input arguments, they will be placed before any additional arguments.
-   * @param args -
-   */
-  args(...args: string[]): this;
-  /**
-   * Select the input format.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param format -
-   */
-  format(format: Format | Demuxer | (string & {})): this;
-  /**
-   * Select the codec for all streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  codec(codec: VideoCodec | VideoDecoder | AudioCodec | AudioDecoder | SubtitleCodec | SubtitleDecoder | (string & {})): this;
-  /**
-   * Select the codec for video streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  videoCodec(codec: VideoCodec | VideoDecoder | (string & {})): this;
-  /**
-   * Select the codec for audio streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  audioCodec(codec: AudioCodec | AudioDecoder | (string & {})): this;
-  /**
-   * Select the codec for subtitle streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  subtitleCodec(codec: SubtitleCodec | SubtitleDecoder | (string & {})): this;
-  /**
-   * Limit the duration of the data read from the input.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param duration - The limit for the duration in milliseconds.
-   */
-  duration(duration: number): this;
-  /**
-   * Seeks in the input file to `start`.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param start - The position to seek to in milliseconds.
-   */
-  start(start: number): this;
-  /**
-   * Adds `offset` to the input timestamps.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param offset - The offset in milliseconds. MAY be negative.
-   */
-  offset(offset: number): this;
-  /**
-   * Returns all the arguments for the input.
-   */
-  getArgs(): string[];
-  /**
-   * Whether the input is using streams.
-   */
-  readonly isStream: boolean;
-}
-
-/** @public */
-export interface FFmpegOutput {
-  /**
-   * Add output arguments, they will be placed before any additional arguments.
-   * @param args -
-   */
-  args(...args: string[]): this;
-  /**
-   * Select the output format.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param format -
-   */
-  format(format: Format | Muxer | (string & {})): this;
-  /**
-   * Select the codec for all streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  codec(codec: VideoCodec | VideoEncoder | AudioCodec | AudioEncoder | SubtitleCodec | SubtitleEncoder | (string & {})): this;
-  /**
-   * Select the codec for video streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  videoCodec(codec: VideoCodec | VideoEncoder | (string & {})): this;
-  /**
-   * Select the codec for audio streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  audioCodec(codec: AudioCodec | AudioEncoder | (string & {})): this;
-  /**
-   * Select the codec for subtitle streams.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param codec -
-   */
-  subtitleCodec(codec: SubtitleCodec | SubtitleEncoder | (string & {})): this;
-  /**
-   * **UNSTABLE**
-   *
-   * Applies a filter to the video streams.
-   * @param filter - The filter to apply.
-   * @param options - Additional configuration for the filter.
-   */
-  videoFilter(filter: VideoFilter | (string & {}), options?: Record<string, any> | any[]): this;
-  /**
-   * **UNSTABLE**
-   *
-   * Applies a filter to the video streams.
-   * @param filter - The filter to apply.
-   * @param options - Additional configuration for the filter.
-   */
-  audioFilter(filter: AudioFilter | (string & {}), options?: Record<string, any> | any[]): this;
-  /**
-   * Limit the duration of the data written to the output.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param duration - The limit for the duration in milliseconds.
-   */
-  duration(duration: number): this;
-  /**
-   * Decodes but discards the input until `start` is reached.
-   * See {@link https://ffmpeg.org/ffmpeg-all.html#Main-options}
-   * @param start - The number of milliseconds to discard.
-   */
-  start(start: number): this;
-  /**
-   * Maps inputs' streams to output streams. This is an advanced option.
-   * {@link https://ffmpeg.org/ffmpeg-all.html#Advanced-options}
-   * {@link https://ffmpeg.org/ffmpeg-all.html#Stream-specifiers-1}
-   * {@link https://ffmpeg.org/ffmpeg-all.html#Automatic-stream-selection}
-   * @param stream - The stream specifier.
-   * @example
-   * ```ts
-   * const cmd = ffmpeg();
-   * cmd.input('input0.mkv');
-   * cmd.input('input1.avi');
-   * cmd.output('output0.webm')
-   * // Takes input0's video streams and input1's audio streams.
-   *   .map('0:v', '1:a');
-   * cmd.output('output1.webm')
-   * // Streams will be mapped in the order they were specified
-   * // here output1's first stream will be input0's second stream
-   * // and its second stream will be input1's first stream.
-   *   .map('0:1', '1:0');
-   * ```
-   */
-  map(...streams: string[]): this;
-  /**
-   * Add metadata to a stream or an output, if a value is `undefined`, `null` or `''` (empty string),
-   * the key will be deleted.
-   * {@link https://ffmpeg.org/ffmpeg.html#Main-options}
-   * @param metadata - The metadata to add to the stream or output.
-   * @param specifier - The stream to add metadata to, if not given `metadata`
-   * will be added to the output file.
-   */
-  metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this;
-  /**
-   * Returns all the arguments for the output.
-   */
-  getArgs(): string[];
-  /**
-   * Whether the output is using streams.
-   */
-  readonly isStream: boolean;
-}
-
-/**
- * Create a new FFmpegCommand.
- * @param options -
- * @public
- */
-export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
-  return new Command(options);
-}
 
 // Match the `[level]` segment inside an ffmpeg line.
 const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
@@ -427,6 +44,15 @@ const logLevelToN = {
   debug: 48,
   trace: 56,
 };
+
+/**
+ * Create a new FFmpegCommand.
+ * @param options -
+ * @public
+ */
+export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
+  return new Command(options);
+}
 
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
@@ -464,14 +90,15 @@ class Command implements FFmpegCommand {
       if (isInputSource(source)) {
         addFile(source);
       } else {
-        if (!isNullish(source.file))
-          addFile(source.file);
-        if (!isNullish(source.duration))
-          directives.push(`duration ${source.duration}ms`);
-        if (!isNullish(source.inpoint))
-          directives.push(`inpoint ${source.inpoint}ms`);
-        if (!isNullish(source.outpoint))
-          directives.push(`outpoint ${source.outpoint}ms`);
+        const { file, duration, inpoint, outpoint } = source;
+        if (!isNullish(file))
+          addFile(file);
+        if (!isNullish(duration))
+          directives.push(`duration ${duration}ms`);
+        if (!isNullish(inpoint))
+          directives.push(`inpoint ${inpoint}ms`);
+        if (!isNullish(outpoint))
+          directives.push(`outpoint ${outpoint}ms`);
         // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
     });
@@ -483,6 +110,7 @@ class Command implements FFmpegCommand {
     let url: string;
 
     if (useDataURI) {
+      // FFmpeg only accepts base64-encoded data urls.
       url = `data:text/plain;base64,${ffconcat.toString('base64')}`;
       isStream = false;
     } else {
@@ -631,7 +259,7 @@ class Command implements FFmpegCommand {
 }
 
 class Input implements FFmpegInput {
-  constructor(url: string, isStream: boolean, stream?: NodeJS.ReadableStream) {
+  constructor(url: string, public readonly isStream: boolean, stream?: NodeJS.ReadableStream) {
     this.#url = url;
     this.#stream = stream;
     this.isStream = isStream;
@@ -640,7 +268,6 @@ class Input implements FFmpegInput {
   #args: string[] = [];
   #stream?: NodeJS.ReadableStream;
 
-  isStream: boolean;
   offset(offset: number): this {
     return this.args('-itsoffset', `${offset}ms`);
   }
@@ -650,7 +277,7 @@ class Input implements FFmpegInput {
   start(start: number): this {
     return this.args('-ss', `${start}ms`);
   }
-  format(format: Format | Demuxer): this {
+  format(format: string): this {
     return this.args('-f', format);
   }
   codec(codec: string): this {
@@ -668,6 +295,7 @@ class Input implements FFmpegInput {
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
     const readChunk = (): Promise<Uint8Array> => {
       const stream = this.#stream!;
+      // Follow FFmpeg's default probe size of 5MB when `probeSize` is not given.
       const size = options.probeSize ?? 5000000;
       return new Promise<Uint8Array>((resolve, reject) => {
         const unlisten = () => {
@@ -682,6 +310,7 @@ class Input implements FFmpegInput {
           const chunk = stream.read(size) as Uint8Array;
           if (chunk !== null) {
             unlisten();
+            // Put the chunk read back into the stream so that it won't be consumed.
             stream.unshift(chunk);
             resolve(chunk);
           }
@@ -709,7 +338,7 @@ class Input implements FFmpegInput {
 }
 
 class Output implements FFmpegOutput {
-  constructor(url: string, isStream: boolean) {
+  constructor(url: string, public readonly isStream: boolean) {
     this.#url = url;
     this.isStream = isStream;
   }
@@ -717,7 +346,7 @@ class Output implements FFmpegOutput {
   #args: string[] = [];
   #videoFilters: string[] = [];
   #audioFilters: string[] = [];
-  isStream: boolean;
+
   videoFilter(filter: string, options?: Record<string, any> | any[]) {
     this.#videoFilters.push(stringifyFilterDescription(filter, options));
     return this;

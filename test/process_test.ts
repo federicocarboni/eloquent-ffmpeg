@@ -1,5 +1,5 @@
+import { FFmpegError } from '../src/errors';
 import { ffmpeg } from '../src/command';
-import { FFmpegError } from '../src/lib';
 import { spawn } from '../src/process';
 import { isWin32 } from '../src/utils';
 

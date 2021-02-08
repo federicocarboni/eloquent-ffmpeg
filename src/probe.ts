@@ -1,7 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn, SpawnOptions } from 'child_process';
-import { fromAsyncIterable, IGNORED_ERRORS, isNullish, read, toReadableStream } from './utils';
-import { createInterface as readlines } from 'readline';
-import { InputSource, LogLevel } from './command';
+import { IGNORED_ERRORS, isNullish, read, toReadableStream } from './utils';
+import { InputSource, LogLevel } from './types';
 import { Demuxer, Format } from './_types';
 import { FFprobeError } from './errors';
 
@@ -307,8 +306,8 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     args = [],
     spawnOptions = {},
   } = options;
-  const ffprobe = spawn(ffprobePath, [
-    '-v', logLevel.toString(),
+  const spawnArgs = [
+    '-v', logLevel,
     ...(probeSize !== void 0 ? ['-probesize', probeSize.toString()] : []),
     ...(analyzeDuration !== void 0 ? ['-analyzeduration', (analyzeDuration * 1000).toString()] : []),
     '-of', 'json=c=1',
@@ -320,14 +319,14 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     ...(format !== void 0 ? ['-f', format] : []),
     '-i',
     typeof source === 'string' ? source : 'pipe:0'
-  ], {
+  ];
+  const ffprobe = spawn(ffprobePath, spawnArgs, {
     stdio: 'pipe',
     ...spawnOptions,
   }) as ChildProcessWithoutNullStreams;
-  const { stdin, stdout, stderr } = ffprobe;
-  const extractError = async (error: RawProbeError): Promise<FFprobeError> => {
-    const logs = stderr.readable ? await fromAsyncIterable(readlines(stderr)) : [];
-    return new FFprobeError(error.string, logs, error.code);
+  const { stdin, stdout } = ffprobe;
+  const getError = async (error: RawProbeError): Promise<FFprobeError> => {
+    return new FFprobeError(error.string, error.code, spawnArgs, ffprobePath);
   };
   try {
     if (source instanceof Uint8Array) {
@@ -338,7 +337,7 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     const output = await read(stdout);
     const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
     if (raw.error)
-      throw await extractError(raw.error);
+      throw await getError(raw.error);
     return new Result(raw);
   } finally {
     if (isNullish(ffprobe.exitCode))

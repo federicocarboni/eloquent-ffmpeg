@@ -1,4 +1,10 @@
-import { escapeConcatFile, escapeFilterValue, escapeTeeComponent, stringifyFilterDescription, stringifyValue } from '../src/string';
+import {
+  escapeConcatFile,
+  escapeFilterValue,
+  escapeTeeComponent,
+  stringifyFilterDescription,
+  stringifyValue
+} from '../src/string';
 
 describe('string', function () {
   it('escapeFilterValue()', function () {

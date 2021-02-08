@@ -4,7 +4,7 @@
  */
 export class FFmpegError extends Error {
   name = 'FFmpegError';
-  constructor(message: string, public readonly args: readonly string[], public readonly ffmpegPath: string) {
+  constructor(message: string, public args: readonly string[], public ffmpegPath: string) {
     super(message);
   }
 }
@@ -15,7 +15,7 @@ export class FFmpegError extends Error {
  */
 export class FFprobeError extends Error {
   name = 'FFprobeError';
-  constructor(message: string, public stderr: readonly string[], public code?: number) {
+  constructor(message: string, public code: number, public args: readonly string[], public ffprobePath: string) {
     super(message);
   }
 }
