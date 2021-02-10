@@ -269,13 +269,9 @@ export interface FFmpegInput {
    * @param offset - The offset in milliseconds. MAY be negative.
    */
   offset(offset: number): this;
-  /**
-   * Returns all the arguments for the input.
-   */
+  /** Returns all the arguments for the input. */
   getArgs(): string[];
-  /**
-   * Whether the input is using streams.
-   */
+  /** Whether the input is a stream. */
   readonly isStream: boolean;
 }
 
@@ -368,20 +364,16 @@ export interface FFmpegOutput {
   map(...streams: string[]): this;
   /**
    * Add metadata to a stream or an output, if a value is `undefined`, `null` or `''` (empty string),
-   * the key will be deleted.
+   * the key will be deleted. Values
    * {@link https://ffmpeg.org/ffmpeg.html#Main-options}
    * @param metadata - The metadata to add to the stream or output.
-   * @param specifier - The stream to add metadata to, if not given `metadata`
+   * @param stream - The stream to add metadata to, if not given `metadata`
    * will be added to the output file.
    */
-  metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this;
-  /**
-   * Returns all the arguments for the output.
-   */
+  metadata(metadata: Record<string, string | undefined | null>, stream?: string): this;
+  /** Returns all the arguments for the output. */
   getArgs(): string[];
-  /**
-   * Whether the output is using streams.
-   */
+  /** Whether the output is using streams. */
   readonly isStream: boolean;
 }
 

@@ -43,7 +43,7 @@ export function stringifyFilterDescription(filter: string, options?: Record<stri
  * @returns A string containing a list of `:`-separated list of `key=value` pairs, may be `''`
  * (empty string) if the object is empty or if all of it's values are ignored.
  */
-export function stringifyObjectColonSeparated(object: Record<string, any>) {
+export function stringifyObjectColonSeparated(object: Record<string, unknown>) {
   return Object.entries(object)
     .filter(([, value]) => !isNullish(value))
     .map(([key, value]) => `${key}=${escapeFilterValue(stringifyValue(value))}`)
@@ -56,8 +56,8 @@ export function stringifyObjectColonSeparated(object: Record<string, any>) {
  * valid date format in FFmpeg.
  * @see https://ffmpeg.org/ffmpeg-utils.html#Date
  */
-export function stringifyValue(x: any) {
-  return types.isDate(x) ? x.toISOString() : '' + x;
+export function stringifyValue(value: unknown) {
+  return types.isDate(value) ? value.toISOString() : '' + value;
 }
 
 export function escapeFilterValue(s: string) {

@@ -345,17 +345,17 @@ class Output implements FFmpegOutput {
   #videoFilters: string[] = [];
   #audioFilters: string[] = [];
 
-  videoFilter(filter: string, options?: Record<string, any> | any[]) {
+  videoFilter(filter: string, options: Record<string, any> | any[] | undefined = (void 0)) {
     this.#videoFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
-  audioFilter(filter: string, options?: Record<string, any> | any[]) {
+  audioFilter(filter: string, options: Record<string, any> | any[] | undefined = (void 0)) {
     this.#audioFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
-  metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this {
+  metadata(metadata: Record<string, string | undefined | null>, stream: string | undefined = (void 0)): this {
     return this.args(...flatMap(Object.entries(metadata), ([key, value]) => [
-      `-metadata${specifier ? ':' + specifier : ''}`,
+      `-metadata${stream ? `:${stream}` : ''}`,
       `${key}=${value === '' || isNullish(value) ? '' : stringifyValue(value)}`,
     ]));
   }
