@@ -80,5 +80,16 @@ describe('probe', function () {
       }
       expect(caught).toBe(true);
     });
+    it('should throw on invalid ffprobePath', async function () {
+      let caught = false;
+      try {
+        await probe('test/samples/invalid', {
+          ffprobePath: 'test/samples/invalid'
+        });
+      } catch {
+        caught = true;
+      }
+      expect(caught).toBe(true);
+    });
   });
 });

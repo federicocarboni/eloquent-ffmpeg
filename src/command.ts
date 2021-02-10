@@ -2,9 +2,10 @@ import { SpawnOptionsWithoutStdio, spawn as spawnChildProcess } from 'child_proc
 import { createInterface as readlines } from 'readline';
 import { Readable } from 'stream';
 import { Server } from 'net';
+import { types } from 'util';
 import { createSocketServer, getSocketPath, getSocketURL } from './sock';
-import { DEV_NULL, flatMap, isNullish, isUint8Array, toReadableStream } from './utils';
-import { probe, ProbeOptions, ProbeResult } from './probe';
+import { DEV_NULL, flatMap, isNullish, toReadableStream } from './utils';
+import { probe } from './probe';
 import { Process } from './process';
 import {
   ConcatOptions,
@@ -18,6 +19,8 @@ import {
   InputSource,
   LogLevel,
   OutputDestination,
+  ProbeOptions,
+  ProbeResult,
   SpawnOptions
 } from './types';
 import {
@@ -74,40 +77,39 @@ class Command implements FFmpegCommand {
     this.#inputs.push(input);
     return input;
   }
-  concat(sources: ConcatSource[], options: ConcatOptions = {}) {
+  concat(sources: ConcatSource[], options: ConcatOptions = {}): FFmpegInput {
     const { safe = false, protocols, useDataURI = true } = options;
+    const inputStreams = this.#inputStreams;
     // Dynamically create an ffconcat file with the given directives.
     // https://ffmpeg.org/ffmpeg-all.html#concat-1
     const directives = ['ffconcat version 1.0'];
-    const inputStreams = this.#inputStreams;
-    const isInputSource = (o: ConcatSource): o is InputSource =>
-      typeof o === 'string' || isUint8Array(o) || Symbol.asyncIterator in o;
     const addFile = (source: InputSource) => {
       const [url] = handleInputSource(source, inputStreams);
       directives.push(`file ${escapeConcatFile(url)}`);
     };
     sources.forEach((source) => {
-      if (isInputSource(source)) {
-        addFile(source);
+      // @ts-ignore
+      if (typeof source === 'string' || types.isUint8Array(source) || typeof source[Symbol.asyncIterator] === 'function') {
+        addFile(source as InputSource);
       } else {
-        const { file, duration, inpoint, outpoint } = source;
-        if (!isNullish(file))
+        const { file, duration, inpoint, outpoint } = source as Exclude<ConcatSource, InputSource>;
+        if (file !== void 0)
           addFile(file);
-        if (!isNullish(duration))
+        if (duration !== void 0)
           directives.push(`duration ${duration}ms`);
-        if (!isNullish(inpoint))
+        if (inpoint !== void 0)
           directives.push(`inpoint ${inpoint}ms`);
-        if (!isNullish(outpoint))
+        if (outpoint !== void 0)
           directives.push(`outpoint ${outpoint}ms`);
         // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
     });
-
+    // Create the ffconcat script as a buffer.
     const ffconcat = Buffer.from(directives.join('\n'), 'utf8');
 
-    let stream: NodeJS.ReadableStream | undefined;
-    let isStream: boolean;
     let url: string;
+    let isStream: boolean;
+    let stream: NodeJS.ReadableStream | undefined;
 
     if (useDataURI) {
       // FFmpeg only accepts base64-encoded data urls.
@@ -153,9 +155,7 @@ class Command implements FFmpegCommand {
         this.#outputStreams.push([path, streams]);
         return getSocketURL(path);
       }
-      // `streams` has been already added to `#outputStreams` here
-      // we push the new stream and return an empty array to avoid
-      // duplicating the unix socket / windows pipe path.
+      //
       streams.push(dest);
       return;
     }).filter((value): value is string => value !== void 0);
@@ -173,10 +173,6 @@ class Command implements FFmpegCommand {
     const output = new Output(url, isStream);
     this.#outputs.push(output);
     return output;
-  }
-  args(...args: string[]): this {
-    this.#args.push(...args);
-    return this;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
     const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger } = options;
@@ -243,6 +239,10 @@ class Command implements FFmpegCommand {
 
     return ffmpeg;
   }
+  args(...args: string[]): this {
+    this.#args.push(...args);
+    return this;
+  }
   getArgs(): string[] {
     const inputs = this.#inputs;
     if (inputs.length < 1)
@@ -262,7 +262,6 @@ class Input implements FFmpegInput {
   constructor(url: string, public readonly isStream: boolean, stream?: NodeJS.ReadableStream) {
     this.#url = url;
     this.#stream = stream;
-    this.isStream = isStream;
   }
   #url: string;
   #args: string[] = [];
@@ -340,7 +339,6 @@ class Input implements FFmpegInput {
 class Output implements FFmpegOutput {
   constructor(url: string, public readonly isStream: boolean) {
     this.#url = url;
-    this.isStream = isStream;
   }
   #url: string;
   #args: string[] = [];
@@ -358,7 +356,7 @@ class Output implements FFmpegOutput {
   metadata(metadata: Record<string, string | undefined | null>, specifier?: string): this {
     return this.args(...flatMap(Object.entries(metadata), ([key, value]) => [
       `-metadata${specifier ? ':' + specifier : ''}`,
-      `${key}=${isNullish(value) ? '' : stringifyValue(value)}`,
+      `${key}=${value === '' || isNullish(value) ? '' : stringifyValue(value)}`,
     ]));
   }
   map(...streams: string[]): this {
@@ -414,6 +412,18 @@ function handleInputSource(source: InputSource, streams: [string, NodeJS.Readabl
   }
 }
 
+async function handleOutputStreams(outputStreams: [string, NodeJS.WritableStream[]][]) {
+  const servers = await Promise.all(outputStreams.map(([path]) => createSocketServer(path)));
+  outputStreams.forEach(([, streams], i) => handleOutputStream(servers[i], streams));
+  return servers;
+}
+
+async function handleInputStreams(inputStreams: [string, NodeJS.ReadableStream][]) {
+  const servers = await Promise.all(inputStreams.map(([path]) => createSocketServer(path)));
+  inputStreams.forEach(([, stream], i) => handleInputStream(servers[i], stream));
+  return servers;
+}
+
 function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
   server.once('connection', (socket) => {
     const unlisten = () => {
@@ -442,6 +452,7 @@ function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
     server.close();
   });
 }
+
 function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
   server.once('connection', (socket) => {
     const unlisten = () => {
@@ -472,15 +483,4 @@ function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
     // all existing connections are ended.
     server.close();
   });
-}
-
-async function handleOutputStreams(outputStreams: [string, NodeJS.WritableStream[]][]) {
-  const servers = await Promise.all(outputStreams.map(([path]) => createSocketServer(path)));
-  outputStreams.forEach(([, streams], i) => handleOutputStream(servers[i], streams));
-  return servers;
-}
-async function handleInputStreams(inputStreams: [string, NodeJS.ReadableStream][]) {
-  const servers = await Promise.all(inputStreams.map(([path]) => createSocketServer(path)));
-  inputStreams.forEach(([, stream], i) => handleInputStream(servers[i], stream));
-  return servers;
 }

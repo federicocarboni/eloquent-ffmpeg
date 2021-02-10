@@ -2,7 +2,6 @@ import { ChildProcessWithoutNullStreams, spawn as spawnChildProcess } from 'chil
 import { createInterface as readlines } from 'readline';
 import { FFmpegProcess, Progress, SpawnOptions } from './types';
 import { pause, resume, write } from './utils';
-import { FFmpegError } from './errors';
 
 /**
  * Start an FFmpeg process with the given arguments.
@@ -108,7 +107,10 @@ export class Process implements FFmpegProcess {
           const message = ffmpeg.exitCode === null
             ? 'FFmpeg exited prematurely, was it killed?'
             : `FFmpeg exited with code ${ffmpeg.exitCode}`;
-          reject(new FFmpegError(message, this.args, this.ffmpegPath));
+          reject(Object.assign(new Error(message), {
+            ffmpegPath: this.ffmpegPath,
+            args: this.args
+          }));
         }
       };
       if (this.#exited) {
@@ -121,6 +123,7 @@ export class Process implements FFmpegProcess {
         const onError = (error: Error) => {
           unlisten();
           // Forward the error from Node.js child process.
+          Error.captureStackTrace?.(error);
           reject(error);
         };
         const onExit = () => {

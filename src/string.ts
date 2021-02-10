@@ -7,6 +7,7 @@
  * @see https://ffmpeg.org/ffmpeg-all.html#concat-1
  */
 
+import { types } from 'util';
 import { isNullish } from './utils';
 
 /**
@@ -56,7 +57,7 @@ export function stringifyObjectColonSeparated(object: Record<string, any>) {
  * @see https://ffmpeg.org/ffmpeg-utils.html#Date
  */
 export function stringifyValue(x: any) {
-  return Object.prototype.toString.call(x) === '[object Date]' ? (x as Date).toISOString() : '' + x;
+  return types.isDate(x) ? x.toISOString() : '' + x;
 }
 
 export function escapeFilterValue(s: string) {

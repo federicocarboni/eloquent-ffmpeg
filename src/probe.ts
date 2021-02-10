@@ -1,294 +1,14 @@
-import { ChildProcessWithoutNullStreams, spawn, SpawnOptions } from 'child_process';
-import { IGNORED_ERRORS, isNullish, read, toReadableStream } from './utils';
-import { InputSource, LogLevel } from './types';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { InputSource, ProbeOptions, ProbeResult, RawProbeResult } from './types';
+import { IGNORED_ERRORS, read, toReadableStream } from './utils';
 import { Demuxer, Format } from './_types';
-import { FFprobeError } from './errors';
-
-/* eslint-disable camelcase */
-
-/** @alpha */
-export interface RawProbeResult {
-  format: RawProbeFormat;
-  streams: RawProbeStream[];
-  chapters: RawProbeChapter[];
-  error?: RawProbeError;
-}
-
-/** @alpha */
-export interface RawProbeError {
-  code: number;
-  string: string;
-}
-
-// https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2807
-/** @alpha */
-export interface RawProbeFormat {
-  [key: string]: any;
-
-  filename?: string;
-
-  nb_streams: number;
-  nb_programs: number;
-
-  format_name?: string;
-  format_long_name?: string;
-
-  start_time: string;
-  duration: string;
-  size?: string;
-  bit_rate?: string;
-
-  probe_score: number;
-
-  tags?: Record<string, string>;
-}
-
-// https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2485
-/** @alpha */
-export type RawProbeStream = {
-  [key: string]: any;
-
-  index: number;
-  codec_name?: string;
-  codec_long_name?: string;
-  profile?: string;
-  codec_type: 'video';
-  codec_time_base?: string;
-  codec_tag_string: string;
-  codec_tag: string;
-
-  id?: string;
-  r_frame_rate?: string;
-  avg_frame_rate?: string;
-  time_base?: string;
-  start_pts?: string;
-  start_time?: string;
-  duration_ts?: string;
-  duration?: string;
-  bit_rate?: string;
-  max_bit_rate?: string;
-  bits_per_raw_sample?: number;
-  nb_frames?: number;
-  nb_read_frames?: number;
-  nb_read_packets?: number;
-  disposition?: RawProbeDisposition;
-
-  width: number;
-  height: number;
-  coded_width?: number;
-  coded_height?: number;
-  closed_captions?: number;
-  has_b_frames: number;
-  sample_aspect_ratio?: string;
-  display_aspect_ratio?: string;
-  pix_fmt?: string;
-  level: number;
-  color_range?: string;
-  color_space?: string;
-  color_primaries?: string;
-  chroma_location?: string;
-  field_order?: string;
-  timecode?: string;
-  refs?: string;
-  tags?: Record<string, string>;
-} | {
-  [key: string]: any;
-
-  index: number;
-  codec_name?: string;
-  codec_long_name?: string;
-  profile?: string;
-  codec_type: 'audio';
-  codec_time_base?: string;
-  codec_tag_string: string;
-  codec_tag: string;
-
-  id?: string;
-  r_frame_rate?: string;
-  avg_frame_rate?: string;
-  time_base?: string;
-  start_pts?: string;
-  start_time?: string;
-  duration_ts?: string;
-  duration?: string;
-  bit_rate?: string;
-  max_bit_rate?: string;
-  bits_per_raw_sample?: number;
-  nb_frames?: number;
-  nb_read_frames?: number;
-  nb_read_packets?: number;
-  disposition?: RawProbeDisposition;
-
-  sample_fmt?: string;
-  sample_rate?: string;
-  channels?: number;
-
-  channel_layout?: string;
-  bits_per_sample?: number;
-  tags?: Record<string, string>;
-} | {
-  [key: string]: any;
-
-  index: number;
-  codec_name?: string;
-  codec_long_name?: string;
-  profile?: string;
-  codec_type: 'subtitle';
-  codec_time_base?: string;
-  codec_tag_string: string;
-  codec_tag: string;
-
-  id?: string;
-  r_frame_rate?: string;
-  avg_frame_rate?: string;
-  time_base?: string;
-  start_pts?: string;
-  start_time?: string;
-  duration_ts?: string;
-  duration?: string;
-  bit_rate?: string;
-  max_bit_rate?: string;
-  bits_per_raw_sample?: number;
-  nb_frames?: number;
-  nb_read_frames?: number;
-  nb_read_packets?: number;
-  disposition?: RawProbeDisposition;
-  width?: number;
-  height?: number;
-  tags?: Record<string, string>;
-} | {
-  [key: string]: any;
-
-  index: number;
-  codec_name?: string;
-  codec_long_name?: string;
-  profile?: string;
-  codec_type?: string;
-  codec_time_base?: string;
-  codec_tag_string: string;
-  codec_tag: string;
-
-  id?: string;
-  r_frame_rate?: string;
-  avg_frame_rate?: string;
-  time_base?: string;
-  start_pts?: string;
-  start_time?: string;
-  duration_ts?: string;
-  duration?: string;
-  bit_rate?: string;
-  max_bit_rate?: string;
-  bits_per_raw_sample?: number;
-  nb_frames?: number;
-  nb_read_frames?: number;
-  nb_read_packets?: number;
-  disposition?: RawProbeDisposition;
-  tags?: Record<string, string>;
-};
-
-/** @alpha */
-export interface RawProbeDisposition {
-  default: number;
-  dub: number;
-  original: number;
-  comment: number;
-  lyrics: number;
-  karaoke: number;
-  forced: number;
-  hearing_impaired: number;
-  visual_impaired: number;
-  clean_effects: number;
-  attached_pic: number;
-  timed_thumbnails: number;
-}
-
-// https://github.com/FFmpeg/FFmpeg/blob/9d8f9b2e4094ae6b07a9f23ae044b802722b3b4e/fftools/ffprobe.c#L2782
-/** @alpha */
-export interface RawProbeChapter {
-  id: number;
-  time_base: string;
-  start: number;
-  start_time: string;
-  end: number;
-  end_time: string;
-  tags?: Record<string, string>;
-}
-
-/* eslint-enable camelcase */
+import { pipeline } from 'stream';
+import { types } from 'util';
 
 /**
- * **UNSTABLE**: `ProbeResult` is intended to have a simple API but it is still very unfinished, for
- * the time being using `.unwrap()` is necessary to retrieve any useful information from `probe()`.
- *
- * @alpha
- */
-export interface ProbeResult {
-  format?: Demuxer | Format | (string & {});
-  formatName?: string;
-
-  start: number;
-  duration: number;
-
-  bitrate?: number;
-  score: number;
-
-  tags?: Map<string, string>;
-
-  unwrap(): RawProbeResult;
-}
-
-/** @alpha */
-export interface ProbeOptions {
-  /**
-   * Specify the number of bytes to probe, if not given it will not be specified in the command-line
-   * arguments.
-   */
-  probeSize?: number;
-  /**
-   * Specify the number of milliseconds to analyze, defaults to `5000`.
-   */
-  analyzeDuration?: number;
-  /**
-   * Path to the `ffprobe` executable.
-   */
-  ffprobePath?: string;
-  /**
-   * **UNSTABLE**: Support for logging is under consideration.
-   *
-   * Set the log level used by ffprobe.
-   * @alpha
-   */
-  logLevel?: LogLevel;
-  /**
-   * Specify the input format of the media to probe.
-   */
-  format?: Demuxer | Format | (string & {});
-  /**
-   * Add command line arguments to ffprobe, `args` is appended **after** other
-   * arguments, but **before** source.
-   */
-  args?: string[];
-  /**
-   * Add custom options that will be used to spawn the process.
-   * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
-   * @example
-   * ```ts
-   * const info = await probe('video.mkv', {
-   *   spawnOptions: {
-   *     timeout: 5000
-   *   }
-   * });
-   * ```
-   */
-  spawnOptions?: SpawnOptions;
-}
-
-/**
- * **UNSTABLE**
- *
  * Probes the given `source` using ffprobe.
  * @param source - The source to probe. Accepts the same types as `FFmpegCommand.input()`.
- * @param options - Customize ffprobe options.
+ * @param options -
  * @example
  * ```ts
  * const result = await probe('input.mp4');
@@ -301,13 +21,11 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     probeSize,
     analyzeDuration,
     ffprobePath = 'ffprobe',
-    logLevel = LogLevel.Error,
     format,
-    args = [],
+    args: argsOption = [],
     spawnOptions = {},
   } = options;
-  const spawnArgs = [
-    '-v', logLevel,
+  const args = [
     ...(probeSize !== void 0 ? ['-probesize', probeSize.toString()] : []),
     ...(analyzeDuration !== void 0 ? ['-analyzeduration', (analyzeDuration * 1000).toString()] : []),
     '-of', 'json=c=1',
@@ -315,33 +33,53 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     '-show_streams',
     '-show_chapters',
     '-show_error',
-    ...args,
+    ...argsOption,
     ...(format !== void 0 ? ['-f', format] : []),
     '-i',
     typeof source === 'string' ? source : 'pipe:0'
   ];
-  const ffprobe = spawn(ffprobePath, spawnArgs, {
+  const ffprobe = spawn(ffprobePath, args, {
     stdio: 'pipe',
     ...spawnOptions,
   }) as ChildProcessWithoutNullStreams;
-  const { stdin, stdout } = ffprobe;
-  const getError = async (error: RawProbeError): Promise<FFprobeError> => {
-    return new FFprobeError(error.string, error.code, spawnArgs, ffprobePath);
+
+  let err: Error | undefined;
+  let exited = false;
+
+  const onExit = (error?: NodeJS.ErrnoException) => {
+    exited = true;
+    if (!err && error && !IGNORED_ERRORS.has(error.code!))
+      err = error;
   };
+  ffprobe.on('exit', onExit);
+  ffprobe.on('error', onExit);
+
   try {
-    if (source instanceof Uint8Array) {
-      writeStdin(stdin, source);
+    let err: Error | undefined;
+    if (types.isUint8Array(source)) {
+      ffprobe.stdin.on('error', (error: NodeJS.ErrnoException) => {
+        if (!err && !IGNORED_ERRORS.has(error.code!))
+          err = error;
+      });
+      ffprobe.stdin.end(source);
     } else if (typeof source !== 'string') {
-      pipeToStdin(stdin, toReadableStream(source));
+      pipeline(toReadableStream(source), ffprobe.stdin, (error) => {
+        if (!err && error) err = error;
+      });
     }
-    const output = await read(stdout);
-    const raw: RawProbeResult = JSON.parse(output.toString('utf-8'));
+    const stdout = await read(ffprobe.stdout);
+    const raw: RawProbeResult = JSON.parse(stdout.toString('utf8'));
+    // When ffprobe defines an error property something went wrong.
     if (raw.error)
-      throw await getError(raw.error);
+      throw Object.assign(new Error(raw.error.string), { ffprobePath, args });
     return new Result(raw);
   } finally {
-    if (isNullish(ffprobe.exitCode))
-      ffprobe.kill();
+    if (!exited) ffprobe.kill();
+    // Forward the error Node.js stdio streams or the child process itself.
+    if (err) {
+      Error.captureStackTrace?.(err);
+      throw err;
+    }
   }
 }
 
@@ -372,58 +110,6 @@ class Result implements ProbeResult {
   unwrap(): RawProbeResult {
     return this.#raw;
   }
-}
-
-function writeStdin(stdin: NodeJS.WritableStream, u8: Uint8Array) {
-  return new Promise<void>((resolve, reject) => {
-    const unlisten = () => {
-      stdin.off('error', onError);
-      stdin.off('close', onClose);
-    };
-    const onError = (error: Error & { code: string }) => {
-      if (!IGNORED_ERRORS.has(error.code)) {
-        unlisten();
-        reject(error);
-      }
-    };
-    const onClose = () => {
-      unlisten();
-      resolve();
-    };
-    stdin.on('close', onClose);
-    stdin.on('error', onError);
-    stdin.end(u8);
-  });
-}
-
-function pipeToStdin(stdin: NodeJS.WritableStream, stream: NodeJS.ReadableStream) {
-  return new Promise<void>((resolve, reject) => {
-    const unlisten = () => {
-      stream.off('error', onStreamError);
-      stdin.off('error', onError);
-      stdin.off('close', onClose);
-    };
-    const onError = (error: Error & { code: string }) => {
-      if (!IGNORED_ERRORS.has(error.code)) {
-        unlisten();
-        reject(error);
-      }
-    };
-    const onStreamError = (error: Error) => {
-      if (stdin.writable)
-        stdin.end();
-      unlisten();
-      reject(error);
-    };
-    const onClose = () => {
-      unlisten();
-      resolve();
-    };
-    stream.on('error', onStreamError);
-    stdin.on('close', onClose);
-    stdin.on('error', onError);
-    stream.pipe(stdin);
-  });
 }
 
 function tags(o: any): Map<string, string> {

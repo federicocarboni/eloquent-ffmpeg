@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process';
 import { Readable } from 'stream';
+import { types } from 'util';
 
 export const isWin32 = process.platform === 'win32';
 
@@ -9,16 +10,12 @@ export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
-const isStream = (o: any) => o !== null && typeof o === 'object' && typeof o.pipe === 'function';
+export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
+  o !== null && typeof o === 'object' &&
+  o.readable !== false && typeof o.pipe === 'function' &&
+  typeof o._read === 'function' && typeof o._readableState === 'object';
 
-export const isReadableStream = (o: any): o is NodeJS.ReadableStream => isStream(o) &&
-  o.readable !== false &&
-  typeof o._read === 'function' &&
-  typeof o._readableState === 'object';
-
-export const isUint8Array = (o: any): o is Uint8Array => Object.prototype.toString.call(o) === '[object Uint8Array]';
-
-export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
+export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
   new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
     const unlisten = () => {
@@ -45,21 +42,19 @@ export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
     stream.on('end', onEnd);
     stream.on('error', onError);
     stream.resume();
-  })
-);
+  });
 
-export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> => (
+export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> =>
   new Promise((resolve, reject) => {
     stream.write(chunk as any, () => {
       stream.off('error', reject);
       resolve();
     });
     stream.once('error', reject);
-  })
-);
+  });
 
 export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
-  isReadableStream(source) ? source : Readable.from(isUint8Array(source) ? [source] : source, { objectMode: false });
+  isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
 // if available or falls back to using `Array.prototype.map` and
