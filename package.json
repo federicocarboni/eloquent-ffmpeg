@@ -1,6 +1,6 @@
 {
   "name": "eloquent-ffmpeg",
-  "version": "0.13.0-alpha.0",
+  "version": "0.14.0",
   "description": "A high level API for FFmpeg",
   "module": "lib/lib.js",
   "main": "lib/lib.cjs",
@@ -69,7 +69,7 @@
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.0",
     "tslib": "^2.0.3",
-    "typedoc": "^0.17.8",
+    "typedoc": "^0.17.0-3",
     "typescript": "^4.1.2",
     "uuid": "^8.3.1"
   }
