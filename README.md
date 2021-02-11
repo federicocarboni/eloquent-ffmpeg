@@ -131,7 +131,7 @@ cmd.output('output.mkv')
 For debbugging, [`FFmpegCommand.spawn()`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#spawn)'s [options](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html) accept [`logger`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#logger) and [`report`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#report).
 
 The `report` option dumps the full command line arguments and logs to the specified file or, when
-not specified, FFmpeg will create a file named `ffmpeg-YYYYMMDD-HHMMSS.log` in it's current
+not specified, FFmpeg will create a file named `ffmpeg-YYYYMMDD-HHMMSS.log` in its current
 directory. When the log level is not specified FFmpeg defaults to `LogLevel.Debug`.
 
 See [`-loglevel` and `-report` in FFmpeg's docs](https://ffmpeg.org/ffmpeg-all.html#Generic-options).
