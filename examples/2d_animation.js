@@ -71,7 +71,7 @@ async function render() {
 
   cmd.output(outputPath);
 
-  const process = await cmd.spawn();
+  const proc = await cmd.spawn();
 
   const duration = FRAMES / FPS;
 
@@ -80,11 +80,11 @@ async function render() {
   });
   bar.start(duration, 0, { speed: 0 });
 
-  for await (const { speed, time } of process.progress()) {
+  for await (const { speed, time } of proc.progress()) {
     bar.update(time / 1000, { speed });
   }
 
-  await process.complete();
+  await proc.complete();
 
   bar.update(duration, { speed: 0 });
   bar.stop();
