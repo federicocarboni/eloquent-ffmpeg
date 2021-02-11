@@ -87,7 +87,7 @@ class Command implements FFmpegCommand {
       const [url] = handleInputSource(source, inputStreams);
       directives.push(`file ${escapeConcatFile(url)}`);
     };
-    sources.forEach((source) => {
+    for (const source of sources) {
       // @ts-ignore
       if (typeof source === 'string' || types.isUint8Array(source) || typeof source[Symbol.asyncIterator] === 'function') {
         addFile(source as InputSource);
@@ -103,7 +103,7 @@ class Command implements FFmpegCommand {
           directives.push(`outpoint ${outpoint}ms`);
         // TODO: add support for the directives file_packet_metadata, stream and exact_stream_id
       }
-    });
+    }
     // Create the ffconcat script as a buffer.
     const ffconcat = Buffer.from(directives.join('\n'), 'utf8');
 
@@ -140,25 +140,26 @@ class Command implements FFmpegCommand {
     return input;
   }
   output(...destinations: OutputDestination[]): FFmpegOutput {
-    let streams: NodeJS.WritableStream[];
+    const urls: string[] = [];
     let isStream = false;
-    const urls = destinations.map((dest) => {
-      if (typeof dest === 'string')
-        return dest;
-      // When the output has to be written to multiple streams, we
-      // we only use one unix socket / windows pipe by writing the
-      // same output to multiple streams internally.
-      if (!isStream) {
+    let streams: NodeJS.WritableStream[];
+
+    for (const dest of destinations) {
+      if (typeof dest === 'string') {
+        urls.push(dest);
+      } else if (!isStream) {
+        // When the output has to be written to multiple streams, we
+        // we only use one unix socket / windows pipe by writing the
+        // same output to multiple streams internally.
         isStream = true;
         streams = [dest];
         const path = getSocketPath();
         this.#outputStreams.push([path, streams]);
-        return getSocketURL(path);
+        urls.push(getSocketURL(path));
+      } else {
+        streams!.push(dest);
       }
-      //
-      streams.push(dest);
-      return;
-    }).filter((value): value is string => value !== void 0);
+    }
 
     // - If there are no urls the output will be discarded by
     //   using `/dev/null` or `NUL` as the destination.

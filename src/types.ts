@@ -67,7 +67,7 @@ export interface FFmpegCommand {
    * @example
    * ```ts
    * const cmd = ffmpeg();
-   * cmd.concat(['chunk1.webm', 'chunk2.webm']);
+   * cmd.concat(['file:chunk1.webm', 'file:chunk2.webm']);
    * cmd.output('complete_video.webm');
    * const process = await cmd.spawn();
    * await process.complete();
@@ -123,29 +123,17 @@ export interface ConcatOptions {
 }
 
 /** @public */
-export interface FFmpegLogger {
-  fatal?(message: string): void;
-  error?(message: string): void;
-  warning?(message: string): void;
-  info?(message: string): void;
-  verbose?(message: string): void;
-  debug?(message: string): void;
-  trace?(message: string): void;
-}
-
-/** @public */
 export interface SpawnOptions {
   /**
-   * **UNSTABLE**
-   *
-   * Define a logger for FFmpeg.
+   * Enable processing of FFmpeg's logs. When set, on each log message written by ffmpeg, depending
+   * on the log level, the corresponding log function will be called. Note that with very verbose
+   * log levels it may have a noticeable effect on performance.
    */
-  logger?: FFmpegLogger;
+  logger?: FFmpegLogger | false;
   /**
-   * **UNSTABLE**
-   *
    * Enable dumping full command line args and logs to a specified file.
    * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
+   * @defaultValue `false`
    */
   report?: ReportOptions | boolean;
   /** Path to the ffmpeg executable. */
@@ -155,6 +143,17 @@ export interface SpawnOptions {
    * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
    */
   spawnOptions?: SpawnOptionsWithoutStdio;
+}
+
+/** @public */
+export interface FFmpegLogger {
+  fatal?(message: string): void;
+  error?(message: string): void;
+  warning?(message: string): void;
+  info?(message: string): void;
+  verbose?(message: string): void;
+  debug?(message: string): void;
+  trace?(message: string): void;
 }
 
 /** @public */
@@ -174,11 +173,7 @@ export interface ReportOptions {
 
 /** @public */
 export interface FFmpegOptions {
-  /**
-   * **UNSTABLE**
-   *
-   * Change the log level used for FFmpeg's logs.
-   */
+  /** Change the log level used for FFmpeg's logs. */
   level?: LogLevel;
   /**
    * Enable piping the conversion progress, if set to `false` {@link FFmpegProcess.progress}
