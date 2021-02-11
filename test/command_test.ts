@@ -1,18 +1,12 @@
 import { createReadStream, createWriteStream, promises, unlinkSync } from 'fs';
+import { join } from 'path';
 import { PassThrough, Readable } from 'stream';
 
-import { ffmpeg, LogLevel } from '../src/command';
+import { ffmpeg } from '../src/command';
+import { LogLevel } from '../src/types';
 
 describe('command', function () {
   describe('ffmpeg()', function () {
-    it('should set a custom log level', function () {
-      const cmd = ffmpeg({ logLevel: LogLevel.Info });
-      expect(cmd.logLevel).toBe(LogLevel.Info);
-    });
-    it('should set log level to Error by default', function () {
-      const cmd = ffmpeg();
-      expect(cmd.logLevel).toBe(LogLevel.Error);
-    });
     it('should set overwrite to true by default', function () {
       const cmd = ffmpeg();
       cmd.input('test/samples/invalid');
@@ -70,29 +64,36 @@ describe('command', function () {
       it('should add strings as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv']);
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
       });
       it('should add streams as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat([new PassThrough(), new PassThrough()]);
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
       });
       it('should add multiple mixed sources as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', new PassThrough()]);
+        expect(input.isStream).toBe(false);
+      });
+      it('should use streams when useDataURI is false', function () {
+        const cmd = ffmpeg();
+        const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv'], {
+          useDataURI: false,
+        });
         expect(input.isStream).toBe(true);
       });
       it('should set safe to 0 by default', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv']);
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
         const args = input.getArgs();
         expect(args[args.indexOf('-safe') + 1]).toBe('0');
       });
       it('should set safe to 1', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv'], { safe: true });
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
         const args = input.getArgs();
         expect(args[args.indexOf('-safe') + 1]).toBe('1');
       });
@@ -101,7 +102,7 @@ describe('command', function () {
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: ['unix', 'file'],
         });
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
         const args = input.getArgs();
         expect(args[args.indexOf('-protocol_whitelist') + 1]).toBe('unix,file');
       });
@@ -110,9 +111,9 @@ describe('command', function () {
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: [],
         });
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
         const args = input.getArgs();
-        expect(args.indexOf('-protocol_whitelist')).toBe(-1);
+        expect(args.includes('-protocol_whitelist')).toBe(false);
       });
     });
     describe('output()', function () {
@@ -214,6 +215,42 @@ describe('command', function () {
       });
     });
     describe('spawn()', function () {
+      it('should handle report set to true', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output().format('matroska');
+        const proc = await cmd.spawn({
+          report: true,
+          spawnOptions: {
+            // Create the report file in test/samples
+            cwd: 'test/samples'
+          },
+        });
+        await proc.complete().catch(() => {
+          //
+        });
+        const files = await promises.readdir('test/samples');
+        const log = files.find((file) => file.startsWith('ffmpeg-'))!;
+        expect(log).not.toBeUndefined();
+        await promises.readFile(join('test/samples', log), 'utf8');
+        await promises.unlink(join('test/samples', log));
+      });
+      it('should handle report file and level', async function () {
+        const cmd = ffmpeg();
+        cmd.input('test/samples/invalid');
+        cmd.output().format('matroska');
+        const proc = await cmd.spawn({
+          report: {
+            file: 'test/samples/report.log',
+            level: LogLevel.Info,
+          },
+        });
+        await proc.complete().catch(() => {
+          //
+        });
+        await promises.readFile('test/samples/report.log', 'utf8');
+        await promises.unlink('test/samples/report.log');
+      });
       it('should cleanup socket servers on errored process', async function () {
         const cmd = ffmpeg();
         cmd.input(createReadStream('test/samples/video.mkv'));
@@ -399,15 +436,10 @@ describe('command', function () {
             'file:test/samples/video.mkv',
             {
               file: createReadStream('test/samples/video.mkv'),
-            },
-            {
               duration: 60000,
-              inpoint: 0,
-              outpoint: 0,
             }
           ]);
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
-            .duration(60000 * 4)
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();
@@ -423,17 +455,17 @@ describe('command', function () {
       it('should handle concat inputs with extra options', async function () {
         try {
           const cmd = ffmpeg();
-          cmd.concat([
-            'file:test/samples/video.mkv',
-            {
-              file: createReadStream('test/samples/video.mkv'),
-              duration: 60000
-            }
-          ], {
-            protocols: ['file', 'unix'],
+          cmd.concat([{
+            file: 'file:test/samples/video.mkv',
+            inpoint: 30100,
+          }, {
+            file: 'file:test/samples/video.mkv',
+            duration: 30000,
+            outpoint: 30000,
+          }], {
+            protocols: ['file', 'unix', 'data'],
           });
-          cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
-            .duration(60000 * 4)
+          cmd.output('test/samples/[strange]output.mkv')
             .args('-c', 'copy', '-f', 'matroska');
           const process = await cmd.spawn();
           await process.complete();

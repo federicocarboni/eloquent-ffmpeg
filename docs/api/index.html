@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Eloquent FFmpeg - v0.13.0-alpha.0</title>
+	<title>Eloquent FFmpeg - v0.14.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">Eloquent FFmpeg - v0.13.0-alpha.0</a>
+					<a href="index.html" class="title">Eloquent FFmpeg - v0.14.0</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -49,7 +49,7 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 			</ul>
-			<h1>Eloquent FFmpeg - v0.13.0-alpha.0</h1>
+			<h1>Eloquent FFmpeg - v0.14.0</h1>
 		</div>
 	</div>
 </header>
@@ -62,7 +62,9 @@
 				</a>
 				<p><a href="https://lgtm.com/projects/g/FedericoCarboni/eloquent-ffmpeg/context:javascript"><img src="https://img.shields.io/lgtm/grade/javascript/g/FedericoCarboni/eloquent-ffmpeg.svg?logo=lgtm&logoWidth=18" alt="Language grade: JavaScript"></a>
 					<a href="https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg?targetFile=package.json"><img src="https://snyk.io/test/github/FedericoCarboni/eloquent-ffmpeg/badge.svg?targetFile=package.json" alt="Known Vulnerabilities"></a>
-				<a href="https://codecov.io/gh/FedericoCarboni/eloquent-ffmpeg/branch/master"><img src="https://img.shields.io/codecov/c/github/FedericoCarboni/eloquent-ffmpeg" alt="Codecov Coverage"></a></p>
+					<img src="https://github.com/FedericoCarboni/eloquent-ffmpeg/workflows/tests/badge.svg" alt="tests">
+					<a href="https://codecov.io/gh/FedericoCarboni/eloquent-ffmpeg/branch/master"><img src="https://img.shields.io/codecov/c/github/FedericoCarboni/eloquent-ffmpeg" alt="Codecov Coverage"></a>
+				<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_shield"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=shield" alt="FOSSA Status"></a></p>
 				<p>Eloquent FFmpeg simplifies interactions with
 					<a href="https://ffmpeg.org/">FFmpeg&#39;s command line tools</a> into a simple yet powerful API.
 					This library is fully typed, so in editors such as VS Code, intellisense should help you get started.
@@ -75,22 +77,8 @@
 				<a href="#prerequisites" id="prerequisites" style="color: inherit; text-decoration: none;">
 					<h2>Prerequisites</h2>
 				</a>
-				<p>Eloquent FFmpeg must know where to find your <code>ffmpeg</code> or <code>ffprobe</code> executables,
-					you can use the environment variables <code>FFMPEG_PATH</code> and <code>FFPROBE_PATH</code>, pointing
-					to the <code>ffmpeg</code> and <code>ffprobe</code> executables respectively.
-				To set the path programmatically use <code>setFFmpegPath()</code> or <code>setFFprobePath()</code>.</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { setFFmpegPath, setFFprobePath } <span class="hljs-keyword">from</span> <span class="hljs-string">'eloquent-ffmpeg'</span>;
-
-setFFmpegPath(<span class="hljs-string">'/path/to/your/ffmpeg'</span>);
-setFFprobePath(<span class="hljs-string">'/path/to/your/ffprobe'</span>);</code></pre>
-				<p><strong>Note:</strong> Eloquent FFmpeg will not search in <code>PATH</code>, to search for the executables in <code>PATH</code> use
-				<a href="https://github.com/npm/node-which">node which</a>, which mimics unix operating systems&#39; <code>which</code> command.</p>
-				<p><code>npm install --save which</code></p>
-				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { setFFmpegPath, setFFprobePath } <span class="hljs-keyword">from</span> <span class="hljs-string">'eloquent-ffmpeg'</span>;
-<span class="hljs-keyword">import</span> which <span class="hljs-keyword">from</span> <span class="hljs-string">'which'</span>;
-
-setFFmpegPath(which.sync(<span class="hljs-string">'ffmpeg'</span>));
-setFFprobePath(which.sync(<span class="hljs-string">'ffprobe'</span>));</code></pre>
+				<p>Eloquent FFmpeg requires a recent version of FFmpeg to be installed. Make sure that ffmpeg and
+				ffprobe executables are in <code>PATH</code>, or use the options <code>ffmpegPath</code> and <code>ffprobePath</code>.</p>
 				<p><strong>GitHub Actions</strong></p>
 				<p>To install FFmpeg on a GitHub Actions&#39; runner use <a href="https://github.com/FedericoCarboni/setup-ffmpeg">FedericoCarboni/setup-ffmpeg</a>.</p>
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
@@ -110,9 +98,9 @@ cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
 
 <span class="hljs-comment">// Spawn ffmpeg as a child process</span>
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-comment">// Wait for the conversion to complete</span>
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
 				<a href="#streams" id="streams" style="color: inherit; text-decoration: none;">
 					<h3>Streams</h3>
 				</a>
@@ -128,8 +116,8 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), 
 <span class="hljs-comment">// because it can't be inferred from the file extension.</span>
   .format(<span class="hljs-string">'webm'</span>);
 
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
 				<p><strong>Note:</strong> Some formats require inputs and/or outputs to be seekable which means
 					that they cannot be used with streams, notable example being MP4. Some other
 					formats require a special format name to be explicitly set, for example to use
@@ -143,10 +131,10 @@ cmd.output(fs.createWriteStream(<span class="hljs-string">'dest1.webm'</span>), 
 cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hljs-string">'file:input2.mkv'</span>]);
 cmd.output(<span class="hljs-string">'output.mkv'</span>);
 
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
-				<p><strong>Note:</strong> When passing inputs to <code>FFmpegCommand.concat()</code> the protocol must be explicitly specified,
-					<code>file:</code> for example, streams are handled automatically. Sometimes it may be necessary to explicitly
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
+				<p><strong>Note:</strong> When passing inputs to <code>FFmpegCommand.concat()</code> the protocol must be explicitly specified:
+					<code>file:</code> for example; streams are handled automatically. Sometimes it may be necessary to explicitly
 				enable certain protocols.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hljs-string">'https://example.com/input2.mkv'</span>], {
@@ -154,8 +142,8 @@ cmd.concat([<span class="hljs-string">'file:input1.mkv'</span>, <span class="hlj
 });
 cmd.output(<span class="hljs-string">'output.mkv'</span>);
 
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
 				<p>See <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#concat">FFmpegCommand.concat()</a> and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.concatoptions.html">ConcatOptions</a>.</p>
 				<a href="#input-amp-output-options" id="input-amp-output-options" style="color: inherit; text-decoration: none;">
 					<h3>Input &amp; Output Options</h3>
@@ -174,6 +162,33 @@ cmd.input(<span class="hljs-string">'input.mp4'</span>)
   .args(<span class="hljs-string">'-format'</span>, <span class="hljs-string">'mp4'</span>);
 cmd.output(<span class="hljs-string">'output.mkv'</span>)
   .args(<span class="hljs-string">'-codec:a'</span>, <span class="hljs-string">'aac'</span>);</code></pre>
+				<a href="#logging-amp-debugging" id="logging-amp-debugging" style="color: inherit; text-decoration: none;">
+					<h3>Logging &amp; Debugging</h3>
+				</a>
+				<p>For debbugging, <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#spawn"><code>FFmpegCommand.spawn()</code></a>&#39;s <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html">options</a> accept <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#logger"><code>logger</code></a> and <a href="https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#report"><code>report</code></a>.</p>
+				<p>The <code>report</code> option dumps the full command line arguments and logs to the specified file or, when
+					not specified, FFmpeg will create a file named <code>ffmpeg-YYYYMMDD-HHMMSS.log</code> in it&#39;s current
+				directory. When the log level is not specified FFmpeg defaults to <code>LogLevel.Debug</code>.</p>
+				<p>See <a href="https://ffmpeg.org/ffmpeg-all.html#Generic-options"><code>-loglevel</code> and <code>-report</code> in FFmpeg&#39;s docs</a>.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg({
+  level: LogLevel.Warning,
+});
+cmd.input(<span class="hljs-string">'input.mkv'</span>);
+cmd.output(<span class="hljs-string">'output.mp4'</span>);
+
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn({
+  <span class="hljs-comment">// Enable logger and report when not in production mode.</span>
+  logger: process.env.NODE_ENV !== <span class="hljs-string">'production'</span> &amp;&amp; {
+    warning: <span class="hljs-function">(<span class="hljs-params">message</span>) =&gt;</span> {
+      <span class="hljs-built_in">console</span>.warn(<span class="hljs-string">'FFmpeg warning:'</span>, message);
+    },
+  },
+  report: process.env.NODE_ENV !== <span class="hljs-string">'production'</span> &amp;&amp; {
+    file: <span class="hljs-string">'ffmpeg-123.log'</span>,
+    level: LogLevel.Debug,
+  },
+});
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
 				<a href="#controlling-the-conversion" id="controlling-the-conversion" style="color: inherit; text-decoration: none;">
 					<h3>Controlling the conversion</h3>
 				</a>
@@ -186,23 +201,23 @@ cmd.output(<span class="hljs-string">'output.mkv'</span>)
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">for</span> <span class="hljs-keyword">await</span> (<span class="hljs-keyword">const</span> { speed, time } of process.progress()) {
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">for</span> <span class="hljs-keyword">await</span> (<span class="hljs-keyword">const</span> { speed, time } of proc.progress()) {
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
 }
 <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> The progress generator will return when ffmpeg writes a</span>
 <span class="hljs-comment">// `progress=end` line, which signals the end of progress updates,</span>
 <span class="hljs-comment">// not the conversion's completion.</span>
-<span class="hljs-comment">// Use process.complete() to wait for completion.</span>
-<span class="hljs-keyword">await</span> process.complete();
+<span class="hljs-comment">// Use proc.complete() to wait for completion.</span>
+<span class="hljs-keyword">await</span> proc.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hooray! Conversion complete!'</span>);</code></pre>
 				<p>To use Node.js&#39; streams, <code>FFmpegProcess.progress()</code> can be turned into a Node.js readable stream
 				using <code>Readable.from()</code>.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">const</span> progress = Readable.from(process.progress());
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">const</span> progress = Readable.from(proc.progress());
 progress.on(<span class="hljs-string">'data'</span>, <span class="hljs-function">(<span class="hljs-params">{ speed, time }</span>) =&gt;</span> {
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Converting @ <span class="hljs-subst">${speed}</span>x – <span class="hljs-subst">${time}</span>/<span class="hljs-subst">${TOTAL_TIME}</span>`</span>);
 });
@@ -212,8 +227,8 @@ progress.on(<span class="hljs-string">'end'</span>, <span class="hljs-function">
   <span class="hljs-comment">// updates, not the conversion's completion.</span>
   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'No more progress updates'</span>);
 });
-<span class="hljs-comment">// Use process.complete() to wait for completion.</span>
-<span class="hljs-keyword">await</span> process.complete();
+<span class="hljs-comment">// Use proc.complete() to wait for completion.</span>
+<span class="hljs-keyword">await</span> proc.complete();
 <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hooray! Conversion complete!'</span>);</code></pre>
 				<p><strong>Tracking progress as a percentage:</strong> To get a percentage from the progress the total
 				duration of the media must be known, this is very easy if the duration is not modified.</p>
@@ -223,11 +238,11 @@ progress.on(<span class="hljs-string">'end'</span>, <span class="hljs-function">
 const input = cmd.input(&#39;input.mkv&#39;);
 const info = await input.probe();
 cmd.output(&#39;video.mp4&#39;);
-const process = await cmd.spawn();
-for await (const { speed, time } of process.progress()) {
+const proc = await cmd.spawn();
+for await (const { speed, time } of proc.progress()) {
   console.log(`Converting @ ${speed}x – ${time / info.duration * 100}%`);
 }
-await process.complete();
+await proc.complete();
 console.log(&#39;Hooray! Conversion complete!&#39;);</code></pre>
 				<a href="#pause-amp-resume" id="pause-amp-resume" style="color: inherit; text-decoration: none;">
 					<h4>Pause &amp; Resume</h4>
@@ -240,13 +255,13 @@ console.log(&#39;Hooray! Conversion complete!&#39;);</code></pre>
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
 <span class="hljs-comment">// Pause the conversion</span>
-process.pause();
+proc.pause();
 <span class="hljs-comment">// Resume...</span>
-process.resume();
+proc.resume();
 
-<span class="hljs-keyword">await</span> process.complete();</code></pre>
+<span class="hljs-keyword">await</span> proc.complete();</code></pre>
 				<a href="#abort" id="abort" style="color: inherit; text-decoration: none;">
 					<h4>Abort</h4>
 				</a>
@@ -258,8 +273,8 @@ process.resume();
 				<pre><code class="language-ts"><span class="hljs-keyword">const</span> cmd = ffmpeg();
 cmd.input(<span class="hljs-string">'input.mkv'</span>);
 cmd.output(<span class="hljs-string">'output.mp4'</span>);
-<span class="hljs-keyword">const</span> process = <span class="hljs-keyword">await</span> cmd.spawn();
-<span class="hljs-keyword">await</span> process.abort();</code></pre>
+<span class="hljs-keyword">const</span> proc = <span class="hljs-keyword">await</span> cmd.spawn();
+<span class="hljs-keyword">await</span> proc.abort();</code></pre>
 				<a href="#errors" id="errors" style="color: inherit; text-decoration: none;">
 					<h2>Errors</h2>
 				</a>
@@ -270,6 +285,10 @@ cmd.output(<span class="hljs-string">'output.mp4'</span>);
 					required to pause and resume the process on Windows. Try to uninstall and
 					reinstall ntsuspend, and if you experience further issues open a new issue to
 				get help.</p>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h2>License</h2>
+				</a>
+				<p><a href="https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_large"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=large" alt="FOSSA Status"></a></p>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">

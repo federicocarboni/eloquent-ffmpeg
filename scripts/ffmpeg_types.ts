@@ -1,18 +1,16 @@
-import { getCodecs, getDecoders, getDemuxers, getEncoders, getFFmpegPath, getFilters, getFormats, getMuxers, getPixelFormats, getVersion } from '../src/lib';
+import { getCodecs, getDecoders, getDemuxers, getEncoders, getFilters, getFormats, getMuxers, getPixelFormats, getVersion } from '../src/lib';
 import { promises } from 'fs';
 import pkg from '../package.json';
 
-const ffmpegPath = getFFmpegPath();
-
 async function main(): Promise<void> {
-  const decoders = await getDecoders(ffmpegPath);
-  const encoders = await getEncoders(ffmpegPath);
-  const codecs = await getCodecs(ffmpegPath);
-  const demuxers = await getDemuxers(ffmpegPath);
-  const muxers = await getMuxers(ffmpegPath);
-  const formats = await getFormats(ffmpegPath);
-  const pixelFormats = await getPixelFormats(ffmpegPath);
-  const filters = await getFilters(ffmpegPath);
+  const decoders = await getDecoders();
+  const encoders = await getEncoders();
+  const codecs = await getCodecs();
+  const demuxers = await getDemuxers();
+  const muxers = await getMuxers();
+  const formats = await getFormats();
+  const pixelFormats = await getPixelFormats();
+  const filters = await getFilters();
 
   const addQuotes = (name: string) => `'${name}'`;
 

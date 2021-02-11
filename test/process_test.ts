@@ -105,7 +105,6 @@ describe('process', function () {
           .args('-f', 'matroska');
         const process = await cmd.spawn();
         await process.abort();
-        await process.complete();
         expect(process.unwrap().exitCode).toBe(0);
       });
       it('should reject on a non-running ffmpeg process', async function () {

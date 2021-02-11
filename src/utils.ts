@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process';
 import { Readable } from 'stream';
+import { types } from 'util';
 
 export const isWin32 = process.platform === 'win32';
 
@@ -9,40 +10,31 @@ export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
-export const isObject = (o: unknown): o is any => o !== null && typeof o === 'object';
+export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
+  o !== null && typeof o === 'object' &&
+  o.readable !== false && typeof o.pipe === 'function' &&
+  typeof o._read === 'function' && typeof o._readableState === 'object';
 
-const isStream = (o: unknown): o is any => isObject(o) && typeof o.pipe === 'function';
-
-export const isReadableStream = (o: unknown): o is NodeJS.ReadableStream => isStream(o) &&
-  'readable' in o && o.readable !== false &&
-  typeof o._read === 'function' &&
-  typeof o._readableState === 'object';
-
-export const isWritableStream = (o: unknown): o is NodeJS.WritableStream => isStream(o) &&
-  'writable' in o && o.writable !== false &&
-  typeof o._write === 'function' &&
-  typeof o._writableState === 'object';
-
-export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
+export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
   new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
-    const unlisten = (): void => {
+    const unlisten = () => {
       stream.off('readable', onReadable);
       stream.off('error', onError);
       stream.off('end', onEnd);
     };
-    const onReadable = (): void => {
+    const onReadable = () => {
       let chunk: Uint8Array | null;
       while ((chunk = stream.read() as Uint8Array) !== null) {
         chunks.push(chunk);
       }
     };
-    const onEnd = (): void => {
+    const onEnd = () => {
       const buffer = Buffer.concat(chunks);
       unlisten();
       resolve(buffer);
     };
-    const onError = (reason?: any): void => {
+    const onError = (reason?: any) => {
       unlisten();
       reject(reason);
     };
@@ -50,29 +42,23 @@ export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> => (
     stream.on('end', onEnd);
     stream.on('error', onError);
     stream.resume();
-  })
-);
+  });
 
-export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> => (
+export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> =>
   new Promise((resolve, reject) => {
     stream.write(chunk as any, () => {
       stream.off('error', reject);
       resolve();
     });
     stream.once('error', reject);
-  })
-);
+  });
 
-export const toReadable = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream => (
-  isReadableStream(source) ? source : Readable.from(
-    source instanceof Uint8Array ? [source] : source, { objectMode: false }
-  )
-);
+export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
+  isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
 // if available or falls back to using `Array.prototype.map` and
-// `Array.prototype.concat`; this solution works, but it's potentially subject
-// to call stack size limits, though it's very very unlikely
+// `Array.prototype.concat`.
 // TODO: use `flatMap` directly when Node.js drops support for v10
 /* istanbul ignore next */ // @ts-ignore
 export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap

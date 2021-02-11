@@ -43,9 +43,9 @@ cmd.input('input.mkv');
 cmd.output('output.mp4');
 
 // Spawn ffmpeg as a child process
-const process = await cmd.spawn();
+const proc = await cmd.spawn();
 // Wait for the conversion to complete
-await process.complete();
+await proc.complete();
 ```
 
 ### Streams
@@ -63,8 +63,8 @@ cmd.output(fs.createWriteStream('dest1.webm'), 'dest2.webm')
 // because it can't be inferred from the file extension.
   .format('webm');
 
-const process = await cmd.spawn();
-await process.complete();
+const proc = await cmd.spawn();
+await proc.complete();
 ```
 
 **Note:** Some formats require inputs and/or outputs to be seekable which means
@@ -82,8 +82,8 @@ const cmd = ffmpeg();
 cmd.concat(['file:input1.mkv', 'file:input2.mkv']);
 cmd.output('output.mkv');
 
-const process = await cmd.spawn();
-await process.complete();
+const proc = await cmd.spawn();
+await proc.complete();
 ```
 
 **Note:** When passing inputs to `FFmpegCommand.concat()` the protocol must be explicitly specified:
@@ -97,8 +97,8 @@ cmd.concat(['file:input1.mkv', 'https://example.com/input2.mkv'], {
 });
 cmd.output('output.mkv');
 
-const process = await cmd.spawn();
-await process.complete();
+const proc = await cmd.spawn();
+await proc.complete();
 ```
 
 See [FFmpegCommand.concat()](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#concat) and [ConcatOptions](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.concatoptions.html).
@@ -127,8 +127,40 @@ cmd.output('output.mkv')
   .args('-codec:a', 'aac');
 ```
 
+### Logging & Debugging
+For debbugging, [`FFmpegCommand.spawn()`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#spawn)'s [options](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html) accept [`logger`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#logger) and [`report`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#report).
+
+The `report` option dumps the full command line arguments and logs to the specified file or, when
+not specified, FFmpeg will create a file named `ffmpeg-YYYYMMDD-HHMMSS.log` in it's current
+directory. When the log level is not specified FFmpeg defaults to `LogLevel.Debug`.
+
+See [`-loglevel` and `-report` in FFmpeg's docs](https://ffmpeg.org/ffmpeg-all.html#Generic-options).
+
+```ts
+const cmd = ffmpeg({
+  level: LogLevel.Warning,
+});
+cmd.input('input.mkv');
+cmd.output('output.mp4');
+
+const proc = await cmd.spawn({
+  // Enable logger and report when not in production mode.
+  logger: process.env.NODE_ENV !== 'production' && {
+    warning: (message) => {
+      console.warn('FFmpeg warning:', message);
+    },
+  },
+  report: process.env.NODE_ENV !== 'production' && {
+    file: 'ffmpeg-123.log',
+    level: LogLevel.Debug,
+  },
+});
+await proc.complete();
+```
+
 ### Controlling the conversion
 Make sure to check [the API documentation for FFmpegProcess](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegprocess.html).
+
 #### Monitor progress
 To receive real-time updates on the conversion's progress, use the `FFmpegProcess.progress()` method.
 It returns an async generator of [Progress](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.progress.html).
@@ -136,15 +168,15 @@ It returns an async generator of [Progress](https://federicocarboni.github.io/el
 const cmd = ffmpeg();
 cmd.input('input.mkv');
 cmd.output('output.mp4');
-const process = await cmd.spawn();
-for await (const { speed, time } of process.progress()) {
+const proc = await cmd.spawn();
+for await (const { speed, time } of proc.progress()) {
   console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
 }
 // NOTE: The progress generator will return when ffmpeg writes a
 // `progress=end` line, which signals the end of progress updates,
 // not the conversion's completion.
-// Use process.complete() to wait for completion.
-await process.complete();
+// Use proc.complete() to wait for completion.
+await proc.complete();
 console.log('Hooray! Conversion complete!');
 ```
 To use Node.js' streams, `FFmpegProcess.progress()` can be turned into a Node.js readable stream
@@ -153,8 +185,8 @@ using `Readable.from()`.
 const cmd = ffmpeg();
 cmd.input('input.mkv');
 cmd.output('output.mp4');
-const process = await cmd.spawn();
-const progress = Readable.from(process.progress());
+const proc = await cmd.spawn();
+const progress = Readable.from(proc.progress());
 progress.on('data', ({ speed, time }) => {
   console.log(`Converting @ ${speed}x – ${time}/${TOTAL_TIME}`);
 });
@@ -164,8 +196,8 @@ progress.on('end', () => {
   // updates, not the conversion's completion.
   console.log('No more progress updates');
 });
-// Use process.complete() to wait for completion.
-await process.complete();
+// Use proc.complete() to wait for completion.
+await proc.complete();
 console.log('Hooray! Conversion complete!');
 ```
 **Tracking progress as a percentage:** To get a percentage from the progress the total
@@ -179,11 +211,11 @@ const cmd = ffmpeg();
 const input = cmd.input('input.mkv');
 const info = await input.probe();
 cmd.output('video.mp4');
-const process = await cmd.spawn();
-for await (const { speed, time } of process.progress()) {
+const proc = await cmd.spawn();
+for await (const { speed, time } of proc.progress()) {
   console.log(`Converting @ ${speed}x – ${time / info.duration * 100}%`);
 }
-await process.complete();
+await proc.complete();
 console.log('Hooray! Conversion complete!');
 ```
 
@@ -199,13 +231,13 @@ upon success, `false` otherwise.
 const cmd = ffmpeg();
 cmd.input('input.mkv');
 cmd.output('output.mp4');
-const process = await cmd.spawn();
+const proc = await cmd.spawn();
 // Pause the conversion
-process.pause();
+proc.pause();
 // Resume...
-process.resume();
+proc.resume();
 
-await process.complete();
+await proc.complete();
 ```
 
 #### Abort
@@ -220,8 +252,8 @@ will exit successfully, any possible errors should be handled explicitly.
 const cmd = ffmpeg();
 cmd.input('input.mkv');
 cmd.output('output.mp4');
-const process = await cmd.spawn();
-await process.abort();
+const proc = await cmd.spawn();
+await proc.abort();
 ```
 
 ## Errors
