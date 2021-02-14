@@ -10,10 +10,14 @@ export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
+// Borrowed from is-stream https://github.com/sindresorhus/is-stream/blob/main/index.js
+const isStream = (o: any) => o !== null && typeof o === 'object';
+
 export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
-  o !== null && typeof o === 'object' &&
-  o.readable !== false && typeof o.pipe === 'function' &&
-  typeof o._read === 'function' && typeof o._readableState === 'object';
+  isStream(o) && o.readable !== false && typeof o.read === 'function';
+
+export const isWritableStream = (o: any): o is NodeJS.WritableStream =>
+  isStream(o) && o.writable !== false && typeof o.write === 'function';
 
 export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
   new Promise((resolve, reject) => {
