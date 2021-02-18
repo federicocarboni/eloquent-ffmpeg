@@ -14,9 +14,11 @@ export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess
   const ffmpeg = spawnChildProcess(ffmpegPath, args, {
     stdio: 'pipe',
     ...spawnOptions,
-  }) as ChildProcessWithoutNullStreams;
+  });
   return new Process(ffmpeg, args, ffmpegPath);
 }
+
+const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
 
 /** @internal */
 export class Process implements FFmpegProcess {
@@ -37,46 +39,60 @@ export class Process implements FFmpegProcess {
   #ffmpeg: ChildProcessWithoutNullStreams;
   #exited = false;
 
-  async *progress() {
-    let progress: Partial<Progress> = {};
-    for await (const line of readlines(this.#ffmpeg.stdout)) {
-      try {
-        const [key, rawValue] = line.split('=');
-        const value = rawValue.trim();
-        switch (key.trim()) {
-          case 'frame':
-            progress.frames = parseInt(value, 10) >>> 0;
-            break;
-          case 'fps':
-            progress.fps = parseFloat(value) || 0;
-            break;
-          case 'bitrate':
-            progress.bitrate = parseFloat(value) || 0;
-            break;
-          case 'total_size':
-            progress.bytes = parseInt(value, 10) >>> 0;
-            break;
-          case 'out_time_us':
-            progress.time = parseInt(value, 10) / 1000 >>> 0;
-            break;
-          case 'dup_frames':
-            progress.framesDuped = parseInt(value, 10) >>> 0;
-            break;
-          case 'drop_frames':
-            progress.framesDropped = parseInt(value, 10) >>> 0;
-            break;
-          case 'speed':
-            progress.speed = parseFloat(value) || 0;
-            break;
-          case 'progress':
-            yield progress as Progress;
-            if (value === 'end')
-              return;
-            progress = {};
-            break;
-        }
-      } catch {
-        //
+  async *progress(): AsyncGenerator<Progress, void, void> {
+    const stdout = this.#ffmpeg.stdout;
+    if (this.#exited || !stdout.readable)
+      throw new TypeError('Cannot parse progress, stdout not readable');
+    let frames: number | undefined;
+    let fps: number | undefined;
+    let bitrate: number | undefined;
+    let bytes: number | undefined;
+    let time: number | undefined;
+    let framesDuped: number | undefined;
+    let framesDropped: number | undefined;
+    let speed: number | undefined;
+    for await (const line of readlines(stdout)) {
+      const match = line.match(PROGRESS_LINE_REGEXP);
+      if (match === null)
+        continue;
+      const [, key, value] = match;
+      if (value === 'N/A')
+        continue;
+      // https://github.com/FFmpeg/FFmpeg/blob/bea7c513079a811512da378730366d80f8155f2d/fftools/ffmpeg.c#L1699
+      switch (key) {
+        case 'frame':
+          frames = parseInt(value, 10);
+          break;
+        case 'fps':
+          fps = parseFloat(value);
+          break;
+        case 'bitrate':
+          bitrate = parseFloat(value);
+          break;
+        case 'total_size':
+          bytes = parseInt(value, 10);
+          break;
+        case 'out_time_us':
+          // Remove the last three digits to quickly convert from μs to ms.
+          // time = Math.round(parseInt(value, 10) / 1000);
+          time = parseInt(value.slice(0, -3), 10);
+          break;
+        case 'dup_frames':
+          framesDuped = parseInt(value, 10);
+          break;
+        case 'drop_frames':
+          framesDropped = parseInt(value, 10);
+          break;
+        case 'speed':
+          speed = parseFloat(value);
+          break;
+        case 'progress':
+          yield { frames, fps, bitrate, bytes, time, framesDuped, framesDropped, speed } as Progress;
+          // Return on `progress=end`, which indicates that there will be no further progress logs.
+          if (value === 'end')
+            return;
+          frames = fps = bitrate = bytes = time = framesDuped = framesDropped = speed = void 0;
+          break;
       }
     }
   }

@@ -372,16 +372,58 @@ export interface FFmpegOutput {
   readonly isStream: boolean;
 }
 
-/** @public */
+/**
+ * A snapshot of the current progress.
+ * @public
+ */
 export interface Progress {
-  frames: number;
-  fps: number;
-  bitrate: number;
-  bytes: number;
-  time: number;
+  /**
+   * Total number of frames rendered.
+   *
+   * @remarks
+   * A positive integer, or `undefined` when the inputs have no video streams.
+   */
+  frames?: number;
+  /**
+   * Frames per second currently processing.
+   *
+   * @remarks
+   * A positive float which has up to two decimal places, or `undefined` when when the inputs have
+   * no video streams.
+   */
+  fps?: number;
+  /**
+   * Average bitrate of the output **in kilobits per second**.
+   *
+   * @remarks
+   * A positive float which has one decimal place, or `undefined` when unavailable.
+   */
+  bitrate?: number;
+  /**
+   * Total size of the file rendered.
+   *
+   * @remarks
+   * A positive integer, or `undefined` when unavailable.
+   */
+  bytes?: number;
+  /**
+   * Total length of the file rendered, in milliseconds.
+   *
+   * @remarks
+   * A positive integer, or `undefined` when unavailable.
+   */
+  time?: number;
+  /** Total number of frames duplicated. */
   framesDuped: number;
+  /** Total number of frames dropped. */
   framesDropped: number;
-  speed: number;
+  /**
+   * Current speed of the conversion.
+   *
+   * @remarks
+   * A positive float which has up to three decimal places, or `undefined` when unavailable.
+   */
+  speed?: number;
 }
 
 /** @public */
