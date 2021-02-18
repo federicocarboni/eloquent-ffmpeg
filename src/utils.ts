@@ -10,51 +10,64 @@ export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
-// Borrowed from is-stream https://github.com/sindresorhus/is-stream/blob/main/index.js
-const isStream = (o: any) => o !== null && typeof o === 'object';
+const isObject = (o: any) => o !== null && typeof o === 'object';
 
 export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
-  isStream(o) && o.readable !== false && typeof o.read === 'function';
+  isObject(o) && o.readable && typeof o.read === 'function';
 
 export const isWritableStream = (o: any): o is NodeJS.WritableStream =>
-  isStream(o) && o.writable !== false && typeof o.write === 'function';
+  isObject(o) && o.writable && typeof o.write === 'function';
 
-export const read = (stream: NodeJS.ReadableStream): Promise<Buffer> =>
+export const read = (readable: NodeJS.ReadableStream, size = 0): Promise<Buffer> =>
   new Promise((resolve, reject) => {
-    const chunks: Uint8Array[] = [];
+    let onReadable: () => void;
+    let chunks: Uint8Array[] | undefined;
+    if (size === 0) {
+      chunks = [];
+      onReadable = () => {
+        let chunk: Buffer;
+        while ((chunk = readable.read() as Buffer) !== null) {
+          chunks!.push(chunk);
+        }
+      };
+    } else {
+      onReadable = () => {
+        const chunk = readable.read(size) as Buffer;
+        if (chunk !== null) {
+          unlisten();
+          resolve(chunk);
+        }
+      };
+    }
     const unlisten = () => {
-      stream.off('readable', onReadable);
-      stream.off('error', onError);
-      stream.off('end', onEnd);
-    };
-    const onReadable = () => {
-      let chunk: Uint8Array | null;
-      while ((chunk = stream.read() as Uint8Array) !== null) {
-        chunks.push(chunk);
-      }
+      readable.off('readable', onReadable);
+      readable.off('end', onEnd);
+      readable.off('error', onError);
     };
     const onEnd = () => {
-      const buffer = Buffer.concat(chunks);
       unlisten();
-      resolve(buffer);
+      resolve(Buffer.concat(chunks!));
     };
-    const onError = (reason?: any) => {
+    const onError = (err: Error) => {
       unlisten();
-      reject(reason);
+      Error.captureStackTrace?.(err);
+      reject(err);
     };
-    stream.on('readable', onReadable);
-    stream.on('end', onEnd);
-    stream.on('error', onError);
-    stream.resume();
+    readable.on('readable', onReadable);
+    readable.on('end', onEnd);
+    readable.on('error', onError);
   });
 
-export const write = (stream: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> =>
+export const write = (writable: NodeJS.WritableStream, chunk: Uint8Array): Promise<void> =>
   new Promise((resolve, reject) => {
-    stream.write(chunk as any, () => {
-      stream.off('error', reject);
-      resolve();
+    writable.write(chunk, (err) => {
+      if (err) {
+        Error.captureStackTrace?.(err);
+        reject(err);
+      } else {
+        resolve();
+      }
     });
-    stream.once('error', reject);
   });
 
 export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
@@ -68,13 +81,6 @@ export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>)
 export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap
   ? (array, callback) => array.flatMap(callback)
   : (array, callback) => ([] as any[]).concat(...array.map(callback));
-
-export async function fromAsyncIterable<T>(iterable: AsyncIterable<T>): Promise<T[]> {
-  const array: T[] = [];
-  for await (const item of iterable)
-    array.push(item);
-  return array;
-}
 
 export let pause: (p: ChildProcess) => boolean;
 export let resume: (p: ChildProcess) => boolean;
@@ -93,7 +99,7 @@ if (isWin32) {
       // to support both commonjs, es modules and module bundlers.
       // TODO: replace this with a `await import()` when top-level `await` gets
       // better support
-      const ntsuspend = require('ntsuspend');
+      const ntsuspend: typeof import('ntsuspend') = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
     } catch {

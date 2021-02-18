@@ -3,7 +3,7 @@ import { createInterface as readlines } from 'readline';
 import { pipeline, Readable } from 'stream';
 import { types } from 'util';
 import { createSocketServer, getSocketPath, getSocketURL } from './sock';
-import { DEV_NULL, flatMap, isNullish, isWritableStream, toReadableStream } from './utils';
+import { DEV_NULL, flatMap, isNullish, isWritableStream, read, toReadableStream } from './utils';
 import { probe } from './probe';
 import { Process } from './process';
 import {
@@ -31,6 +31,15 @@ import {
 } from './string';
 import { Server } from 'net';
 
+/**
+ * Create a new FFmpegCommand.
+ * @param options -
+ * @public
+ */
+export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
+  return new Command(options);
+}
+
 // Match the `[level]` segment inside an ffmpeg line.
 const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
@@ -46,15 +55,6 @@ const logLevelToN = Object.assign(Object.create(null), {
   debug: 48,
   trace: 56,
 });
-
-/**
- * Create a new FFmpegCommand.
- * @param options -
- * @public
- */
-export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
-  return new Command(options);
-}
 
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
@@ -290,32 +290,14 @@ class Input implements FFmpegInput {
     return this.args('-c:s', codec);
   }
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
-    const readChunk = (stream: NodeJS.ReadableStream, size = 5000000): Promise<Uint8Array> => {
-      return new Promise<Uint8Array>((resolve, reject) => {
-        const unlisten = () => {
-          stream.off('readable', onReadable);
-          stream.off('error', onError);
-        };
-        const onError = (error: Error) => {
-          unlisten();
-          reject(error);
-        };
-        const onReadable = () => {
-          const chunk = stream.read(size) as Uint8Array;
-          if (chunk !== null) {
-            unlisten();
-            // Put the chunk read back into the stream so that it won't be consumed.
-            stream.unshift(chunk);
-            resolve(chunk);
-          }
-        };
-        stream.on('readable', onReadable);
-        stream.on('error', onError);
-        stream.pause();
-      });
-    };
-
-    const source = this.isStream ? await readChunk(this.#stream!, options.probeSize) : this.#url;
+    let source: Uint8Array | string;
+    if (this.isStream) {
+      const stream = this.#stream!;
+      source = await read(stream, options.probeSize ?? 5000000);
+      stream.unshift(source);
+    } else {
+      source = this.#url;
+    }
     return await probe(source, options);
   }
   getArgs(): string[] {
