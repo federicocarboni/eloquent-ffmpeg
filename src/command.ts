@@ -35,7 +35,7 @@ import { Server } from 'net';
 const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
 // Turn an ffmpeg log level into its numeric representation.
-const logLevelToN = {
+const logLevelToN = Object.assign(Object.create(null), {
   quiet: -8,
   panic: 0,
   fatal: 8,
@@ -45,7 +45,7 @@ const logLevelToN = {
   verbose: 40,
   debug: 48,
   trace: 56,
-};
+});
 
 /**
  * Create a new FFmpegCommand.
