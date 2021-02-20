@@ -1,4 +1,4 @@
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { spawn as spawnChildProcess } from 'child_process';
 import { InputSource, ProbeOptions, ProbeResult, RawProbeResult } from './types';
 import { IGNORED_ERRORS, read, toReadableStream } from './utils';
 import { Demuxer, Format } from './_types';
@@ -25,23 +25,27 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     args: argsOption = [],
     spawnOptions = {},
   } = options;
+  if (probeSize !== void 0 && (!Number.isInteger(probeSize) || probeSize < 32))
+    throw new TypeError(`Cannot probe ${probeSize} bytes, probeSize must be an integer >= 32`);
+  if (analyzeDuration !== void 0 && !Number.isFinite(analyzeDuration))
+    throw new TypeError(`Cannot probe an indefinite duration (${analyzeDuration})`);
   const args = [
-    ...(probeSize !== void 0 ? ['-probesize', probeSize.toString()] : []),
-    ...(analyzeDuration !== void 0 ? ['-analyzeduration', (analyzeDuration * 1000).toString()] : []),
+    ...(probeSize !== void 0 ? ['-probesize', '' +  probeSize] : []),
+    ...(analyzeDuration !== void 0 ? ['-analyzeduration', '' + (analyzeDuration * 1000)] : []),
     '-of', 'json=c=1',
     '-show_format',
     '-show_streams',
     '-show_chapters',
     '-show_error',
     ...argsOption,
-    ...(format !== void 0 ? ['-f', format] : []),
+    ...(format !== void 0 ? ['-f', '' + format] : []),
     '-i',
     typeof source === 'string' ? source : 'pipe:0'
   ];
-  const ffprobe = spawn(ffprobePath, args, {
+  const ffprobe = spawnChildProcess(ffprobePath, args, {
     stdio: 'pipe',
     ...spawnOptions,
-  }) as ChildProcessWithoutNullStreams;
+  });
 
   let err: Error | undefined;
   let exited = false;

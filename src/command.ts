@@ -1,9 +1,8 @@
 import { SpawnOptionsWithoutStdio, spawn as spawnChildProcess } from 'child_process';
 import { createInterface as readlines } from 'readline';
 import { pipeline, Readable } from 'stream';
-import { types } from 'util';
 import { createSocketServer, getSocketPath, getSocketURL } from './sock';
-import { DEV_NULL, flatMap, isNullish, isWritableStream, read, toReadableStream } from './utils';
+import { DEV_NULL, flatMap, isInputSource, isNullish, isWritableStream, read, toReadableStream } from './utils';
 import { probe } from './probe';
 import { Process } from './process';
 import {
@@ -87,9 +86,8 @@ class Command implements FFmpegCommand {
       directives.push(`file ${escapeConcatFile(url)}`);
     };
     for (const source of sources) {
-      // @ts-ignore
-      if (typeof source === 'string' || types.isUint8Array(source) || typeof source[Symbol.asyncIterator] === 'function') {
-        addFile(source as InputSource);
+      if (isInputSource(source)) {
+        addFile(source);
       } else {
         const { file, duration, inpoint, outpoint } = source as Exclude<ConcatSource, InputSource>;
         if (file !== void 0)

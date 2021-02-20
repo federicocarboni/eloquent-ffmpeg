@@ -29,7 +29,7 @@ export enum LogLevel {
   Trace = 'trace',
 }
 /** @public */
-export type InputSource = string | Uint8Array | AsyncIterable<Uint8Array>;
+export type InputSource = string | Uint8Array | Iterable<Uint8Array> | AsyncIterable<Uint8Array>;
 /** @public */
 export type OutputDestination = string | NodeJS.WritableStream;
 /** @public */

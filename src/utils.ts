@@ -1,6 +1,7 @@
 import { ChildProcess } from 'child_process';
 import { Readable } from 'stream';
 import { types } from 'util';
+import { InputSource } from './types';
 
 export const isWin32 = process.platform === 'win32';
 
@@ -18,15 +19,31 @@ export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
 export const isWritableStream = (o: any): o is NodeJS.WritableStream =>
   isObject(o) && o.writable && typeof o.write === 'function';
 
+export const isInputSource = (o: any): o is InputSource => !isNullish(o) && (
+  typeof o === 'string' || isReadableStream(o) || types.isUint8Array(o) ||
+  typeof o[Symbol.iterator] === 'function' || typeof o[Symbol.asyncIterator] === 'function'
+);
+
+// ReadableStream.read() has a hard limit of 1GiB
+// https://nodejs.org/api/stream.html#stream_readable_read_size
+const NODEJS_READ_LIMIT = 1073741824;
+
 export const read = (readable: NodeJS.ReadableStream, size = 0): Promise<Buffer> =>
   new Promise((resolve, reject) => {
+    if (!Number.isInteger(size) || size > NODEJS_READ_LIMIT)
+      throw new RangeError(`Cannot read ${size} bytes from readable stream`);
+    if (!readable.readable)
+      throw new TypeError(`Cannot read stream, the stream is not readable`);
     let onReadable: () => void;
     let chunks: Uint8Array[] | undefined;
+    let length: number | undefined;
     if (size === 0) {
+      length = 0;
       chunks = [];
       onReadable = () => {
         let chunk: Buffer;
         while ((chunk = readable.read() as Buffer) !== null) {
+          length! += chunk.length;
           chunks!.push(chunk);
         }
       };
@@ -46,7 +63,7 @@ export const read = (readable: NodeJS.ReadableStream, size = 0): Promise<Buffer>
     };
     const onEnd = () => {
       unlisten();
-      resolve(Buffer.concat(chunks!));
+      resolve(Buffer.concat(chunks!, length!));
     };
     const onError = (err: Error) => {
       unlisten();
@@ -70,7 +87,7 @@ export const write = (writable: NodeJS.WritableStream, chunk: Uint8Array): Promi
     });
   });
 
-export const toReadableStream = (source: Uint8Array | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
+export const toReadableStream = (source: Uint8Array | Iterable<Uint8Array> | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
   isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
@@ -96,7 +113,7 @@ if (isWin32) {
     // https://github.com/FedericoCarboni/node-ntsuspend
     try {
       // Dynamically require `ntsuspend`, this will be replaced at built time
-      // to support both commonjs, es modules and module bundlers.
+      // to support commonjs, es modules and module bundlers.
       // TODO: replace this with a `await import()` when top-level `await` gets
       // better support
       const ntsuspend: typeof import('ntsuspend') = require('ntsuspend');
