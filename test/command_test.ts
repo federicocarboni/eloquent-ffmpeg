@@ -30,7 +30,6 @@ describe('command', function () {
       cmd.input('test/samples/invalid');
       cmd.output();
       expect(cmd.getArgs()).not.toContain('-progress');
-      expect(cmd.getArgs()).not.toContain('-nostats');
     });
   });
   describe('FFmpegCommand', function () {
