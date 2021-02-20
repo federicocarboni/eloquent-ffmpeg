@@ -60,7 +60,7 @@ class Command implements FFmpegCommand {
     const { level, progress = true, overwrite = true } = options;
     this.args(overwrite ? '-y' : '-n');
     if (progress)
-      this.args('-progress', 'pipe:1', '-nostats');
+      this.args('-progress', 'pipe:1');
     this.args('-loglevel', `+repeat+level${level ? `+${level}` : ''}`);
   }
   #args: string[] = [];

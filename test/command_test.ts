@@ -24,7 +24,6 @@ describe('command', function () {
       cmd.input('test/samples/invalid');
       cmd.output();
       expect(cmd.getArgs()).toContain('-progress');
-      expect(cmd.getArgs()).toContain('-nostats');
     });
     it('should set progress to false', function () {
       const cmd = ffmpeg({ progress: false });
