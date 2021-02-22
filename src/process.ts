@@ -10,12 +10,12 @@ import { pause, resume, write } from './utils';
  * @public
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
-  const { ffmpegPath = 'ffmpeg', spawnOptions = {} } = options;
-  const ffmpeg = spawnChildProcess(ffmpegPath, args, {
+  const { ffmpegPath = 'ffmpeg', spawnOptions } = options;
+  const cp = spawnChildProcess(ffmpegPath, args, {
     stdio: 'pipe',
     ...spawnOptions,
   });
-  return new Process(ffmpeg, args, ffmpegPath);
+  return new Process(cp, ffmpegPath, args);
 }
 
 const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
@@ -24,8 +24,8 @@ const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_fra
 export class Process implements FFmpegProcess {
   constructor(
     ffmpeg: ChildProcessWithoutNullStreams,
-    public readonly args: readonly string[],
-    public readonly ffmpegPath: string
+    public readonly ffmpegPath: string,
+    public readonly args: readonly string[]
   ) {
     this.#ffmpeg = ffmpeg;
     const onExit = () => {

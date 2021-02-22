@@ -28,7 +28,6 @@ import {
   stringifyObjectColonSeparated,
   stringifyValue
 } from './string';
-import { Server } from 'net';
 
 /**
  * Create a new FFmpegCommand.
@@ -43,7 +42,7 @@ export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
 const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
 // Turn an ffmpeg log level into its numeric representation.
-const logLevelToN = Object.assign(Object.create(null), {
+const logLevelToN = Object.assign(Object.create(null) as {}, {
   quiet: -8,
   panic: 0,
   fatal: 8,
@@ -177,13 +176,60 @@ class Command implements FFmpegCommand {
     return output;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
-    const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger } = options;
+    const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger = false } = options;
     const args = this.getArgs();
 
     // Starts all socket servers needed to handle the streams.
-    const [inputSocketServers, outputSocketServers] = await Promise.all([
-      handleInputStreams(this.#inputStreams),
-      handleOutputStreams(this.#outputStreams),
+    const ioSocketServers = await Promise.all([
+      ...this.#inputStreams.map(async ([path, stream]) => {
+        const server = await createSocketServer(path);
+        server.once('connection', (socket) => {
+          pipeline(stream, socket, () => {
+            // Close the socket connection if still writable, this reduces the risk
+            // of ffmpeg waiting for further chunks that will never be emitted by
+            // an errored stream.
+            if (socket.writable) socket.end();
+          });
+
+          // Do NOT accept further connections, close() will close the server after
+          // all existing connections are ended.
+          server.close();
+        });
+        return server;
+      }),
+      ...this.#outputStreams.map(async ([path, streams]) => {
+        const server = await createSocketServer(path);
+        server.once('connection', (socket) => {
+          const unlisten = () => {
+            socket.off('error', onError);
+            socket.off('data', onData);
+            socket.off('end', onEnd);
+          };
+          // TODO: improve error handling
+          const onError = () => {
+            if (socket.writable) socket.end();
+            unlisten();
+          };
+          // TODO: errors in output streams will fall through, so we just rely
+          // on the user to add an error listener to their output streams.
+          // Could this be different from the behavior one might expect?
+          const onData = (data: Uint8Array) => {
+            for (const stream of streams) stream.write(data);
+          };
+          const onEnd = () => {
+            for (const stream of streams) stream.end();
+            unlisten();
+          };
+          socket.on('error', onError);
+          socket.on('data', onData);
+          socket.on('end', onEnd);
+
+          // Do NOT accept further connections, close() will close the server after
+          // all existing connections are ended.
+          server.close();
+        });
+        return server;
+      }),
     ]);
 
     const cpSpawnOptions: SpawnOptionsWithoutStdio = {
@@ -214,7 +260,7 @@ class Command implements FFmpegCommand {
       cp.off('error', onExit);
       // Close all socket servers, this is necessary for proper cleanup after
       // failed conversions, or otherwise errored ffmpeg processes.
-      for (const server of [...inputSocketServers, ...outputSocketServers]) {
+      for (const server of ioSocketServers) {
         if (server.listening) server.close();
       }
     };
@@ -233,7 +279,7 @@ class Command implements FFmpegCommand {
       stderr.on('line', onLine);
     }
 
-    return new Process(cp, args, ffmpegPath);
+    return new Process(cp, ffmpegPath, args);
   }
   args(...args: string[]): this {
     this.#args.push(...args);
@@ -385,71 +431,4 @@ function handleInputSource(source: InputSource, streams: [string, NodeJS.Readabl
     streams.push([path, stream]);
     return [getSocketURL(path), true, stream];
   }
-}
-
-async function handleOutputStreams(outputStreams: [string, NodeJS.WritableStream[]][]) {
-  const servers = await Promise.all(outputStreams.map(([path]) => createSocketServer(path)));
-  for (const [i, [, streams]] of outputStreams.entries()) {
-    handleOutputStream(servers[i], streams);
-  }
-  return servers;
-}
-
-async function handleInputStreams(inputStreams: [string, NodeJS.ReadableStream][]) {
-  const servers = await Promise.all(inputStreams.map(([path]) => createSocketServer(path)));
-  for (const [i, [, stream]] of inputStreams.entries()) {
-    handleInputStream(servers[i], stream);
-  }
-  return servers;
-}
-
-function handleInputStream(server: Server, stream: NodeJS.ReadableStream) {
-  server.once('connection', (socket) => {
-    pipeline(stream, socket, () => {
-      // TODO: errors are ignored, this is potentially inconsistent with
-      // the current behavior of output streams, where any error will be
-      // either caught by the user or terminate the Node.js process with
-      // an uncaught exception message.
-      // Close the socket connection on error, this reduces the risk of
-      // ffmpeg waiting for further chunks that will never be emitted
-      // by an errored stream.
-      if (socket.writable) socket.end();
-    });
-
-    // Do NOT accept further connections, close() will close the server after
-    // all existing connections are ended.
-    server.close();
-  });
-}
-
-function handleOutputStream(server: Server, streams: NodeJS.WritableStream[]) {
-  server.once('connection', (socket) => {
-    const unlisten = () => {
-      socket.off('error', onError);
-      socket.off('data', onData);
-      socket.off('end', onEnd);
-    };
-    // TODO: improve error handling
-    const onError = () => {
-      if (socket.writable) socket.end();
-      unlisten();
-    };
-    // TODO: errors in output streams will fall through, so we just rely
-    // on the user to add an error listener to their output streams.
-    // Could this be different from the behavior one might expect?
-    const onData = (data: Uint8Array) => {
-      for (const stream of streams) stream.write(data);
-    };
-    const onEnd = () => {
-      for (const stream of streams) stream.end();
-      unlisten();
-    };
-    socket.on('error', onError);
-    socket.on('data', onData);
-    socket.on('end', onEnd);
-
-    // Do NOT accept further connections, close() will close the server after
-    // all existing connections are ended.
-    server.close();
-  });
 }
