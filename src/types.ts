@@ -777,5 +777,5 @@ export interface ProbeOptions {
    * });
    * ```
    */
-  spawnOptions?: SpawnOptions;
+  spawnOptions?: SpawnOptionsWithoutStdio;
 }

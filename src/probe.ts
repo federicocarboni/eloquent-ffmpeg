@@ -1,9 +1,13 @@
-import { spawn as spawnChildProcess } from 'child_process';
-import { InputSource, ProbeOptions, ProbeResult, RawProbeResult } from './types';
-import { IGNORED_ERRORS, read, toReadableStream } from './utils';
-import { Demuxer, Format } from './_types';
-import { pipeline } from 'stream';
-import { types } from 'util';
+import type { InputSource, ProbeOptions, ProbeResult, RawProbeResult } from './types';
+import type { Demuxer, Format } from './_types';
+
+import * as childProcess from 'child_process';
+import * as stream from 'stream';
+import { promisify } from 'util';
+
+import { IGNORED_ERRORS, exited, read, toReadableStream } from './utils';
+
+const pipeline = promisify(stream.pipeline);
 
 /**
  * Probes the given `source` using ffprobe.
@@ -22,69 +26,49 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
     analyzeDuration,
     ffprobePath = 'ffprobe',
     format,
-    args: argsOption = [],
-    spawnOptions = {},
+    args: extraArgs = [],
+    spawnOptions
   } = options;
+
   if (probeSize !== void 0 && (!Number.isInteger(probeSize) || probeSize < 32))
     throw new TypeError(`Cannot probe ${probeSize} bytes, probeSize must be an integer >= 32`);
   if (analyzeDuration !== void 0 && !Number.isFinite(analyzeDuration))
     throw new TypeError(`Cannot probe an indefinite duration (${analyzeDuration})`);
+
   const args = [
-    ...(probeSize !== void 0 ? ['-probesize', '' +  probeSize] : []),
+    ...(probeSize !== void 0 ? ['-probesize', '' + probeSize] : []),
     ...(analyzeDuration !== void 0 ? ['-analyzeduration', '' + (analyzeDuration * 1000)] : []),
     '-of', 'json=c=1',
     '-show_format',
     '-show_streams',
     '-show_chapters',
     '-show_error',
-    ...argsOption,
+    ...extraArgs,
     ...(format !== void 0 ? ['-f', '' + format] : []),
     '-i',
     typeof source === 'string' ? source : 'pipe:0'
   ];
-  const ffprobe = spawnChildProcess(ffprobePath, args, {
+  const ffprobe = childProcess.spawn(ffprobePath, args, {
     stdio: 'pipe',
     ...spawnOptions,
   });
 
-  let err: Error | undefined;
-  let exited = false;
+  // Await output from stdout, for the process to exit and for source to have
+  // been piped to stdin if not a string.
+  const [stdout] = await Promise.all([
+    read(ffprobe.stdout),
+    exited(ffprobe),
+    typeof source !== 'string' && pipeline(toReadableStream(source), ffprobe.stdin).catch((err) => {
+      if (!IGNORED_ERRORS.has(err.code))
+        throw err;
+    }) as any,  // ¯\_(ツ)_/¯ TypeScript doesn't like `Promise<void> | false` in `Promise.all`
+  ]);
 
-  const onExit = (error?: NodeJS.ErrnoException) => {
-    exited = true;
-    if (!err && error && !IGNORED_ERRORS.has(error.code!))
-      err = error;
-  };
-  ffprobe.on('exit', onExit);
-  ffprobe.on('error', onExit);
+  const raw: RawProbeResult = JSON.parse(stdout.toString('utf8'));
+  if (raw.error)
+    throw Object.assign(new Error(raw.error.string), { ffprobePath, args });
 
-  try {
-    let err: Error | undefined;
-    if (types.isUint8Array(source)) {
-      ffprobe.stdin.on('error', (error: NodeJS.ErrnoException) => {
-        if (!err && !IGNORED_ERRORS.has(error.code!))
-          err = error;
-      });
-      ffprobe.stdin.end(source);
-    } else if (typeof source !== 'string') {
-      pipeline(toReadableStream(source), ffprobe.stdin, (error) => {
-        if (!err && error) err = error;
-      });
-    }
-    const stdout = await read(ffprobe.stdout);
-    const raw: RawProbeResult = JSON.parse(stdout.toString('utf8'));
-    // When ffprobe defines an error property something went wrong.
-    if (raw.error)
-      throw Object.assign(new Error(raw.error.string), { ffprobePath, args });
-    return new Result(raw);
-  } finally {
-    if (!exited) ffprobe.kill();
-    // Forward the error Node.js stdio streams or the child process itself.
-    if (err) {
-      Error.captureStackTrace?.(err);
-      throw err;
-    }
-  }
+  return new Result(raw);
 }
 
 class Result implements ProbeResult {

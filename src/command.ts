@@ -1,11 +1,4 @@
-import { SpawnOptionsWithoutStdio, spawn as spawnChildProcess } from 'child_process';
-import { createInterface as readlines } from 'readline';
-import { pipeline, Readable } from 'stream';
-import { createSocketServer, getSocketPath, getSocketURL } from './sock';
-import { DEV_NULL, flatMap, isInputSource, isNullish, isWritableStream, read, toReadableStream } from './utils';
-import { probe } from './probe';
-import { Process } from './process';
-import {
+import type {
   ConcatOptions,
   ConcatSource,
   FFmpegCommand,
@@ -20,6 +13,21 @@ import {
   ProbeResult,
   SpawnOptions
 } from './types';
+import type { SpawnOptionsWithoutStdio } from 'child_process';
+
+import * as childProcess from 'child_process';
+import * as readline from 'readline';
+import { Readable, pipeline } from 'stream';
+
+import {
+  DEV_NULL,
+  flatMap,
+  isInputSource,
+  isNullish,
+  isWritableStream,
+  read,
+  toReadableStream
+} from './utils';
 import {
   escapeConcatFile,
   escapeFilterDescription,
@@ -28,6 +36,9 @@ import {
   stringifyObjectColonSeparated,
   stringifyValue
 } from './string';
+import { startSocketServer, getSocketPath, getSocketURL } from './sock';
+import { Process } from './process';
+import { probe } from './probe';
 
 /**
  * Create a new FFmpegCommand.
@@ -88,7 +99,7 @@ class Command implements FFmpegCommand {
       if (isInputSource(source)) {
         addFile(source);
       } else {
-        const { file, duration, inpoint, outpoint } = source as Exclude<ConcatSource, InputSource>;
+        const { file, duration, inpoint, outpoint } = source;
         if (file !== void 0)
           addFile(file);
         if (duration !== void 0)
@@ -182,7 +193,7 @@ class Command implements FFmpegCommand {
     // Starts all socket servers needed to handle the streams.
     const ioSocketServers = await Promise.all([
       ...this.#inputStreams.map(async ([path, stream]) => {
-        const server = await createSocketServer(path);
+        const server = await startSocketServer(path);
         server.once('connection', (socket) => {
           pipeline(stream, socket, () => {
             // Close the socket connection if still writable, this reduces the risk
@@ -198,31 +209,21 @@ class Command implements FFmpegCommand {
         return server;
       }),
       ...this.#outputStreams.map(async ([path, streams]) => {
-        const server = await createSocketServer(path);
+        const server = await startSocketServer(path);
         server.once('connection', (socket) => {
-          const unlisten = () => {
-            socket.off('error', onError);
-            socket.off('data', onData);
-            socket.off('end', onEnd);
-          };
-          // TODO: improve error handling
-          const onError = () => {
+          socket.on('error', () => {
+            // TODO: improve error handling
             if (socket.writable) socket.end();
-            unlisten();
-          };
-          // TODO: errors in output streams will fall through, so we just rely
-          // on the user to add an error listener to their output streams.
-          // Could this be different from the behavior one might expect?
-          const onData = (data: Uint8Array) => {
+          });
+          socket.on('data', (data) => {
+            // TODO: errors in output streams will fall through, so we just rely
+            // on the user to add an error listener to their output streams.
+            // Could this be different from the behavior one might expect?
             for (const stream of streams) stream.write(data);
-          };
-          const onEnd = () => {
+          });
+          socket.on('end', () => {
             for (const stream of streams) stream.end();
-            unlisten();
-          };
-          socket.on('error', onError);
-          socket.on('data', onData);
-          socket.on('end', onEnd);
+          });
 
           // Do NOT accept further connections, close() will close the server after
           // all existing connections are ended.
@@ -253,7 +254,7 @@ class Command implements FFmpegCommand {
       };
     }
 
-    const cp = spawnChildProcess(ffmpegPath, args, cpSpawnOptions);
+    const cp = childProcess.spawn(ffmpegPath, args, cpSpawnOptions);
 
     const onExit = () => {
       cp.off('exit', onExit);
@@ -268,7 +269,7 @@ class Command implements FFmpegCommand {
     cp.on('error', onExit);
 
     if (logger) {
-      const stderr = readlines(cp.stderr);
+      const stderr = readline.createInterface(cp.stderr);
       const onLine = (line: string) => {
         const match = line.match(LEVEL_REGEX);
         if (match !== null) {

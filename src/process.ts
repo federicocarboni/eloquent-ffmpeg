@@ -1,7 +1,10 @@
-import { ChildProcessWithoutNullStreams, spawn as spawnChildProcess } from 'child_process';
-import { createInterface as readlines } from 'readline';
-import { FFmpegProcess, Progress, SpawnOptions } from './types';
-import { pause, resume, write } from './utils';
+import type { ChildProcess, ChildProcessWithoutNullStreams } from 'child_process';
+import type { FFmpegProcess, Progress, SpawnOptions } from './types';
+
+import * as childProcess from 'child_process';
+import * as readline from 'readline';
+
+import { exited, pause, resume, write } from './utils';
 
 /**
  * Start an FFmpeg process with the given arguments.
@@ -11,13 +14,14 @@ import { pause, resume, write } from './utils';
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
   const { ffmpegPath = 'ffmpeg', spawnOptions } = options;
-  const cp = spawnChildProcess(ffmpegPath, args, {
+  const cp = childProcess.spawn(ffmpegPath, args, {
     stdio: 'pipe',
     ...spawnOptions,
   });
   return new Process(cp, ffmpegPath, args);
 }
 
+//
 const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
 
 /** @internal */
@@ -51,7 +55,7 @@ export class Process implements FFmpegProcess {
     let framesDuped: number | undefined;
     let framesDropped: number | undefined;
     let speed: number | undefined;
-    for await (const line of readlines(stdout)) {
+    for await (const line of readline.createInterface(stdout)) {
       const match = line.match(PROGRESS_LINE_REGEXP);
       if (match === null)
         continue;
@@ -114,44 +118,20 @@ export class Process implements FFmpegProcess {
     return resume(this.#ffmpeg);
   }
   async complete() {
-    return await new Promise<void>((resolve, reject) => {
-      const ffmpeg = this.#ffmpeg;
-      const complete = () => {
-        if (ffmpeg.exitCode === 0) {
-          resolve();
-        } else {
-          const message = ffmpeg.exitCode === null
-            ? 'FFmpeg exited prematurely, was it killed?'
-            : `FFmpeg exited with code ${ffmpeg.exitCode}`;
-          reject(Object.assign(new Error(message), {
-            ffmpegPath: this.ffmpegPath,
-            args: this.args
-          }));
-        }
-      };
-      if (this.#exited) {
-        complete();
-      } else {
-        const unlisten = () => {
-          ffmpeg.off('exit', onExit);
-          ffmpeg.off('error', onError);
-        };
-        const onError = (error: Error) => {
-          unlisten();
-          // Forward the error from Node.js child process.
-          Error.captureStackTrace?.(error);
-          reject(error);
-        };
-        const onExit = () => {
-          unlisten();
-          complete();
-        };
-        ffmpeg.on('exit', onExit);
-        ffmpeg.on('error', onError);
-      }
-    });
+    const ffmpeg = this.#ffmpeg;
+    if (!this.#exited)
+      await exited(ffmpeg);
+    if (ffmpeg.exitCode !== 0) {
+      const message = ffmpeg.exitCode === null
+        ? 'FFmpeg exited prematurely, was it killed?'
+        : `FFmpeg exited with code ${ffmpeg.exitCode}`;
+      throw Object.assign(new Error(message), {
+        ffmpegPath: this.ffmpegPath,
+        args: this.args
+      });
+    }
   }
-  unwrap() {
+  unwrap(): ChildProcess {
     return this.#ffmpeg;
   }
   get pid() {

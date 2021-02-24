@@ -1,7 +1,8 @@
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
+import type { InputSource } from './types';
+
 import { Readable } from 'stream';
 import { types } from 'util';
-import { InputSource } from './types';
 
 export const isWin32 = process.platform === 'win32';
 
@@ -87,7 +88,25 @@ export const write = (writable: NodeJS.WritableStream, chunk: Uint8Array): Promi
     });
   });
 
-export const toReadableStream = (source: Uint8Array | Iterable<Uint8Array> | AsyncIterable<Uint8Array>): NodeJS.ReadableStream =>
+export const exited = (p: ChildProcess) => new Promise<void>((resolve, reject) => {
+  const onExit = () => {
+    unlisten();
+    resolve();
+  };
+  const onError = (error: Error) => {
+    unlisten();
+    Error.captureStackTrace?.(error);
+    reject(error);
+  };
+  const unlisten = () => {
+    p.off('exit', onExit);
+    p.off('error', onError);
+  };
+  p.on('exit', onExit);
+  p.on('error', onError);
+});
+
+export const toReadableStream = (source: Exclude<InputSource, string>): NodeJS.ReadableStream =>
   isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
 
 // Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
@@ -102,7 +121,6 @@ export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, arr
 export let pause: (p: ChildProcess) => boolean;
 export let resume: (p: ChildProcess) => boolean;
 
-/* istanbul ignore next */
 if (isWin32) {
   (() => {
     // On Windows `SIGSTOP` and `SIGCONT` cannot be used to pause and resume
