@@ -17,7 +17,7 @@ import type { SpawnOptionsWithoutStdio } from 'child_process';
 
 import * as childProcess from 'child_process';
 import * as readline from 'readline';
-import { Readable, pipeline } from 'stream';
+import { pipeline } from 'stream';
 
 import {
   DEV_NULL,
@@ -85,8 +85,9 @@ class Command implements FFmpegCommand {
     return input;
   }
   concat(sources: ConcatSource[], options: ConcatOptions = {}): FFmpegInput {
-    const { safe = false, protocols, useDataURI = true } = options;
+    const { safe = false, protocols, useDataURI = false } = options;
     const inputStreams = this.#inputStreams;
+
     // Dynamically create an ffconcat file with the given directives.
     // https://ffmpeg.org/ffmpeg-all.html#concat-1
     const directives = ['ffconcat version 1.0'];
@@ -113,23 +114,12 @@ class Command implements FFmpegCommand {
     // Create the ffconcat script as a buffer.
     const ffconcat = Buffer.from(directives.join('\n'), 'utf8');
 
-    let url: string;
-    let isStream: boolean;
-    let stream: NodeJS.ReadableStream | undefined;
+    const source = useDataURI
+      // FFmpeg only supports base64-encoded data urls.
+      ? `data:text/plain;base64,${ffconcat.toString('base64')}`
+      : ffconcat;
 
-    if (useDataURI) {
-      // FFmpeg only accepts base64-encoded data urls.
-      url = `data:text/plain;base64,${ffconcat.toString('base64')}`;
-      isStream = false;
-    } else {
-      const path = getSocketPath();
-      url = getSocketURL(path);
-      isStream = true;
-      stream = Readable.from([ffconcat], { objectMode: false });
-      inputStreams.push([path, stream]);
-    }
-
-    const input = new Input(url, isStream, stream);
+    const input = this.input(source);
 
     // Add extra arguments to the input based on the given options
     // the option safe is NOT enabled by default because it doesn't
@@ -142,7 +132,6 @@ class Command implements FFmpegCommand {
     if (protocols && protocols.length > 0)
       input.args('-protocol_whitelist', protocols.join(','));
 
-    this.#inputs.push(input);
     return input;
   }
   output(...destinations: OutputDestination[]): FFmpegOutput {
@@ -337,6 +326,7 @@ class Input implements FFmpegInput {
     const { probeSize } = options;
     if (probeSize !== void 0 && (!Number.isInteger(probeSize) || probeSize < 32))
       throw new TypeError(`Cannot probe ${probeSize} bytes, probeSize must be an integer >= 32`);
+
     let source: Uint8Array | string;
     if (this.isStream) {
       const stream = this.#stream!;
@@ -345,6 +335,7 @@ class Input implements FFmpegInput {
     } else {
       source = this.#url;
     }
+
     return await probe(source, options);
   }
   getArgs(): string[] {
@@ -369,15 +360,15 @@ class Output implements FFmpegOutput {
   #videoFilters: string[] = [];
   #audioFilters: string[] = [];
 
-  videoFilter(filter: string, options: Record<string, any> | any[] | undefined = (void 0)) {
+  videoFilter(filter: string, options: Record<string, unknown> | unknown[] | undefined = void 0) {
     this.#videoFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
-  audioFilter(filter: string, options: Record<string, any> | any[] | undefined = (void 0)) {
+  audioFilter(filter: string, options: Record<string, unknown> | unknown[] | undefined = void 0) {
     this.#audioFilters.push(stringifyFilterDescription(filter, options));
     return this;
   }
-  metadata(metadata: Record<string, string | undefined | null>, stream: string | undefined = (void 0)): this {
+  metadata(metadata: Record<string, unknown>, stream: string | undefined = void 0): this {
     return this.args(...flatMap(Object.entries(metadata), ([key, value]) => [
       `-metadata${stream ? `:${stream}` : ''}`,
       `${key}=${value === '' || isNullish(value) ? '' : stringifyValue(value)}`,

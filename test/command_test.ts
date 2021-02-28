@@ -62,36 +62,36 @@ describe('command', function () {
       it('should add strings as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv']);
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
       });
       it('should add streams as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat([new PassThrough(), new PassThrough()]);
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
       });
       it('should add multiple mixed sources as files', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', new PassThrough()]);
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
       });
-      it('should use streams when useDataURI is false', function () {
+      it('should use a data uri when useDataURI is true', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv', 'file:test/samples/video.mkv'], {
-          useDataURI: false,
+          useDataURI: true,
         });
-        expect(input.isStream).toBe(true);
+        expect(input.isStream).toBe(false);
       });
       it('should set safe to 0 by default', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv']);
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
         expect(args[args.indexOf('-safe') + 1]).toBe('0');
       });
       it('should set safe to 1', function () {
         const cmd = ffmpeg();
         const input = cmd.concat(['file:test/samples/video.mkv'], { safe: true });
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
         expect(args[args.indexOf('-safe') + 1]).toBe('1');
       });
@@ -100,7 +100,7 @@ describe('command', function () {
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: ['unix', 'file'],
         });
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
         expect(args[args.indexOf('-protocol_whitelist') + 1]).toBe('unix,file');
       });
@@ -109,7 +109,7 @@ describe('command', function () {
         const input = cmd.concat(['file:test/samples/video.mkv'], {
           protocols: [],
         });
-        expect(input.isStream).toBe(false);
+        expect(input.isStream).toBe(true);
         const args = input.getArgs();
         expect(args.includes('-protocol_whitelist')).toBe(false);
       });
