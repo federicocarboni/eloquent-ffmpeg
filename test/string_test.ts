@@ -35,15 +35,21 @@ describe('string', function () {
   });
   describe('stringifyFilterDescription()', function () {
     it('should stringify options array', function () {
-      expect(stringifyFilterDescription('my_filter', ['opt1', 'opt2'])).toBe('my_filter=opt1:opt2');
-      expect(stringifyFilterDescription('my_filter', [`chars ' which \\ can : cause problems`]))
-        .toBe(`my_filter=chars \\' which \\\\ can \\: cause problems`);
+      expect(stringifyFilterDescription('my_filter', ['opt1', 'opt2', null, void 0]))
+        .toBe('my_filter=opt1:opt2');
+      expect(stringifyFilterDescription('my_filter', [
+        `chars ' which \\ can : cause problems`,
+        null,
+        void 0
+      ])).toBe(`my_filter=chars \\\\\\' which \\\\\\\\ can \\\\: cause problems`);
     });
     it('should stringify options object', function () {
       expect(stringifyFilterDescription('my_filter', { a: '1', b: '2' })).toBe('my_filter=a=1:b=2');
       expect(stringifyFilterDescription('my_filter', {
         a: `chars ' which \\ can : cause problems`,
-      })).toBe(`my_filter=a=chars \\' which \\\\ can \\: cause problems`);
+        b: void 0,
+        c: null,
+      })).toBe(`my_filter=a=chars \\\\\\' which \\\\\\\\ can \\\\: cause problems`);
     });
     it('should stringify non-string values', function () {
       expect(stringifyFilterDescription('my_filter', [1, 2])).toBe('my_filter=1:2');

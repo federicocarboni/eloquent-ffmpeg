@@ -20,20 +20,29 @@ import { isNullish } from './utils';
  *
  * @see https://ffmpeg.org/ffmpeg-filters.html#Filtergraph-syntax-1
  */
-export function stringifyFilterDescription(filter: string, options?: Record<string, any> | any[]) {
+export function stringifyFilterDescription(filter: string, options?: Record<string, unknown> | unknown[]) {
   if (isNullish(options))
     return filter;
-  if (Array.isArray(options)) {
-    const values = options.filter((value) => !isNullish(value));
-    if (values.length === 0)
-      return filter;
-    return `${filter}=${values.map((value) => escapeFilterValue(stringifyValue(value))).join(':')}`;
-  } else {
-    const opts = stringifyObjectColonSeparated(options);
-    if (opts === '')
-      return filter;
-    return `${filter}=${opts}`;
-  }
+  const opts = Array.isArray(options)
+    ? stringifyArrayColonSeparated(options)
+    : stringifyObjectColonSeparated(options);
+  if (opts === '')
+    return filter;
+  return `${filter}=${escapeFilterDescription(opts)}`;
+}
+
+/**
+ * Turn an array into a `:`-separated list of values. Nullish values (`null` or `undefined`) are
+ * ignored. Values are escaped using {@link escapeFilterValue}.
+ *
+ * @returns A string containing a list of `:`-separated list of values, may be `''`
+ * (empty string) if the array is empty or if all of its values are nullish.
+ */
+export function stringifyArrayColonSeparated(array: unknown[]) {
+  return array
+    .filter((value) => !isNullish(value))
+    .map((value) => escapeFilterValue(stringifyValue(value)))
+    .join(':');
 }
 
 /**
@@ -42,7 +51,7 @@ export function stringifyFilterDescription(filter: string, options?: Record<stri
  * No checks are applied to keys, they are assumed to be valid in FFmpeg.
  *
  * @returns A string containing a list of `:`-separated list of `key=value` pairs, may be `''`
- * (empty string) if the object is empty or if all of it's values are ignored.
+ * (empty string) if the object is empty or if all of its values are nullish.
  */
 export function stringifyObjectColonSeparated(object: Record<string, unknown>) {
   return Object.entries(object)
@@ -57,7 +66,7 @@ export function stringifyObjectColonSeparated(object: Record<string, unknown>) {
  * valid date format in FFmpeg.
  * @see https://ffmpeg.org/ffmpeg-utils.html#Date
  */
-export function stringifyValue(value: unknown) {
+export function stringifyValue(value: unknown): string {
   return types.isDate(value) ? value.toISOString() : '' + value;
 }
 

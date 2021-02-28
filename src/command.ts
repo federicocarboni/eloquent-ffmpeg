@@ -30,7 +30,6 @@ import {
 } from './utils';
 import {
   escapeConcatFile,
-  escapeFilterDescription,
   escapeTeeComponent,
   stringifyFilterDescription,
   stringifyObjectColonSeparated,
@@ -335,10 +334,13 @@ class Input implements FFmpegInput {
     return this.args('-c:s', codec);
   }
   async probe(options: ProbeOptions = {}): Promise<ProbeResult> {
+    const { probeSize } = options;
+    if (probeSize !== void 0 && (!Number.isInteger(probeSize) || probeSize < 32))
+      throw new TypeError(`Cannot probe ${probeSize} bytes, probeSize must be an integer >= 32`);
     let source: Uint8Array | string;
     if (this.isStream) {
       const stream = this.#stream!;
-      source = await read(stream, options.probeSize ?? 5000000);
+      source = await read(stream, probeSize ?? 5000000);
       stream.unshift(source);
     } else {
       source = this.#url;
@@ -414,10 +416,8 @@ class Output implements FFmpegOutput {
     const audioFilters = this.#audioFilters;
     return [
       ...this.#args,
-      ...(videoFilters.length > 0
-        ? ['-filter:V', videoFilters.map(escapeFilterDescription).join(',')] : []),
-      ...(audioFilters.length > 0
-        ? ['-filter:a', audioFilters.map(escapeFilterDescription).join(',')] : []),
+      ...(videoFilters.length > 0 ? ['-filter:V', videoFilters.join(',')] : []),
+      ...(audioFilters.length > 0 ? ['-filter:a', audioFilters.join(',')] : []),
       this.#url,
     ];
   }

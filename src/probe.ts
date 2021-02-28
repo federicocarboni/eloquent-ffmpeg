@@ -5,8 +5,9 @@ import * as childProcess from 'child_process';
 import * as stream from 'stream';
 import { promisify } from 'util';
 
-import { IGNORED_ERRORS, exited, read, toReadableStream } from './utils';
+import { exited, read, toReadableStream } from './utils';
 
+const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
 const pipeline = promisify(stream.pipeline);
 
 /**

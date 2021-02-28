@@ -1,31 +1,45 @@
+/**
+ * This module includes internal helpers
+ */
+
 import type { ChildProcess } from 'child_process';
 import type { InputSource } from './types';
 
-import { Readable } from 'stream';
+import { finished, Readable } from 'stream';
 import { types } from 'util';
 
 export const isWin32 = process.platform === 'win32';
 
 export const DEV_NULL = isWin32 ? 'NUL' : '/dev/null';
 
-export const IGNORED_ERRORS = new Set(['ECONNRESET', 'EPIPE', 'EOF']);
-
 export const isNullish = (o: unknown): o is undefined | null => o === void 0 || o === null;
 
-const isObject = (o: any) => o !== null && typeof o === 'object';
-
 export const isReadableStream = (o: any): o is NodeJS.ReadableStream =>
-  isObject(o) && o.readable && typeof o.read === 'function';
+  o !== null && typeof o === 'object' && o.readable && typeof o.read === 'function';
 
 export const isWritableStream = (o: any): o is NodeJS.WritableStream =>
-  isObject(o) && o.writable && typeof o.write === 'function';
+  o !== null && typeof o === 'object' && o.writable && typeof o.write === 'function';
 
 export const isInputSource = (o: any): o is InputSource => !isNullish(o) && (
   typeof o === 'string' || isReadableStream(o) || types.isUint8Array(o) ||
   typeof o[Symbol.iterator] === 'function' || typeof o[Symbol.asyncIterator] === 'function'
 );
 
-// ReadableStream.read() has a hard limit of 1GiB
+export const toReadableStream = (source: Exclude<InputSource, string>): NodeJS.ReadableStream =>
+  isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
+
+/**
+ * Acts like `Array.prototype.flatMap()`: Node.js <11 doesn't support it. Uses `flatMap` directly
+ * when available, or `Array.prototype.map` and `Array.prototype.concat`.
+ * @internal
+ */
+// TODO: use `flatMap` directly when Node.js drops support for v10 https://github.com/nodejs/Release
+export const flatMap: <T, U>(arr: T[], cb: (v: T, i: number, arr: T[]) => U | readonly U[]) => U[] =
+  Array.prototype.flatMap
+    ? Function.prototype.call.bind(Array.prototype.flatMap)
+    : (arr, cb) => ([] as any[]).concat(...arr.map(cb));
+
+// ReadableStream.read() is limited to 1GiB reads
 // https://nodejs.org/api/stream.html#stream_readable_read_size
 const NODEJS_READ_LIMIT = 1073741824;
 
@@ -36,18 +50,22 @@ export const read = (readable: NodeJS.ReadableStream, size = 0): Promise<Buffer>
     if (!readable.readable)
       throw new TypeError(`Cannot read stream, the stream is not readable`);
     let onReadable: () => void;
-    let chunks: Uint8Array[] | undefined;
-    let length: number | undefined;
+    let cleanup: (() => void) | undefined;
     if (size === 0) {
-      length = 0;
-      chunks = [];
+      // When size is zero consume the stream.
+      let totalLength = 0;
+      const chunks: Buffer[] = [];
       onReadable = () => {
         let chunk: Buffer;
         while ((chunk = readable.read() as Buffer) !== null) {
-          length! += chunk.length;
-          chunks!.push(chunk);
+          totalLength += chunk.length;
+          chunks.push(chunk);
         }
       };
+      cleanup = finished(readable, () => {
+        unlisten();
+        resolve(Buffer.concat(chunks, totalLength));
+      });
     } else {
       onReadable = () => {
         const chunk = readable.read(size) as Buffer;
@@ -57,22 +75,17 @@ export const read = (readable: NodeJS.ReadableStream, size = 0): Promise<Buffer>
         }
       };
     }
-    const unlisten = () => {
-      readable.off('readable', onReadable);
-      readable.off('end', onEnd);
-      readable.off('error', onError);
-    };
-    const onEnd = () => {
-      unlisten();
-      resolve(Buffer.concat(chunks!, length!));
-    };
     const onError = (err: Error) => {
       unlisten();
       Error.captureStackTrace?.(err);
       reject(err);
     };
+    const unlisten = () => {
+      readable.off('readable', onReadable);
+      readable.off('error', onError);
+      cleanup?.();
+    };
     readable.on('readable', onReadable);
-    readable.on('end', onEnd);
     readable.on('error', onError);
   });
 
@@ -88,7 +101,11 @@ export const write = (writable: NodeJS.WritableStream, chunk: Uint8Array): Promi
     });
   });
 
-export const exited = (p: ChildProcess) => new Promise<void>((resolve, reject) => {
+export const exited = (cp: ChildProcess): Promise<void> => new Promise((resolve, reject) => {
+  const unlisten = () => {
+    cp.off('exit', onExit);
+    cp.off('error', onError);
+  };
   const onExit = () => {
     unlisten();
     resolve();
@@ -98,25 +115,9 @@ export const exited = (p: ChildProcess) => new Promise<void>((resolve, reject) =
     Error.captureStackTrace?.(error);
     reject(error);
   };
-  const unlisten = () => {
-    p.off('exit', onExit);
-    p.off('error', onError);
-  };
-  p.on('exit', onExit);
-  p.on('error', onError);
+  cp.on('exit', onExit);
+  cp.on('error', onError);
 });
-
-export const toReadableStream = (source: Exclude<InputSource, string>): NodeJS.ReadableStream =>
-  isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
-
-// Node.js <11 doesn't support `Array.prototype.flatMap()`, this uses `flatMap`
-// if available or falls back to using `Array.prototype.map` and
-// `Array.prototype.concat`.
-// TODO: use `flatMap` directly when Node.js drops support for v10
-/* istanbul ignore next */ // @ts-ignore
-export const flatMap: <T, U>(array: T[], callback: (value: T, index: number, array: T[]) => U | ReadonlyArray<U>) => U[] = Array.prototype.flatMap
-  ? (array, callback) => array.flatMap(callback)
-  : (array, callback) => ([] as any[]).concat(...array.map(callback));
 
 export let pause: (p: ChildProcess) => boolean;
 export let resume: (p: ChildProcess) => boolean;
