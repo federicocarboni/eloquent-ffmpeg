@@ -21,7 +21,6 @@ export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess
   return new Process(cp, ffmpegPath, args);
 }
 
-//
 const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
 
 /** @internal */
@@ -133,11 +132,5 @@ export class Process implements FFmpegProcess {
   }
   unwrap(): ChildProcess {
     return this.#ffmpeg;
-  }
-  get pid() {
-    return this.#ffmpeg.pid;
-  }
-  kill(signal?: number | NodeJS.Signals) {
-    return this.#ffmpeg.kill(signal);
   }
 }

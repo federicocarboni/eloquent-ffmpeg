@@ -428,14 +428,6 @@ export interface Progress {
 
 /** @public */
 export interface FFmpegProcess {
-  /**
-   * **UNSTABLE:** Deprecated, not for use in new projects.
-   *
-   * @deprecated Use `FFmpegProcess.unwrap().pid` instead.
-   *
-   * Returns the process identifier (PID) of the process.
-   */
-  readonly pid: number;
   /** Command line arguments used to spawn the process. */
   readonly args: readonly string[];
   /** Path of the running ffmpeg executable. */
@@ -489,19 +481,6 @@ export interface FFmpegProcess {
   abort(): Promise<void>;
   /** Returns the underlying NodeJS' ChildProcess instance. */
   unwrap(): ChildProcess;
-  /**
-   * **UNSTABLE**: Deprecated, not for use in new projects.
-   *
-   * Sends a signal to the running process.
-   * See {@link https://nodejs.org/api/child_process.html#child_process_subprocess_kill_signal}
-   *
-   * @deprecated To terminate the conversion use {@link FFmpegProcess.abort}, to pause and resume
-   * the process use {@link FFmpegProcess.pause} or {@link FFmpegProcess.resume}. If you really
-   * have to send a signal to the process use `process.unwrap().kill(signal)`.
-   *
-   * @param signal - The signal to send.
-   */
-  kill(signal?: NodeJS.Signals | number): boolean;
   /** Pauses the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   pause(): boolean;
   /** Resumes the conversion, returns `true` if the operation succeeds or `false` if it fails. */
