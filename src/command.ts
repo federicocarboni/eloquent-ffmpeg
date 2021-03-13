@@ -13,7 +13,6 @@ import type {
   ProbeResult,
   SpawnOptions
 } from './types';
-import type { SpawnOptionsWithoutStdio } from 'child_process';
 
 import * as childProcess from 'child_process';
 import * as readline from 'readline';
@@ -220,8 +219,8 @@ class Command implements FFmpegCommand {
       }),
     ]);
 
-    const cpSpawnOptions: SpawnOptionsWithoutStdio = {
-      stdio: 'pipe',
+    const cpSpawnOptions: childProcess.SpawnOptions = {
+      stdio: ['pipe', 'pipe', logger ? 'pipe' : 'ignore'],
       ...spawnOptions,
     };
 
@@ -256,7 +255,7 @@ class Command implements FFmpegCommand {
     cp.on('error', onExit);
 
     if (logger) {
-      const stderr = readline.createInterface(cp.stderr);
+      const stderr = readline.createInterface(cp.stderr!);
       const onLine = (line: string) => {
         const match = line.match(LEVEL_REGEX);
         if (match !== null) {

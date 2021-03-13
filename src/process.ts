@@ -1,4 +1,4 @@
-import type { ChildProcess, ChildProcessWithoutNullStreams } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import type { FFmpegProcess, Progress, SpawnOptions } from './types';
 
 import * as childProcess from 'child_process';
@@ -26,7 +26,7 @@ const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_fra
 /** @internal */
 export class Process implements FFmpegProcess {
   constructor(
-    ffmpeg: ChildProcessWithoutNullStreams,
+    ffmpeg: ChildProcess,
     public readonly ffmpegPath: string,
     public readonly args: readonly string[]
   ) {
@@ -39,11 +39,11 @@ export class Process implements FFmpegProcess {
     ffmpeg.on('exit', onExit);
     ffmpeg.on('error', onExit);
   }
-  #ffmpeg: ChildProcessWithoutNullStreams;
+  #ffmpeg: ChildProcess;
   #exited = false;
 
   async *progress(): AsyncGenerator<Progress, void, void> {
-    const stdout = this.#ffmpeg.stdout;
+    const stdout = this.#ffmpeg.stdout!;
     if (this.#exited || !stdout.readable)
       throw new TypeError('Cannot parse progress, stdout not readable');
     let frames: number | undefined;
@@ -100,7 +100,7 @@ export class Process implements FFmpegProcess {
     }
   }
   async abort() {
-    const stdin = this.#ffmpeg.stdin;
+    const stdin = this.#ffmpeg.stdin!;
     if (this.#exited || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
     await write(stdin, new Uint8Array([113, 10])); // => writes 'q\n'
