@@ -100,8 +100,7 @@ class Command implements FFmpegCommand {
         addFile(source);
       } else {
         const { file, duration, inpoint, outpoint } = source;
-        if (file !== void 0)
-          addFile(file);
+        addFile(file);
         if (duration !== void 0)
           directives.push(`duration ${duration}ms`);
         if (inpoint !== void 0)
@@ -178,7 +177,7 @@ class Command implements FFmpegCommand {
     const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger = false } = options;
     const args = this.getArgs();
 
-    // Starts all socket servers needed to handle the streams.
+    // Start all socket servers needed to handle the streams.
     const ioSocketServers = await Promise.all([
       ...this.#inputStreams.map(async ([path, stream]) => {
         const server = await startSocketServer(path);
@@ -207,10 +206,10 @@ class Command implements FFmpegCommand {
             // TODO: errors in output streams will fall through, so we just rely
             // on the user to add an error listener to their output streams.
             // Could this be different from the behavior one might expect?
-            for (const stream of streams) stream.write(data);
+            for (const stream of streams) if (stream.writable) stream.write(data);
           });
           socket.on('end', () => {
-            for (const stream of streams) stream.end();
+            for (const stream of streams) if (stream.writable) stream.end();
           });
 
           // Do NOT accept further connections, close() will close the server after

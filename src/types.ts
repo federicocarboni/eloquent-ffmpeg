@@ -35,7 +35,7 @@ export type OutputDestination = string | NodeJS.WritableStream;
 /** @public */
 export type ConcatSource = InputSource
   | {
-    file?: InputSource;
+    file: InputSource;
     duration?: number;
     inpoint?: number;
     outpoint?: number;
