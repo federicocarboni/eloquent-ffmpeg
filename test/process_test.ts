@@ -10,28 +10,6 @@ describe('process', function () {
     });
   });
   describe('FFmpegProcess', function () {
-    describe('get pid()', function () {
-      it('should return the process\' pid', async function () {
-        const cmd = ffmpeg();
-        cmd.input('test/samples/video.mp4');
-        cmd.output()
-          .args('-c', 'copy', '-f', 'matroska');
-        const proc = await cmd.spawn();
-        expect(typeof proc.pid).toBe('number');
-        expect(proc.pid).toBe(proc.unwrap().pid);
-      });
-    });
-    describe('kill()', function () {
-      it('should send a signal to the process', async function () {
-        const cmd = ffmpeg();
-        cmd.input('test/samples/video.mp4');
-        cmd.output()
-          .args('-c', 'copy', '-f', 'matroska');
-        const proc = await cmd.spawn();
-        expect(proc.kill()).toBe(true);
-        expect(proc.unwrap().killed).toBe(true);
-      });
-    });
     describe('pause()', function () {
       (isWin32 ? it : it.skip)('should pause a process (Windows)', async function () {
         const cmd = ffmpeg();
