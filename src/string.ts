@@ -61,27 +61,27 @@ export function stringifyObjectColonSeparated(object: Record<string, unknown>) {
 }
 
 /**
- * Turn an arbitrary JavaScript value `x` to a string, all values but `Date`s are coerced to a
- * string. `Date` objects are converted to an ISO string (`1970-01-01T00:00:00.000Z`) which is a
- * valid date format in FFmpeg.
+ * Turn an arbitrary JavaScript value into a string, all values but `Date`s are coerced to a string.
+ * `Date` objects are converted to an ISO string (e.g. `1970-01-01T00:00:00.000Z`) which is a valid
+ * date format in FFmpeg.
  * @see https://ffmpeg.org/ffmpeg-utils.html#Date
  */
 export function stringifyValue(value: unknown): string {
-  return types.isDate(value) ? value.toISOString() : '' + value;
+  return types.isDate(value) ? value.toISOString() : `${value}`;
 }
 
 export function escapeFilterValue(s: string) {
-  return ('' + s).replace(/[\\':]/g, (c) => `\\${c}`);
+  return `${s}`.replace(/[\\':]/g, (c) => `\\${c}`);
 }
 
 export function escapeFilterDescription(s: string) {
-  return ('' + s).replace(/[\\'[\],;]/g, (c) => `\\${c}`);
+  return `${s}`.replace(/[\\'[\],;]/g, (c) => `\\${c}`);
 }
 
 export function escapeConcatFile(s: string) {
-  return ('' + s).replace(/[\\' ]/g, (c) => `\\${c}`);
+  return `${s}`.replace(/[\\' ]/g, (c) => `\\${c}`);
 }
 
 export function escapeTeeComponent(s: string) {
-  return ('' + s).replace(/[\\' |[\]]/g, (c) => `\\${c}`);
+  return `${s}`.replace(/[\\' |[\]]/g, (c) => `\\${c}`);
 }
