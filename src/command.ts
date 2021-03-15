@@ -273,16 +273,10 @@ class Command implements FFmpegCommand {
     return this;
   }
   getArgs(): string[] {
-    const inputs = this.#inputs;
-    if (inputs.length < 1)
-      throw new TypeError('At least one input file should be specified');
-    const outputs = this.#outputs;
-    if (outputs.length < 1)
-      throw new TypeError('At least one output file should be specified');
     return [
       ...this.#args,
-      ...flatMap(inputs, (input) => input.getArgs()),
-      ...flatMap(outputs, (output) => output.getArgs()),
+      ...flatMap(this.#inputs, (input) => input.getArgs()),
+      ...flatMap(this.#outputs, (output) => output.getArgs()),
     ];
   }
 }
