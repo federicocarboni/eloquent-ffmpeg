@@ -135,7 +135,7 @@ if (isWin32) {
       // to support commonjs, es modules and module bundlers.
       // TODO: replace this with a `await import()` when top-level `await` gets
       // better support
-      const ntsuspend: typeof import('ntsuspend') = require('ntsuspend');
+      const ntsuspend = require('ntsuspend');
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
     } catch {
