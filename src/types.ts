@@ -1,4 +1,4 @@
-import { ChildProcess, SpawnOptionsWithoutStdio } from 'child_process';
+import * as childProcess from 'child_process';
 import {
   AudioCodec,
   AudioDecoder,
@@ -132,6 +132,7 @@ export interface SpawnOptions {
   logger?: FFmpegLogger | false;
   /**
    * Enable dumping full command line args and logs to a specified file.
+   * **Only supported in FFmpegCommand.spawn()**
    * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
    * @defaultValue `false`
    */
@@ -142,7 +143,7 @@ export interface SpawnOptions {
    * Add custom options that will be used to spawn the process.
    * {@link https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_child_process_spawn_command_args_options}
    */
-  spawnOptions?: SpawnOptionsWithoutStdio;
+  spawnOptions?: childProcess.SpawnOptions;
 }
 
 /** @public */
@@ -480,7 +481,7 @@ export interface FFmpegProcess {
    */
   abort(): Promise<void>;
   /** Returns the underlying NodeJS' ChildProcess instance. */
-  unwrap(): ChildProcess;
+  unwrap(): childProcess.ChildProcess;
   /** Pauses the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   pause(): boolean;
   /** Resumes the conversion, returns `true` if the operation succeeds or `false` if it fails. */
@@ -756,5 +757,5 @@ export interface ProbeOptions {
    * });
    * ```
    */
-  spawnOptions?: SpawnOptionsWithoutStdio;
+  spawnOptions?: childProcess.SpawnOptions;
 }

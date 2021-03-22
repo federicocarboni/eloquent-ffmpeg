@@ -1,5 +1,4 @@
-import type { ChildProcess } from 'child_process';
-import type { FFmpegProcess, Progress, SpawnOptions } from './types';
+import type { FFmpegLogger, FFmpegProcess, Progress, SpawnOptions } from './types';
 
 import * as childProcess from 'child_process';
 import * as readline from 'readline';
@@ -13,33 +12,48 @@ import { exited, pause, resume, write } from './utils';
  * @public
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
-  const { ffmpegPath = 'ffmpeg', spawnOptions } = options;
+  const { ffmpegPath = 'ffmpeg', logger = false, spawnOptions } = options;
   const cp = childProcess.spawn(ffmpegPath, args, {
-    stdio: 'pipe',
+    stdio: ['pipe', 'pipe', logger ? 'pipe' : 'ignore'],
     ...spawnOptions,
   });
-  return new Process(cp, ffmpegPath, args);
+  return new Process(cp, ffmpegPath, args, logger);
 }
+
+// Match the `[level]` segment inside an ffmpeg line.
+const LEVEL_REGEXP = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
 const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
 
 /** @internal */
 export class Process implements FFmpegProcess {
   constructor(
-    ffmpeg: ChildProcess,
+    cp: childProcess.ChildProcess,
     public readonly ffmpegPath: string,
-    public readonly args: readonly string[]
+    public readonly args: readonly string[],
+    logger: FFmpegLogger | false
   ) {
-    this.#ffmpeg = ffmpeg;
+    this.#ffmpeg = cp;
     const onExit = () => {
-      ffmpeg.off('exit', onExit);
-      ffmpeg.off('error', onExit);
+      cp.off('exit', onExit);
+      cp.off('error', onExit);
       this.#exited = true;
     };
-    ffmpeg.on('exit', onExit);
-    ffmpeg.on('error', onExit);
+    cp.on('exit', onExit);
+    cp.on('error', onExit);
+    if (logger) {
+      const stderr = readline.createInterface(cp.stderr!);
+      const onLine = (line: string) => {
+        const match = line.match(LEVEL_REGEXP);
+        if (match !== null) {
+          const level = match[1] as keyof FFmpegLogger;
+          logger[level]?.(line);
+        }
+      };
+      stderr.on('line', onLine);
+    }
   }
-  #ffmpeg: ChildProcess;
+  #ffmpeg: childProcess.ChildProcess;
   #exited = false;
 
   async *progress(): AsyncGenerator<Progress, void, void> {
@@ -130,7 +144,7 @@ export class Process implements FFmpegProcess {
       });
     }
   }
-  unwrap(): ChildProcess {
+  unwrap(): childProcess.ChildProcess {
     return this.#ffmpeg;
   }
 }

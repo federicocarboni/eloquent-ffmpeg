@@ -3,7 +3,6 @@ import type {
   ConcatSource,
   FFmpegCommand,
   FFmpegInput,
-  FFmpegLogger,
   FFmpegOptions,
   FFmpegOutput,
   FFmpegProcess,
@@ -15,7 +14,6 @@ import type {
 } from './types';
 
 import * as childProcess from 'child_process';
-import * as readline from 'readline';
 import { pipeline } from 'stream';
 
 import {
@@ -46,9 +44,6 @@ import { probe } from './probe';
 export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
   return new Command(options);
 }
-
-// Match the `[level]` segment inside an ffmpeg line.
-const LEVEL_REGEX = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 
 // Turn an ffmpeg log level into its numeric representation.
 const logLevelToN = Object.assign(Object.create(null) as {}, {
@@ -254,19 +249,7 @@ class Command implements FFmpegCommand {
     cp.on('exit', onExit);
     cp.on('error', onExit);
 
-    if (logger) {
-      const stderr = readline.createInterface(cp.stderr!);
-      const onLine = (line: string) => {
-        const match = line.match(LEVEL_REGEX);
-        if (match !== null) {
-          const level = match[1] as keyof FFmpegLogger;
-          logger[level]?.(line);
-        }
-      };
-      stderr.on('line', onLine);
-    }
-
-    return new Process(cp, ffmpegPath, args);
+    return new Process(cp, ffmpegPath, args, logger);
   }
   args(...args: string[]): this {
     this.#args.push(...args);
