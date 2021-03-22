@@ -504,18 +504,6 @@ describe('command', function () {
         }
       });
     });
-    describe('getArgs()', function () {
-      it('should throw when no inputs are specified', async function () {
-        const cmd = ffmpeg();
-        cmd.output();
-        expect(() => cmd.getArgs()).toThrow();
-      });
-      it('should throw when no outputs are specified', async function () {
-        const cmd = ffmpeg();
-        cmd.input('test/samples/invalid');
-        expect(() => cmd.getArgs()).toThrow();
-      });
-    });
   });
   describe('FFmpegInput', function () {
     it('format()', function () {
