@@ -1,4 +1,5 @@
 import * as childProcess from 'child_process';
+import { Logs } from './parse_logs';
 import {
   AudioCodec,
   AudioDecoder,
@@ -137,6 +138,11 @@ export interface SpawnOptions {
    * @defaultValue `false`
    */
   report?: ReportOptions | boolean;
+  /**
+   * **EXPERIMENTAL**
+   * @defaultValue `false`
+   */
+  parseLogs?: boolean;
   /** Path to the ffmpeg executable. */
   ffmpegPath?: string;
   /**
@@ -433,6 +439,7 @@ export interface FFmpegProcess {
   readonly args: readonly string[];
   /** Path of the running ffmpeg executable. */
   readonly ffmpegPath: string;
+  readonly logs: Promise<Logs> | undefined;
   /**
    * Returns an AsyncGenerator representing the real-time progress of the conversion.
    * @example

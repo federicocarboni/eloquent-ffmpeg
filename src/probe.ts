@@ -57,9 +57,9 @@ export async function probe(source: InputSource, options: ProbeOptions = {}): Pr
   // Await output from stdout, for the process to exit and for source to have
   // been piped to stdin if not a string.
   const [stdout] = await Promise.all([
-    read(ffprobe.stdout),
+    read(ffprobe.stdout!),
     exited(ffprobe),
-    typeof source !== 'string' && pipeline(toReadableStream(source), ffprobe.stdin).catch((err) => {
+    typeof source !== 'string' && pipeline(toReadableStream(source), ffprobe.stdin!).catch((err) => {
       if (!IGNORED_ERRORS.has(err.code))
         throw err;
     }) as any,  // ¯\_(ツ)_/¯ TypeScript doesn't like `Promise<void> | false` in `Promise.all`

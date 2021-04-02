@@ -4,6 +4,7 @@ import * as childProcess from 'child_process';
 import * as readline from 'readline';
 
 import { exited, pause, resume, write } from './utils';
+import { Logs, parseLogs } from './parse_logs';
 
 /**
  * Start an FFmpeg process with the given arguments.
@@ -12,12 +13,17 @@ import { exited, pause, resume, write } from './utils';
  * @public
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
-  const { ffmpegPath = 'ffmpeg', logger = false, spawnOptions } = options;
+  const {
+    ffmpegPath = 'ffmpeg',
+    spawnOptions,
+    logger = false,
+    parseLogs = false,
+  } = options;
   const cp = childProcess.spawn(ffmpegPath, args, {
-    stdio: ['pipe', 'pipe', logger ? 'pipe' : 'ignore'],
+    stdio: ['pipe', 'pipe', logger || parseLogs ? 'pipe' : 'ignore'],
     ...spawnOptions,
   });
-  return new Process(cp, ffmpegPath, args, logger);
+  return new Process(cp, ffmpegPath, args, logger, parseLogs);
 }
 
 // Match the `[level]` segment inside an ffmpeg line.
@@ -31,9 +37,10 @@ export class Process implements FFmpegProcess {
     cp: childProcess.ChildProcess,
     public readonly ffmpegPath: string,
     public readonly args: readonly string[],
-    logger: FFmpegLogger | false
+    logger: FFmpegLogger | false,
+    doParseLogs: boolean,
   ) {
-    this.#ffmpeg = cp;
+    this.#cp = cp;
     const onExit = () => {
       cp.off('exit', onExit);
       cp.off('error', onExit);
@@ -41,24 +48,34 @@ export class Process implements FFmpegProcess {
     };
     cp.on('exit', onExit);
     cp.on('error', onExit);
-    if (logger) {
-      const stderr = readline.createInterface(cp.stderr!);
-      const onLine = (line: string) => {
-        const match = line.match(LEVEL_REGEXP);
-        if (match !== null) {
-          const level = match[1] as keyof FFmpegLogger;
-          logger[level]?.(line);
-        }
-      };
-      stderr.on('line', onLine);
+    if (logger || doParseLogs) {
+      if (cp.stderr === null)
+        throw new TypeError('Cannot parse logs');
+      const stderr = readline.createInterface(cp.stderr);
+      if (logger) {
+        stderr.on('line', (line: string) => {
+          const match = line.match(LEVEL_REGEXP);
+          if (match !== null) {
+            const level = match[1] as keyof FFmpegLogger;
+            logger[level]?.(line);
+          }
+        });
+      }
+      if (doParseLogs) {
+        this._logs = parseLogs(stderr);
+      }
     }
   }
-  #ffmpeg: childProcess.ChildProcess;
+  #cp: childProcess.ChildProcess;
   #exited = false;
+  _logs: Promise<Logs> | undefined = void 0;
 
+  get logs() {
+    return this._logs;
+  }
   async *progress(): AsyncGenerator<Progress, void, void> {
-    const stdout = this.#ffmpeg.stdout!;
-    if (this.#exited || !stdout.readable)
+    const stdout = this.#cp.stdout;
+    if (this.#exited || stdout === null || !stdout.readable)
       throw new TypeError('Cannot parse progress, stdout not readable');
     let frames: number | undefined;
     let fps: number | undefined;
@@ -114,7 +131,7 @@ export class Process implements FFmpegProcess {
     }
   }
   async abort() {
-    const stdin = this.#ffmpeg.stdin!;
+    const stdin = this.#cp.stdin!;
     if (this.#exited || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
     await write(stdin, new Uint8Array([113, 10])); // => writes 'q\n'
@@ -123,28 +140,28 @@ export class Process implements FFmpegProcess {
   pause() {
     if (this.#exited)
       return false;
-    return pause(this.#ffmpeg);
+    return pause(this.#cp);
   }
   resume() {
     if (this.#exited)
       return false;
-    return resume(this.#ffmpeg);
+    return resume(this.#cp);
   }
   async complete() {
-    const ffmpeg = this.#ffmpeg;
+    const cp = this.#cp;
     if (!this.#exited)
-      await exited(ffmpeg);
-    if (ffmpeg.exitCode !== 0) {
-      const message = ffmpeg.exitCode === null
+      await exited(cp);
+    if (cp.exitCode !== 0) {
+      const message = cp.exitCode === null
         ? 'FFmpeg exited prematurely, was it killed?'
-        : `FFmpeg exited with code ${ffmpeg.exitCode}`;
+        : `FFmpeg exited with code ${cp.exitCode}`;
       throw Object.assign(new Error(message), {
         ffmpegPath: this.ffmpegPath,
-        args: this.args
+        args: this.args,
       });
     }
   }
   unwrap(): childProcess.ChildProcess {
-    return this.#ffmpeg;
+    return this.#cp;
   }
 }

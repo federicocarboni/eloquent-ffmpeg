@@ -56,7 +56,7 @@ const logLevelToN = Object.assign(Object.create(null) as {}, {
   verbose: 40,
   debug: 48,
   trace: 56,
-});
+} as const);
 
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
@@ -168,7 +168,13 @@ class Command implements FFmpegCommand {
     return output;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
-    const { ffmpegPath = 'ffmpeg', spawnOptions, report = false, logger = false } = options;
+    const {
+      ffmpegPath = 'ffmpeg',
+      spawnOptions,
+      report = false,
+      logger = false,
+      parseLogs = false,
+    } = options;
     const args = this.getArgs();
 
     // Start all socket servers needed to handle the streams.
@@ -215,7 +221,7 @@ class Command implements FFmpegCommand {
     ]);
 
     const cpSpawnOptions: childProcess.SpawnOptions = {
-      stdio: ['pipe', 'pipe', logger ? 'pipe' : 'ignore'],
+      stdio: ['pipe', 'pipe', logger || parseLogs ? 'pipe' : 'ignore'],
       ...spawnOptions,
     };
 
@@ -249,7 +255,7 @@ class Command implements FFmpegCommand {
     cp.on('exit', onExit);
     cp.on('error', onExit);
 
-    return new Process(cp, ffmpegPath, args, logger);
+    return new Process(cp, ffmpegPath, args, logger, parseLogs);
   }
   args(...args: string[]): this {
     this.#args.push(...args);
