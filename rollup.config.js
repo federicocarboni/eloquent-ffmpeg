@@ -1,7 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import cleanup from 'rollup-plugin-cleanup';
 import inject from '@rollup/plugin-inject';
 import { execSync } from 'child_process';
 import { builtinModules } from 'module';
@@ -20,15 +19,10 @@ const banner = `/**
 const external = [...builtinModules, 'ntsuspend'];
 const plugins = [
   typescript({
-    tsconfig: './tsconfig.es6.json'
+    tsconfig: './tsconfig.es6.json',
   }),
   resolve({
-    exportConditions: ['node']
-  }),
-  cleanup({
-    comments: 'none',
-    include: ['src/**/*.ts', 'node_modules/**'],
-    extensions: ['ts', 'js'],
+    exportConditions: ['node'],
   }),
 ];
 const injectCreateRequire = inject({
@@ -48,6 +42,7 @@ const config = [{
   output: [{
     file: 'lib/lib.js',
     format: 'es',
+    preferConst: true,
     banner,
   }],
   plugins: [
@@ -61,6 +56,7 @@ const config = [{
       values: {
         "require('ntsuspend')": `/* dynamic require ('ntsuspend') */ ((typeof require === 'function' ? require : createRequire(import.meta.url))('ntsuspend'))`,
       },
+      preventAssignment: true,
     }),
     injectCreateRequire,
   ],
@@ -70,6 +66,7 @@ const config = [{
   output: [{
     file: 'lib/lib.mjs',
     format: 'es',
+    preferConst: true,
     banner,
   }],
   plugins: [
@@ -80,6 +77,7 @@ const config = [{
       values: {
         "require('ntsuspend')": `/* dynamic require ('ntsuspend') */ (createRequire(import.meta.url)('ntsuspend'))`,
       },
+      preventAssignment: true,
     }),
     injectCreateRequire,
   ],
@@ -89,8 +87,9 @@ const config = [{
   output: [{
     file: 'lib/lib.cjs',
     format: 'cjs',
+    preferConst: true,
     // Avoid unnecessary interop helpers for Node.js builtins.
-    interop: (id) => builtinModules.includes(id) ? 'default' : 'auto',
+    interop: (id) => id === 'crypto' ? 'default' : builtinModules.includes(id) ? 'esModule' : 'auto',
     banner,
   }],
   plugins,
