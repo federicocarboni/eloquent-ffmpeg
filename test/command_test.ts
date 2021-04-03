@@ -154,8 +154,8 @@ describe('command', function () {
         expect(typeof result.unwrap()).toBe('object');
         const result1 = await input.probe();
         expect(typeof result1.unwrap()).toBe('object');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should probe buffer inputs', async function () {
         const cmd = ffmpeg();
@@ -164,8 +164,8 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(typeof result.unwrap()).toBe('object');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should probe streaming inputs', async function () {
         const cmd = ffmpeg();
@@ -174,8 +174,8 @@ describe('command', function () {
           .args('-c', 'copy', '-f', 'matroska');
         const result = await input.probe({ probeSize: 1024 * 1024 });
         expect(typeof result.unwrap()).toBe('object');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should throw on an invalid input path', async function () {
         const cmd = ffmpeg();
@@ -226,14 +226,14 @@ describe('command', function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/invalid');
         cmd.output().format('matroska');
-        const proc = await cmd.spawn({
+        const p = await cmd.spawn({
           report: true,
           spawnOptions: {
             // Create the report file in test/samples
             cwd: 'test/samples'
           },
         });
-        await proc.complete().catch(() => {
+        await p.complete().catch(() => {
           //
         });
         const files = await promises.readdir('test/samples');
@@ -246,37 +246,37 @@ describe('command', function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/invalid');
         cmd.output().format('matroska');
-        const proc = await cmd.spawn({
+        const p = await cmd.spawn({
           report: {
             file: 'test/samples/report.log',
             level: LogLevel.Info,
           },
         });
-        await proc.complete().catch(() => {
+        await p.complete().catch(() => {
           //
         });
         await promises.readFile('test/samples/report.log', 'utf8');
         await promises.unlink('test/samples/report.log');
       });
-      it('should cleanup socket servers on errored proc', async function () {
+      it('should cleanup socket servers on errored p', async function () {
         const cmd = ffmpeg();
         cmd.input(createReadStream('test/samples/video.mkv'));
         const writeStream = createWriteStream('test/samples/output.mkv');
         cmd.output(writeStream);
-        const proc = await cmd.spawn({
+        const p = await cmd.spawn({
           ffmpegPath: './my_invalid_ffmpeg'
         });
         let caught = false;
         try {
-          await proc.complete();
+          await p.complete();
         } catch {
           caught = true;
         }
-        expect(proc.unwrap().exitCode).not.toBeNull();
+        expect(p.unwrap().exitCode).not.toBeNull();
         expect(caught).toBe(true);
         caught = false;
         try {
-          await proc.complete();
+          await p.complete();
         } catch {
           caught = true;
         }
@@ -294,8 +294,8 @@ describe('command', function () {
           cmd.input('test/samples/video.mp4');
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
             .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
@@ -320,8 +320,8 @@ describe('command', function () {
             .args('-c', 'copy', '-f', 'matroska');
             cmd.output(createWriteStream('test/samples/output1.mkv'))
               .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
           expect((await promises.lstat('test/samples/output.mkv')).isFile()).toBe(true);
           expect((await promises.lstat('test/samples/output1.mkv')).isFile()).toBe(true);
@@ -341,8 +341,8 @@ describe('command', function () {
           cmd.input('test/samples/video.mp4');
           cmd.output('test/samples/[strange]output.mkv')
             .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {
@@ -358,8 +358,8 @@ describe('command', function () {
           cmd.input('test/samples/video.mp4');
           cmd.output('test/samples/output.mkv', 'test/samples/[strange]output.mkv')
             .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
           expect((await promises.lstat('test/samples/output.mkv')).isFile()).toBe(true);
         } finally {
@@ -381,8 +381,8 @@ describe('command', function () {
         stream.on('data', (chunk) => {
           expect(chunk).toBeInstanceOf(Uint8Array);
         });
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should handle multiple streaming output destinations', async function () {
         expect.hasAssertions();
@@ -396,8 +396,8 @@ describe('command', function () {
             expect(chunk).toBeInstanceOf(Uint8Array);
           });
         });
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should handle multiple streaming outputs', async function () {
         expect.hasAssertions();
@@ -416,8 +416,8 @@ describe('command', function () {
             expect(chunk).toBeInstanceOf(Uint8Array);
           });
         });
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should handle null outputs', async function () {
         const cmd = ffmpeg();
@@ -449,9 +449,7 @@ describe('command', function () {
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const p = await cmd.spawn({ parseLogs: true });
-        const logs = await p.logs!;
-        console.log(logs.inputs[0].format);
+        const p = await cmd.spawn();
         await p.complete();
       });
       it('should handle concat inputs', async function () {
@@ -464,8 +462,8 @@ describe('command', function () {
           cmd.output(createWriteStream('test/samples/[strange]output.mkv'))
             .duration(120000)
             .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
           const info = await probe('test/samples/[strange]output.mkv');
           expect(info.duration).toBe(120000);
