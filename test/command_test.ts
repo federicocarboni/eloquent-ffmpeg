@@ -424,8 +424,8 @@ describe('command', function () {
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should handle streaming input sources', async function () {
         const readable = createReadStream('test/samples/video.webm');
@@ -441,16 +441,18 @@ describe('command', function () {
         cmd.input(readable);
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn();
+        await p.complete();
       });
       it('should handle simple inputs', async function () {
         const cmd = ffmpeg();
         cmd.input('test/samples/video.mp4');
         cmd.output()
           .args('-c', 'copy', '-f', 'matroska');
-        const proc = await cmd.spawn();
-        await proc.complete();
+        const p = await cmd.spawn({ parseLogs: true });
+        const logs = await p.logs!;
+        console.log(logs.inputs[0].format);
+        await p.complete();
       });
       it('should handle concat inputs', async function () {
         try {
@@ -492,8 +494,8 @@ describe('command', function () {
           });
           cmd.output('test/samples/[strange]output.mkv')
             .args('-c', 'copy', '-f', 'matroska');
-          const proc = await cmd.spawn();
-          await proc.complete();
+          const p = await cmd.spawn();
+          await p.complete();
           expect((await promises.lstat('test/samples/[strange]output.mkv')).isFile()).toBe(true);
         } finally {
           try {

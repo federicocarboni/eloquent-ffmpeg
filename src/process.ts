@@ -1,10 +1,10 @@
-import type { FFmpegLogger, FFmpegProcess, Progress, SpawnOptions } from './types';
+import type { FFmpegLogger, FFmpegProcess, Logs, Progress, SpawnOptions } from './types';
 
 import * as childProcess from 'child_process';
 import * as readline from 'readline';
 
 import { exited, pause, resume, write } from './utils';
-import { Logs, parseLogs } from './parse_logs';
+import { parseLogs } from './parse_logs';
 
 /**
  * Start an FFmpeg process with the given arguments.
@@ -26,10 +26,10 @@ export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess
   return new Process(cp, ffmpegPath, args, logger, parseLogs);
 }
 
-// Match the `[level]` segment inside an ffmpeg line.
-const LEVEL_REGEXP = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
-
-const PROGRESS_LINE_REGEXP = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=([\u0020-\u00FF]*?)$/;
+// Match the `[level]` segment in a line logged by ffmpeg.
+const LEVEL_MATCH = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
+// Match progress key and value in a progress line.
+const PROGRESS_LINE_MATCH = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=(.*?)$/;
 
 /** @internal */
 export class Process implements FFmpegProcess {
@@ -53,26 +53,22 @@ export class Process implements FFmpegProcess {
         throw new TypeError('Cannot parse logs');
       const stderr = readline.createInterface(cp.stderr);
       if (logger) {
-        stderr.on('line', (line: string) => {
-          const match = line.match(LEVEL_REGEXP);
+        stderr.on('line', (line) => {
+          const match = line.match(LEVEL_MATCH);
           if (match !== null) {
             const level = match[1] as keyof FFmpegLogger;
             logger[level]?.(line);
           }
         });
       }
-      if (doParseLogs) {
-        this._logs = parseLogs(stderr);
-      }
+      if (doParseLogs)
+        this.logs = parseLogs(stderr);
     }
   }
   #cp: childProcess.ChildProcess;
   #exited = false;
-  _logs: Promise<Logs> | undefined = void 0;
+  logs: Promise<Logs> | undefined = void 0;
 
-  get logs() {
-    return this._logs;
-  }
   async *progress(): AsyncGenerator<Progress, void, void> {
     const stdout = this.#cp.stdout;
     if (this.#exited || stdout === null || !stdout.readable)
@@ -86,7 +82,7 @@ export class Process implements FFmpegProcess {
     let framesDropped: number | undefined;
     let speed: number | undefined;
     for await (const line of readline.createInterface(stdout)) {
-      const match = line.match(PROGRESS_LINE_REGEXP);
+      const match = line.match(PROGRESS_LINE_MATCH);
       if (match === null)
         continue;
       const [, key, value] = match;
@@ -122,17 +118,17 @@ export class Process implements FFmpegProcess {
           break;
         case 'progress':
           yield { frames, fps, bitrate, bytes, time, framesDuped, framesDropped, speed } as Progress;
+          frames = fps = bitrate = bytes = time = framesDuped = framesDropped = speed = void 0;
           // Return on `progress=end`, which indicates that there will be no further progress logs.
           if (value === 'end')
             return;
-          frames = fps = bitrate = bytes = time = framesDuped = framesDropped = speed = void 0;
           break;
       }
     }
   }
   async abort() {
-    const stdin = this.#cp.stdin!;
-    if (this.#exited || !stdin.writable)
+    const stdin = this.#cp.stdin;
+    if (this.#exited || !stdin || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
     await write(stdin, new Uint8Array([113, 10])); // => writes 'q\n'
     return await this.complete();

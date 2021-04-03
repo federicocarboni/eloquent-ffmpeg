@@ -1,5 +1,4 @@
 import * as childProcess from 'child_process';
-import { Logs } from './parse_logs';
 import {
   AudioCodec,
   AudioDecoder,
@@ -439,6 +438,7 @@ export interface FFmpegProcess {
   readonly args: readonly string[];
   /** Path of the running ffmpeg executable. */
   readonly ffmpegPath: string;
+  /** @alpha */
   readonly logs: Promise<Logs> | undefined;
   /**
    * Returns an AsyncGenerator representing the real-time progress of the conversion.
@@ -765,4 +765,40 @@ export interface ProbeOptions {
    * ```
    */
   spawnOptions?: childProcess.SpawnOptions;
+}
+
+// For now these interfaces are internal, they should have a similar shape
+// as probe() function/method.
+/** @alpha */
+export interface LoggedFormat {
+  file: string;
+  name: string;
+  start: number;
+  duration?: number;
+  bitrate?: number;
+  metadata: Record<string, string>;
+}
+
+/** @alpha */
+export interface LoggedStream {
+  metadata: Record<string, string>;
+}
+
+/** @alpha */
+export interface LoggedChapter {
+  start: number;
+  end: number;
+  metadata: Record<string, string>;
+}
+
+/** @alpha */
+export interface LoggedInput {
+  format: LoggedFormat;
+  streams: LoggedStream[];
+  chapters: LoggedChapter[];
+}
+
+/** @alpha */
+export interface Logs {
+  inputs: LoggedInput[];
 }
