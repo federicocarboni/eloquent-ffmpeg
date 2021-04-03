@@ -9,7 +9,7 @@ import { parseLogs } from './parse_logs';
 /**
  * Start an FFmpeg process with the given arguments.
  * @param args - The arguments to spawn FFmpeg with.
- * @param options - `logger` and `report` are not currently supported by this function.
+ * @param options - `report` is currently not supported by this function.
  * @public
  */
 export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
@@ -52,7 +52,7 @@ export class Process implements FFmpegProcess {
       if (cp.stderr === null)
         throw new TypeError('Cannot parse logs');
       const stderr = readline.createInterface(cp.stderr);
-      if (logger) {
+      if (logger)
         stderr.on('line', (line) => {
           const match = line.match(LEVEL_MATCH);
           if (match !== null) {
@@ -60,7 +60,6 @@ export class Process implements FFmpegProcess {
             logger[level]?.(line);
           }
         });
-      }
       if (doParseLogs)
         this.logs = parseLogs(stderr);
     }

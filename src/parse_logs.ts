@@ -1,9 +1,18 @@
 /**
- * This module adds **EXPERIMENTAL** support for parsing logs into a JavaScript object.
- *
+ * This module adds **EXPERIMENTAL** support for parsing FFmpeg's logs into a JavaScript object.
  */
 
 import { LoggedChapter, LoggedFormat, LoggedInput, LoggedStream, Logs } from './types';
+
+const INPUT_MATCH = /^(\[info\] )?Input #([0-9]+), (.+?), from '(.*?)':$/;
+const INDENT_2_METADATA_MATCH = /^(\[info\] )? {4}(.*?) *: (.*)$/;
+const INDENT_3_METADATA_MATCH = /^(\[info\] )? {6}(.*?) *: (.*)$/;
+const DURATION_START_BITRATE_MATCH = /^(\[info\] )? {2}Duration: (([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{2})|N\/A), start: (-?[0-9]*\.[0-9]{3})[0-9]{3}, bitrate: (([0-9]+) kb\/s|N\/A)$/;
+const CHAPTER_MATCH = /^(\[info\] )? {4}Chapter #[0-9]+:[0-9]+: start (-?[0-9]*\.[0-9]{3})[0-9]{3}, end (-?[0-9]*\.[0-9]{3})[0-9]{3}$/;
+const STREAM_TEST = /^(\[info\] )? {4}Stream #[0-9]+:[0-9]+/;
+const INDENT_2_METADATA_TEST = /^(\[info\] )? {2}Metadata:$/;
+const INDENT_3_METADATA_TEST = /^(\[info\] )? {4}Metadata:$/;
+const END_TEST = /^(\[info\] )?(Stream mapping:|Press \[q\] to stop, \[?\] for help|Output #)/;
 
 const enum State {
   Format,
@@ -15,16 +24,6 @@ const enum State {
   StreamMetadata,
   Default,
 }
-
-const INPUT_MATCH = /^(\[info\] )?Input #([0-9]+), (.+?), from '(.*?)':$/;
-const INDENT_2_METADATA_MATCH = /^(\[info\] )? {4}(.*?) *: (.*)$/;
-const INDENT_3_METADATA_MATCH = /^(\[info\] )? {6}(.*?) *: (.*)$/;
-const DURATION_START_BITRATE_MATCH = /^(\[info\] )? {2}Duration: (([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{2})|N\/A), start: (-?[0-9]*\.[0-9]{3})[0-9]{3}, bitrate: (([0-9]+) kb\/s|N\/A)$/;
-const CHAPTER_MATCH = /^(\[info\] )? {4}Chapter #[0-9]+:[0-9]+: start (-?[0-9]*\.[0-9]{3})[0-9]{3}, end (-?[0-9]*\.[0-9]{3})[0-9]{3}$/;
-const STREAM_TEST = /^(\[info\] )? {4}Stream #[0-9]+:[0-9]+/;
-const INDENT_2_METADATA_TEST = /^(\[info\] )? {2}Metadata:$/;
-const INDENT_3_METADATA_TEST = /^(\[info\] )? {4}Metadata:$/;
-const END_TEST = /^(\[info\] )?(Stream mapping:|Press \[q\] to stop, \[?\] for help|Output #)/;
 
 export async function parseLogs(stderr: AsyncIterable<string>): Promise<Logs> {
   const parseMetadata = (match: RegExpMatchArray | null) => {
@@ -49,10 +48,11 @@ export async function parseLogs(stderr: AsyncIterable<string>): Promise<Logs> {
   let streams: LoggedStream[];
   let chapters: LoggedChapter[];
 
-  // Current state of the parser
+  // Store the current state of the parser.
   let state = State.Default;
 
   for await (const line of stderr) {
+    // TODO: find a better way to detect the end of inputs info.
     if (END_TEST.test(line))
       break;
     switch (state) {
@@ -65,11 +65,11 @@ export async function parseLogs(stderr: AsyncIterable<string>): Promise<Logs> {
       case State.FormatMetadata: {
         const match = line.match(DURATION_START_BITRATE_MATCH);
         if (match !== null) {
-          const [, , duration, h, min, s, cs, start, bitrate, bitrateNum] = match;
-          if (duration !== 'N/A')
+          const [, , duration, h, min, s, cs, start, bitrate, kb] = match;
+          if (duration !== 'N/A')  // Turn the duration into ms
             format!.duration = (+h) * 3600000 + (+min) * 60000 + (+s) * 1000 + (+cs) * 10;
-          if (bitrate !== 'N/A')
-            format!.bitrate = +bitrateNum;
+          if (bitrate !== 'N/A')  // Convert from kb/s to bits/s
+            format!.bitrate = (+kb) * 1000;
           format!.start = +start * 1000;
           state = State.ChapterOrStream;
         } else if (state === State.FormatMetadata) {
@@ -102,13 +102,13 @@ export async function parseLogs(stderr: AsyncIterable<string>): Promise<Logs> {
         }
       // Falls through
       case State.StreamMetadata:
-        if ((state === State.Stream || state === State.StreamMetadata) && STREAM_TEST.test(line)) {
+        if (STREAM_TEST.test(line)) {
           metadata = Object.create(null);
           streams!.push({ metadata });
           state = State.Stream;
           break;
         }
-      // Falls through if the line is not a stream.
+      // Falls through
       case State.Default: {
         // A new input may start after chapters or streams sections
         const match = line.match(INPUT_MATCH);
