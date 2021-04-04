@@ -66,11 +66,11 @@ class Command implements FFmpegCommand {
       this.args('-progress', 'pipe:1');
     this.args('-loglevel', `+repeat+level${level ? `+${level}` : ''}`);
   }
-  #args: string[] = [];
-  #inputs: Input[] = [];
-  #outputs: Output[] = [];
-  #inputStreams: [string, NodeJS.ReadableStream][] = [];
-  #outputStreams: [string, NodeJS.WritableStream[]][] = [];
+  readonly #args: string[] = [];
+  readonly #inputs: Input[] = [];
+  readonly #outputs: Output[] = [];
+  readonly #inputStreams: (readonly [string, NodeJS.ReadableStream])[] = [];
+  readonly #outputStreams: (readonly [string, readonly NodeJS.WritableStream[]])[] = [];
 
   input(source: InputSource): FFmpegInput {
     const [url, isStream, stream] = handleInputSource(source, this.#inputStreams);
@@ -275,9 +275,9 @@ class Input implements FFmpegInput {
     this.#url = url;
     this.#stream = stream;
   }
-  #url: string;
-  #args: string[] = [];
-  #stream?: NodeJS.ReadableStream;
+  readonly #url: string;
+  readonly #args: string[] = [];
+  readonly #stream?: NodeJS.ReadableStream;
 
   offset(offset: number): this {
     return this.args('-itsoffset', `${offset}ms`);
@@ -310,6 +310,7 @@ class Input implements FFmpegInput {
 
     let source: Uint8Array | string;
     if (this.isStream) {
+      // TODO: pipe the stream to ffprobe
       const stream = this.#stream!;
       source = await read(stream, probeSize ?? 5000000);
       stream.unshift(source);
@@ -336,10 +337,10 @@ class Output implements FFmpegOutput {
   constructor(url: string, public readonly isStream: boolean) {
     this.#url = url;
   }
-  #url: string;
-  #args: string[] = [];
-  #videoFilters: string[] = [];
-  #audioFilters: string[] = [];
+  readonly #url: string;
+  readonly #args: string[] = [];
+  readonly #videoFilters: string[] = [];
+  readonly #audioFilters: string[] = [];
 
   videoFilter(filter: string, options: Record<string, unknown> | unknown[] | undefined = void 0) {
     this.#videoFilters.push(stringifyFilterDescription(filter, options));
@@ -395,7 +396,9 @@ class Output implements FFmpegOutput {
   }
 }
 
-function handleInputSource(source: InputSource, streams: [string, NodeJS.ReadableStream][]): [string, boolean, NodeJS.ReadableStream?] {
+function handleInputSource(source: InputSource, streams: (readonly [string, NodeJS.ReadableStream])[]): [string, boolean, NodeJS.ReadableStream?] {
+  if (!isInputSource(source))
+    throw new TypeError(`${source} is not a valid input source`);
   if (typeof source === 'string') {
     return [source, false];
   } else {
