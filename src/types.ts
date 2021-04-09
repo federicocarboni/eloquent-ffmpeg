@@ -132,7 +132,6 @@ export interface SpawnOptions {
   logger?: FFmpegLogger | false;
   /**
    * Enable dumping full command line args and logs to a specified file.
-   * **Only supported in FFmpegCommand.spawn()**
    * {@link https://ffmpeg.org/ffmpeg-all.html#Generic-options}
    * @defaultValue `false`
    */
@@ -411,7 +410,7 @@ export interface Progress {
    * @remarks
    * A positive integer, or `undefined` when unavailable.
    */
-  bytes?: number;
+  size?: number;
   /**
    * Total length of the file rendered, in milliseconds.
    *

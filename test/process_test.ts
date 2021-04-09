@@ -181,8 +181,8 @@ describe('process', function () {
           expect(progress.framesDropped).not.toBeNaN();
           expect(typeof progress.framesDuped).toBe('number');
           expect(progress.framesDuped).not.toBeNaN();
-          expect(typeof progress.bytes).toBe('number');
-          expect(progress.bytes).not.toBeNaN();
+          expect(typeof progress.size).toBe('number');
+          expect(progress.size).not.toBeNaN();
           expect(typeof progress.speed).toBe('number');
           expect(progress.speed).not.toBeNaN();
           expect(typeof progress.time).toBe('number');

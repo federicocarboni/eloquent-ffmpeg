@@ -3,36 +3,29 @@ import type { FFmpegLogger, FFmpegProcess, Logs, Progress, SpawnOptions } from '
 import * as childProcess from 'child_process';
 import * as readline from 'readline';
 
+import { stringifyObjectColonSeparated } from './string';
 import { exited, pause, resume, write } from './utils';
 import { parseLogs } from './parse_logs';
 
-/**
- * Start an FFmpeg process with the given arguments.
- * @param args - The arguments to spawn FFmpeg with.
- * @param options - `report` is currently not supported by this function.
- * @public
- */
-export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
-  const {
-    ffmpegPath = 'ffmpeg',
-    spawnOptions,
-    logger = false,
-    parseLogs = false,
-  } = options;
-  const cp = childProcess.spawn(ffmpegPath, args, {
-    stdio: ['pipe', 'pipe', logger || parseLogs ? 'pipe' : 'ignore'],
-    ...spawnOptions,
-  });
-  return new Process(cp, ffmpegPath, args, logger, parseLogs);
-}
+// Turn an ffmpeg log level into its numeric representation.
+const logLevelToN = Object.assign(Object.create(null) as {}, {
+  quiet: -8,
+  panic: 0,
+  fatal: 8,
+  error: 16,
+  warning: 24,
+  info: 32,
+  verbose: 40,
+  debug: 48,
+  trace: 56,
+} as const);
 
 // Match the `[level]` segment in a line logged by ffmpeg.
 const LEVEL_MATCH = /\[(trace|debug|verbose|info|warning|error|fatal)\]/;
 // Match progress key and value in a progress line.
 const PROGRESS_LINE_MATCH = /^(frame|fps|bitrate|total_size|out_time_us|dup_frames|drop_frames|speed|progress)=(.*?)$/;
 
-/** @internal */
-export class Process implements FFmpegProcess {
+class Process implements FFmpegProcess {
   constructor(
     cp: childProcess.ChildProcess,
     public readonly ffmpegPath: string,
@@ -49,24 +42,30 @@ export class Process implements FFmpegProcess {
     cp.on('exit', onExit);
     cp.on('error', onExit);
     if (logger || doParseLogs) {
-      if (cp.stderr === null)
-        throw new TypeError('Cannot parse logs');
-      const stderr = readline.createInterface(cp.stderr);
+      const stderr = cp.stderr;
+      if (stderr === null || !stderr.readable)
+        throw new TypeError('Cannot parse logs, stderr is not readable');
+      const rl = readline.createInterface(stderr);
       if (logger)
-        stderr.on('line', (line) => {
+        rl.on('line', (line) => {
           const match = line.match(LEVEL_MATCH);
           if (match !== null) {
             const level = match[1] as keyof FFmpegLogger;
             logger[level]?.(line);
           }
         });
-      if (doParseLogs)
-        this.logs = parseLogs(stderr);
+      if (doParseLogs) {
+        this.logs = parseLogs(rl)
+          .finally(() => {
+            // TODO: temporary solution
+            rl.resume();
+          });
+      }
     }
   }
+  logs: Promise<Logs> | undefined = void 0;
   #cp: childProcess.ChildProcess;
   #exited = false;
-  logs: Promise<Logs> | undefined = void 0;
 
   async *progress(): AsyncGenerator<Progress, void, void> {
     const stdout = this.#cp.stdout;
@@ -75,7 +74,7 @@ export class Process implements FFmpegProcess {
     let frames: number | undefined;
     let fps: number | undefined;
     let bitrate: number | undefined;
-    let bytes: number | undefined;
+    let size: number | undefined;
     let time: number | undefined;
     let framesDuped: number | undefined;
     let framesDropped: number | undefined;
@@ -99,7 +98,7 @@ export class Process implements FFmpegProcess {
           bitrate = parseFloat(value);
           break;
         case 'total_size':
-          bytes = parseInt(value, 10);
+          size = parseInt(value, 10);
           break;
         case 'out_time_us':
           // Remove the last three digits to quickly convert from μs to ms.
@@ -116,8 +115,8 @@ export class Process implements FFmpegProcess {
           speed = parseFloat(value);
           break;
         case 'progress':
-          yield { frames, fps, bitrate, bytes, time, framesDuped, framesDropped, speed } as Progress;
-          frames = fps = bitrate = bytes = time = framesDuped = framesDropped = speed = void 0;
+          yield { frames, fps, bitrate, size, time, framesDuped, framesDropped, speed } as Progress;
+          frames = fps = bitrate = size = time = framesDuped = framesDropped = speed = void 0;
           // Return on `progress=end`, which indicates that there will be no further progress logs.
           if (value === 'end')
             return;
@@ -127,7 +126,7 @@ export class Process implements FFmpegProcess {
   }
   async abort() {
     const stdin = this.#cp.stdin;
-    if (this.#exited || !stdin || !stdin.writable)
+    if (this.#exited || stdin === null || !stdin.writable)
       throw new TypeError('Cannot abort FFmpeg process, stdin not writable');
     await write(stdin, new Uint8Array([113, 10])); // => writes 'q\n'
     return await this.complete();
@@ -159,4 +158,41 @@ export class Process implements FFmpegProcess {
   unwrap(): childProcess.ChildProcess {
     return this.#cp;
   }
+}
+
+/**
+ * Start an FFmpeg process with the given arguments.
+ * @param args - The arguments to spawn FFmpeg with.
+ * @param options -
+ * @public
+ */
+export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess {
+  const {
+    ffmpegPath = 'ffmpeg',
+    spawnOptions,
+    report = false,
+    logger = false,
+    parseLogs = false,
+  } = options;
+  const cpSpawnOptions: childProcess.SpawnOptions = {
+    stdio: ['pipe', 'pipe', logger || parseLogs ? 'pipe' : 'ignore'],
+    ...spawnOptions,
+  };
+  if (report) {
+    // FFREPORT can be either a ':' separated key-value pair which takes `file` and `level` as
+    // options or any non-empty string which enables reporting with default options.
+    // If no options are specified the string `true` is used.
+    // https://ffmpeg.org/ffmpeg-all.html#Generic-options
+    const FFREPORT = report !== true && stringifyObjectColonSeparated({
+      file: report.file,
+      level: logLevelToN[report.level!],
+    }) || 'true';
+    cpSpawnOptions.env = {
+      // Merge with previous options or the current environment.
+      ...(cpSpawnOptions.env ?? process.env),
+      FFREPORT,
+    };
+  }
+  const cp = childProcess.spawn(ffmpegPath, args, cpSpawnOptions);
+  return new Process(cp, ffmpegPath, args, logger, parseLogs);
 }

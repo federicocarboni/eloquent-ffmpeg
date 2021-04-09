@@ -29,7 +29,7 @@ export const toReadableStream = (source: Exclude<InputSource, string>): NodeJS.R
   isReadableStream(source) ? source : Readable.from(types.isUint8Array(source) ? [source] : source, { objectMode: false });
 
 /**
- * Acts like `Array.prototype.flatMap()`: Node.js <11 doesn't support it. Uses `flatMap` directly
+ * Acts like `Array.prototype.flatMap()`: Node.js 11 doesn't support it. Uses `flatMap` directly
  * when available, or `Array.prototype.map` and `Array.prototype.concat`.
  * @internal
  */

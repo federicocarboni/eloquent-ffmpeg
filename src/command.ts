@@ -10,10 +10,9 @@ import type {
   OutputDestination,
   ProbeOptions,
   ProbeResult,
-  SpawnOptions
+  SpawnOptions,
 } from './types';
 
-import * as childProcess from 'child_process';
 import { pipeline } from 'stream';
 
 import {
@@ -23,17 +22,16 @@ import {
   isNullish,
   isWritableStream,
   read,
-  toReadableStream
+  toReadableStream,
 } from './utils';
 import {
   escapeConcatFile,
   escapeTeeComponent,
   stringifyFilterDescription,
-  stringifyObjectColonSeparated,
-  stringifyValue
+  stringifyValue,
 } from './string';
 import { startSocketServer, getSocketPath, getSocketURL } from './sock';
-import { Process } from './process';
+import { spawn } from './process';
 import { probe } from './probe';
 
 /**
@@ -44,19 +42,6 @@ import { probe } from './probe';
 export function ffmpeg(options: FFmpegOptions = {}): FFmpegCommand {
   return new Command(options);
 }
-
-// Turn an ffmpeg log level into its numeric representation.
-const logLevelToN = Object.assign(Object.create(null) as {}, {
-  quiet: -8,
-  panic: 0,
-  fatal: 8,
-  error: 16,
-  warning: 24,
-  info: 32,
-  verbose: 40,
-  debug: 48,
-  trace: 56,
-} as const);
 
 class Command implements FFmpegCommand {
   constructor(options: FFmpegOptions) {
@@ -168,18 +153,13 @@ class Command implements FFmpegCommand {
     return output;
   }
   async spawn(options: SpawnOptions = {}): Promise<FFmpegProcess> {
-    const {
-      ffmpegPath = 'ffmpeg',
-      spawnOptions,
-      report = false,
-      logger = false,
-      parseLogs = false,
-    } = options;
     const args = this.getArgs();
 
-    // Start all socket servers needed to handle the streams.
-    const ioSocketServers = await Promise.all([
-      ...this.#inputStreams.map(async ([path, stream]) => {
+    const inputStreams = this.#inputStreams;
+    const outputStreams = this.#outputStreams;
+    // Start all socket servers needed to handle the streams, skipped if there are no streams.
+    const ioSocketServers = (inputStreams.length > 0 || outputStreams.length > 0) && await Promise.all([
+      ...inputStreams.map(async ([path, stream]) => {
         const server = await startSocketServer(path);
         server.once('connection', (socket) => {
           pipeline(stream, socket, () => {
@@ -195,7 +175,7 @@ class Command implements FFmpegCommand {
         });
         return server;
       }),
-      ...this.#outputStreams.map(async ([path, streams]) => {
+      ...outputStreams.map(async ([path, streams]) => {
         const server = await startSocketServer(path);
         server.once('connection', (socket) => {
           socket.on('error', () => {
@@ -220,42 +200,24 @@ class Command implements FFmpegCommand {
       }),
     ]);
 
-    const cpSpawnOptions: childProcess.SpawnOptions = {
-      stdio: ['pipe', 'pipe', logger || parseLogs ? 'pipe' : 'ignore'],
-      ...spawnOptions,
-    };
+    const p = spawn(args, options);
 
-    if (report) {
-      // FFREPORT can be either a ':' separated key-value pair which takes `file` and `level` as
-      // options or any non-empty string which enables reporting with default options.
-      // If no options are specified the string `true` is used.
-      // https://ffmpeg.org/ffmpeg-all.html#Generic-options
-      const FFREPORT = report !== true && stringifyObjectColonSeparated({
-        file: report.file,
-        level: logLevelToN[report.level!],
-      }) || 'true';
-      cpSpawnOptions.env = {
-        // Merge with previous options or the current environment.
-        ...(cpSpawnOptions.env ?? process.env),
-        FFREPORT,
+    if (ioSocketServers) {
+      const cp = p.unwrap();
+      const onExit = () => {
+        cp.off('exit', onExit);
+        cp.off('error', onExit);
+        // Close all socket servers, this is necessary for proper cleanup after
+        // failed conversions, or otherwise errored ffmpeg processes.
+        for (const server of ioSocketServers) {
+          if (server.listening) server.close();
+        }
       };
+      cp.on('exit', onExit);
+      cp.on('error', onExit);
     }
 
-    const cp = childProcess.spawn(ffmpegPath, args, cpSpawnOptions);
-
-    const onExit = () => {
-      cp.off('exit', onExit);
-      cp.off('error', onExit);
-      // Close all socket servers, this is necessary for proper cleanup after
-      // failed conversions, or otherwise errored ffmpeg processes.
-      for (const server of ioSocketServers) {
-        if (server.listening) server.close();
-      }
-    };
-    cp.on('exit', onExit);
-    cp.on('error', onExit);
-
-    return new Process(cp, ffmpegPath, args, logger, parseLogs);
+    return p;
   }
   args(...args: string[]): this {
     this.#args.push(...args);
