@@ -127,7 +127,7 @@ cmd.output('output.mkv')
   .args('-codec:a', 'aac');
 ```
 
-### Logging & Debugging
+### Logging and Debugging
 For debbugging, [`FFmpegCommand.spawn()`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.ffmpegcommand.html#spawn)'s [options](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html) accept [`logger`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#logger) and [`report`](https://federicocarboni.github.io/eloquent-ffmpeg/api/interfaces/_src_lib_.spawnoptions.html#report).
 
 The `report` option dumps the full command line arguments and logs to the specified file or, when
@@ -219,7 +219,7 @@ await proc.complete();
 console.log('Hooray! Conversion complete!');
 ```
 
-#### Pause & Resume
+#### Pause and Resume
 The conversion can be paused and resumed using `FFmpegProcess.pause()`
 and `FFmpegProcess.resume()`. Both methods are synchronous, they return `true`
 upon success, `false` otherwise.
@@ -257,12 +257,24 @@ await proc.abort();
 ```
 
 ## Errors
-### Error ntsuspend
-This error is likely caused by a corrupt or missing installation of [ntsuspend](https://www.npmjs.com/package/ntsuspend),
-required to pause and resume the process on Windows. Try to uninstall and
-reinstall ntsuspend, and if you experience further issues open a new issue to
-get help.
+### FFmpeg exited with code x
+<!-- https://git.io/JTqA9#ffmpeg-exited-with-code-x -->
+FFmpeg exited with a non-zero status code, which means that the conversion
+failed. This typically occurs because of a corrupt input or a wrong
+configuration. See [Logging and Debugging](#logging-and-debugging).
 
+### FFmpeg exited prematurely
+<!-- https://git.io/JTqA9#ffmpeg-exited-prematurely -->
+FFmpeg exited without a status code. This typically means that the conversion
+was forcefully terminated (or that an error occurred in a system call).
+See [Logging and Debugging](#logging-and-debugging).
+
+### Cannot import ntsuspend
+<!-- https://git.io/JTqA9#cannot-import-ntsuspend -->
+This error is likely caused by a corrupt or missing installation of [ntsuspend](https://www.npmjs.com/package/ntsuspend).
+`ntsuspend` is required to pause and resume the FFmpeg child process on Windows.
+Try to uninstall and reinstall `ntsuspend`, and if you experience further
+problems open a new issue to get help.
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFedericoCarboni%2Feloquent-ffmpeg?ref=badge_large)

@@ -131,7 +131,7 @@ if (isWin32) {
     // https://github.com/FedericoCarboni/eloquent-ffmpeg/issues/1
     // https://github.com/FedericoCarboni/node-ntsuspend
     try {
-      // Dynamically require `ntsuspend`, this will be replaced at built time
+      // Dynamically require `ntsuspend`, this will be replaced at build time
       // to support commonjs, es modules and module bundlers.
       // TODO: replace this with a `await import()` when top-level `await` gets
       // better support
@@ -139,7 +139,7 @@ if (isWin32) {
       pause = (p) => ntsuspend.suspend(p.pid);
       resume = (p) => ntsuspend.resume(p.pid);
     } catch {
-      const error = new TypeError('Cannot require() ntsuspend https://git.io/JTqA9#error-ntsuspend');
+      const error = new TypeError('Cannot import ntsuspend https://git.io/JTqA9#cannot-import-ntsuspend');
       // `ntsuspend` is not supposed to be a hard dependency so we will
       // only throw when pause or resume are actually called
       pause = resume = () => { throw error; };

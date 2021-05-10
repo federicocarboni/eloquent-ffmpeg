@@ -115,7 +115,7 @@ class Process implements FFmpegProcess {
           speed = parseFloat(value);
           break;
         case 'progress':
-          yield { frames, fps, bitrate, size, time, framesDuped, framesDropped, speed } as Progress;
+          yield { frames, fps, bitrate, size, time, framesDuped, framesDropped, speed };
           frames = fps = bitrate = size = time = framesDuped = framesDropped = speed = void 0;
           // Return on `progress=end`, which indicates that there will be no further progress logs.
           if (value === 'end')
@@ -147,11 +147,12 @@ class Process implements FFmpegProcess {
       await exited(cp);
     if (cp.exitCode !== 0) {
       const message = cp.exitCode === null
-        ? 'FFmpeg exited prematurely, was it killed?'
-        : `FFmpeg exited with code ${cp.exitCode}`;
+        ? 'FFmpeg exited prematurely, was it killed? https://git.io/JTqA9#ffmpeg-exited-prematurely'
+        : `FFmpeg exited with code ${cp.exitCode} https://git.io/JTqA9#ffmpeg-exited-with-code-x`;
       throw Object.assign(new Error(message), {
         ffmpegPath: this.ffmpegPath,
         args: this.args,
+        exitCode: cp.exitCode,
       });
     }
   }
@@ -179,9 +180,10 @@ export function spawn(args: string[], options: SpawnOptions = {}): FFmpegProcess
     ...spawnOptions,
   };
   if (report) {
-    // FFREPORT can be either a ':' separated key-value pair which takes `file` and `level` as
-    // options or any non-empty string which enables reporting with default options.
-    // If no options are specified the string `true` is used.
+    // FFREPORT can be either a ':' separated list of key-value pairs, which
+    // takes `file` and `level` as keys, or any non-empty string which enables
+    // reporting with default options. If no options are specified the string
+    // `true` is used.
     // https://ffmpeg.org/ffmpeg-all.html#Generic-options
     const FFREPORT = report !== true && stringifyObjectColonSeparated({
       file: report.file,

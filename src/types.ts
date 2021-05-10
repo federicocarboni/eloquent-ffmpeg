@@ -419,9 +419,9 @@ export interface Progress {
    */
   time?: number;
   /** Total number of frames duplicated. */
-  framesDuped: number;
+  framesDuped?: number;
   /** Total number of frames dropped. */
-  framesDropped: number;
+  framesDropped?: number;
   /**
    * Current speed of the conversion.
    *
@@ -437,7 +437,10 @@ export interface FFmpegProcess {
   readonly args: readonly string[];
   /** Path of the running ffmpeg executable. */
   readonly ffmpegPath: string;
-  /** @alpha */
+  /**
+   * **UNSTABLE**
+   * @alpha
+   */
   readonly logs: Promise<Logs> | undefined;
   /**
    * Returns an AsyncGenerator representing the real-time progress of the conversion.
@@ -488,7 +491,7 @@ export interface FFmpegProcess {
   abort(): Promise<void>;
   /** Returns the underlying NodeJS' ChildProcess instance. */
   unwrap(): childProcess.ChildProcess;
-  /** Pauses the conversion, returns `true` if the operation succeeds or `false` if it fails. */
+  /** Suspends the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   pause(): boolean;
   /** Resumes the conversion, returns `true` if the operation succeeds or `false` if it fails. */
   resume(): boolean;
